@@ -1,0 +1,20 @@
+FROM node:20-alpine AS build
+
+WORKDIR /app
+
+COPY web/package*.json ./
+RUN npm install
+
+COPY web/ ./
+RUN npm run build
+
+FROM nginx:alpine
+COPY --from=build /app/dist /usr/share/nginx/html
+COPY docker/nginx.conf /etc/nginx/conf.d/default.conf.template
+COPY docker/nginx-entrypoint.sh /docker-entrypoint.d/nginx-entrypoint.sh
+RUN chmod +x /docker-entrypoint.d/nginx-entrypoint.sh
+
+ENV DOMAIN=localhost
+
+EXPOSE 80 443
+CMD ["sh", "/docker-entrypoint.d/nginx-entrypoint.sh"]

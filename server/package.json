@@ -1,0 +1,17 @@
+{
+  "name": "ppt-ai-server",
+  "version": "1.0.0",
+  "description": "C++ AI Teaching System - Backend",
+  "main": "app.js",
+  "scripts": {
+    "start": "node app.js",
+    "dev": "node --watch app.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "axios": "^1.6.0",
+    "dotenv": "^16.3.1",
+    "cors": "^2.8.5",
+    "marked": "^11.0.0"
+  }
+}

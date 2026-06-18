@@ -1,0 +1,16 @@
+node_modules
+web/node_modules
+server/node_modules
+.git
+.gitignore
+*.log
+logs
+.DS_Store
+.env
+server/.env
+docker/docker-compose*.yml
+office-addin
+dist
+web/dist
+DEPLOY.md
+README.md

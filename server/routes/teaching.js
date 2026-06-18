@@ -1,0 +1,15 @@
+const express = require('express');
+const router = express.Router();
+const {
+  handleGenerateExample,
+  handleGenerateExercise,
+  handleGenerateScript,
+  handleDebugCode,
+} = require('../controllers/teachingController');
+
+router.post('/generate-example', handleGenerateExample);
+router.post('/generate-exercise', handleGenerateExercise);
+router.post('/generate-script', handleGenerateScript);
+router.post('/debug-code', handleDebugCode);
+
+module.exports = router;

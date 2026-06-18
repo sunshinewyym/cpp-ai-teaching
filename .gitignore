@@ -1,0 +1,32 @@
+# Dependencies
+node_modules/
+server/node_modules/
+web/node_modules/
+
+# Build output
+dist/
+web/dist/
+
+# Environment & secrets
+.env
+server/.env
+*.pem
+ssl/
+
+# Logs
+*.log
+logs/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+
+# Docker build artifacts
+docker/docker-compose.override.yml
+
+# Office Add-in cache
+office-addin/node_modules/
