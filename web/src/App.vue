@@ -106,6 +106,23 @@
               </span>
             </div>
             <div class="oj-problem-body" v-html="renderMd(ojCurrentProblem.description)"></div>
+            <!-- 样例区域 -->
+            <div v-if="ojCurrentProblem.samples && ojCurrentProblem.samples.length > 0" class="oj-samples-display">
+              <div v-for="(s, i) in ojCurrentProblem.samples" :key="i" class="oj-sample-block">
+                <div class="oj-sample-io">
+                  <div class="oj-sample-label">样例输入 {{ i + 1 }}</div>
+                  <pre class="oj-sample-pre">{{ s[0] }}</pre>
+                </div>
+                <div class="oj-sample-io">
+                  <div class="oj-sample-label">样例输出 {{ i + 1 }}</div>
+                  <pre class="oj-sample-pre">{{ s[1] }}</pre>
+                </div>
+              </div>
+            </div>
+            <!-- 题目链接 -->
+            <div v-if="ojCurrentProblem.url" class="oj-problem-link">
+              <a :href="ojCurrentProblem.url" target="_blank">🔗 在 OJ 中查看</a>
+            </div>
           </div>
           <div v-else class="oj-placeholder">
             <p>👈 输入题号或点击左侧题目</p>
@@ -797,6 +814,60 @@ body {
 .oj-problem-body :deep(code) { font-family: Consolas, Monaco, monospace; font-size: 12px; }
 .oj-problem-body :deep(p) { margin: 4px 0; }
 .oj-problem-body :deep(strong) { color: #d97706; }
+.oj-problem-body :deep(ul) { padding-left: 18px; margin: 4px 0; }
+.oj-problem-body :deep(li) { margin: 3px 0; }
+
+.oj-samples-display {
+  padding: 10px 16px;
+  border-top: 1px solid #e2e8f0;
+}
+
+.oj-sample-block {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.oj-sample-io {
+  flex: 1;
+  min-width: 0;
+}
+
+.oj-sample-label {
+  font-size: 11px;
+  font-weight: 700;
+  color: #4f46e5;
+  margin-bottom: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.oj-sample-pre {
+  background: #f1f5f9;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  padding: 10px 12px;
+  font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+  font-size: 13px;
+  line-height: 1.5;
+  color: #1e293b;
+  white-space: pre-wrap;
+  word-break: break-all;
+  margin: 0;
+  overflow-x: auto;
+}
+
+.oj-problem-link {
+  padding: 8px 16px 12px;
+  font-size: 12px;
+}
+
+.oj-problem-link a {
+  color: #4f46e5;
+  text-decoration: none;
+}
+
+.oj-problem-link a:hover { text-decoration: underline; }
 
 .oj-placeholder {
   flex: 1;
