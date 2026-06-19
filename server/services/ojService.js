@@ -1,4 +1,5 @@
 const axios = require('axios');
+const cheerio = require('cheerio');
 
 // 内置示例题目
 const BUILTIN_PROBLEMS = [
@@ -34,30 +35,40 @@ async function fetchProblem(problemId) {
       return { error: `题号 ${problemId} 不存在`, status: 404 };
     }
 
-    // 提取标题
-    const titleMatch = html.match(/<title>(\d+)\s*-\s*(.+?)\s*-\s*东方博宜OJ<\/title>/);
-    const title = titleMatch ? titleMatch[2] : `题目 ${problemId}`;
+    const $ = cheerio.load(html);
 
-    // 提取各节内容
+    // 提取标题
+    const titleText = $('title').text();
+    const titleMatch = titleText.match(/(\d+)\s*-\s*(.+?)\s*-\s*东方博宜OJ/);
+    const title = titleMatch ? titleMatch[2].trim() : `题目 ${problemId}`;
+
+    // 提取各节内容（用 cheerio 正确处理嵌套 div）
     const sections = [];
-    const sectionRegex = /<div class="content-header"><span>(.+?)<\/span><\/div>\s*<div class="content-wrapper">\s*<div class="markdown">([\s\S]*?)<\/div>\s*<\/div>/g;
-    let match;
-    while ((match = sectionRegex.exec(html)) !== null) {
-      const sectionTitle = match[1].trim();
-      const content = htmlToText(match[2]);
-      sections.push(`## ${sectionTitle}\n${content}`);
-    }
+    $('.content-header').each((i, header) => {
+      const sectionTitle = $(header).find('span').text().trim();
+      const wrapper = $(header).next('.content-wrapper');
+      const markdownDiv = wrapper.find('.markdown');
+      const content = htmlToText(markdownDiv.html() || '');
+      if (content) {
+        sections.push(`## ${sectionTitle}\n${content}`);
+      }
+    });
 
     // 提取样例
     const samples = [];
-    const sampleRegex = /<div class="input"><h4>输入<\/h4><pre>([\s\S]*?)<\/pre><\/div>\s*<div class="output"><h4>输出<\/h4><pre>([\s\S]*?)<\/pre><\/div>/g;
-    while ((match = sampleRegex.exec(html)) !== null) {
-      samples.push([decodeEntities(match[1]), decodeEntities(match[2])]);
-    }
+    $('.sample-test .input').each((i, inputEl) => {
+      const inputText = $(inputEl).find('pre').text();
+      const outputEl = $(inputEl).next('.output');
+      const outputText = outputEl.find('pre').text();
+      if (inputText || outputText) {
+        samples.push([inputText.trim(), outputText.trim()]);
+      }
+    });
 
     // 提取限制信息
-    const timeMatch = html.match(/时间限制:\s*(\d+)/);
-    const memMatch = html.match(/内存限制:\s*(\d+)/);
+    const bodyText = $.text();
+    const timeMatch = bodyText.match(/时间限制:\s*(\d+)/);
+    const memMatch = bodyText.match(/内存限制:\s*(\d+)/);
 
     const problem = {
       id: problemId,
