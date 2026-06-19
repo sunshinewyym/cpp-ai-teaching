@@ -36,7 +36,7 @@ const tools = [
   { id: 'opener', icon: '💡', label: '算法脑洞' },
   { id: 'edge-case', icon: '🧨', label: '边界盲盒' },
   { id: 'teaching', icon: '🧑‍🏫', label: '教学工具' },
-  { id: 'debug', icon: '🔍', label: '代码调试' },
+  { id: 'debug', icon: '🔍', label: 'OJ 调试' },
 ];
 </script>
 
