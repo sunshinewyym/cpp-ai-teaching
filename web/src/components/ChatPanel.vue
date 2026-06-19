@@ -135,7 +135,8 @@ async function send() {
   width: 36px;
   height: 36px;
   border-radius: 50%;
-  background: #1e1e3a;
+  background: #f1f5f9;
+  border: 1px solid #e2e8f0;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -144,28 +145,33 @@ async function send() {
 }
 
 .message.user .message-avatar {
-  background: #2a1a4a;
+  background: #eef2ff;
+  border-color: #c7d2fe;
 }
 
 .message-content {
   max-width: 75%;
   padding: 12px 16px;
   border-radius: 12px;
-  background: #1a1a2e;
+  background: #fff;
+  border: 1px solid #e2e8f0;
   line-height: 1.7;
   font-size: 14px;
+  color: #1e293b;
 }
 
 .message.user .message-content {
-  background: #1a2a4a;
+  background: #eef2ff;
+  border-color: #c7d2fe;
 }
 
 .message-content :deep(pre) {
-  background: #0d0d1a;
+  background: #f1f5f9;
   padding: 12px;
   border-radius: 6px;
   overflow-x: auto;
   margin: 8px 0;
+  border: 1px solid #e2e8f0;
 }
 
 .message-content :deep(code) {
@@ -174,13 +180,13 @@ async function send() {
 }
 
 .message-content :deep(strong) {
-  color: #ffd700;
+  color: #d97706;
 }
 
 .chat-input-area {
   padding: 12px 24px 16px;
-  background: #12122a;
-  border-top: 1px solid #2a2a4a;
+  background: #fff;
+  border-top: 1px solid #e2e8f0;
 }
 
 .topic-bar {
@@ -190,16 +196,16 @@ async function send() {
 .topic-input {
   width: 100%;
   padding: 6px 12px;
-  background: #1a1a2e;
-  border: 1px solid #2a2a4a;
+  background: #fff;
+  border: 1px solid #e2e8f0;
   border-radius: 6px;
-  color: #e0e0e0;
+  color: #1e293b;
   font-size: 12px;
 }
 
 .topic-input:focus {
   outline: none;
-  border-color: #00d4ff;
+  border-color: #4f46e5;
 }
 
 .input-row {
@@ -210,10 +216,10 @@ async function send() {
 .input-row textarea {
   flex: 1;
   padding: 10px 14px;
-  background: #1a1a2e;
-  border: 1px solid #2a2a4a;
+  background: #fff;
+  border: 1px solid #e2e8f0;
   border-radius: 8px;
-  color: #e0e0e0;
+  color: #1e293b;
   font-size: 14px;
   font-family: inherit;
   resize: none;
@@ -221,12 +227,13 @@ async function send() {
 
 .input-row textarea:focus {
   outline: none;
-  border-color: #00d4ff;
+  border-color: #4f46e5;
+  box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.1);
 }
 
 .input-row button {
   padding: 10px 24px;
-  background: linear-gradient(135deg, #00d4ff, #0099cc);
+  background: linear-gradient(135deg, #4f46e5, #6366f1);
   border: none;
   border-radius: 8px;
   color: #fff;

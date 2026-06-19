@@ -251,13 +251,14 @@ async function abortAgent() {
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  background: #f8fafc;
 }
 
 /* 配置区 */
 .agent-config {
   padding: 12px 20px;
-  background: #12122a;
-  border-bottom: 1px solid #2a2a4a;
+  background: #fff;
+  border-bottom: 1px solid #e2e8f0;
 }
 
 .config-header {
@@ -273,11 +274,16 @@ async function abortAgent() {
 
 .type-select, .mode-select, .steps-input {
   padding: 6px 10px;
-  background: #1a1a2e;
-  border: 1px solid #2a2a4a;
+  background: #fff;
+  border: 1px solid #e2e8f0;
   border-radius: 6px;
-  color: #e0e0e0;
+  color: #1e293b;
   font-size: 13px;
+}
+
+.type-select:focus, .mode-select:focus, .steps-input:focus {
+  outline: none;
+  border-color: #4f46e5;
 }
 
 .type-select { flex: 1; }
@@ -288,23 +294,23 @@ async function abortAgent() {
   align-items: center;
   gap: 8px;
   font-size: 12px;
-  color: #888;
+  color: #64748b;
 }
 
 /* 任务输入 */
 .task-input-area {
   padding: 12px 20px;
-  background: #12122a;
-  border-bottom: 1px solid #2a2a4a;
+  background: #fff;
+  border-bottom: 1px solid #e2e8f0;
 }
 
 .task-input-area textarea {
   width: 100%;
   padding: 10px 14px;
-  background: #1a1a2e;
-  border: 1px solid #2a2a4a;
+  background: #fff;
+  border: 1px solid #e2e8f0;
   border-radius: 8px;
-  color: #e0e0e0;
+  color: #1e293b;
   font-size: 13px;
   font-family: inherit;
   resize: vertical;
@@ -313,7 +319,8 @@ async function abortAgent() {
 
 .task-input-area textarea:focus {
   outline: none;
-  border-color: #00d4ff;
+  border-color: #4f46e5;
+  box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.1);
 }
 
 .task-actions {
@@ -325,7 +332,7 @@ async function abortAgent() {
 .btn-start {
   flex: 1;
   padding: 10px;
-  background: linear-gradient(135deg, #00d4ff, #0099cc);
+  background: linear-gradient(135deg, #4f46e5, #6366f1);
   border: none;
   border-radius: 8px;
   color: #fff;
@@ -338,7 +345,7 @@ async function abortAgent() {
 
 .btn-abort {
   padding: 10px 20px;
-  background: #cc3333;
+  background: #ef4444;
   border: none;
   border-radius: 8px;
   color: #fff;
@@ -356,13 +363,13 @@ async function abortAgent() {
 .trace-empty {
   text-align: center;
   padding: 60px 20px;
-  color: #555;
+  color: #94a3b8;
 }
 
 .trace-empty .hint {
   margin-top: 12px;
   font-size: 12px;
-  color: #444;
+  color: #94a3b8;
   font-style: italic;
 }
 
@@ -397,7 +404,7 @@ async function abortAgent() {
 
 .step-label {
   font-size: 11px;
-  color: #00d4ff;
+  color: #4f46e5;
   font-weight: 600;
   margin-bottom: 4px;
   text-transform: uppercase;
@@ -407,67 +414,69 @@ async function abortAgent() {
 .step-text {
   font-size: 13px;
   line-height: 1.6;
-  color: #ccc;
+  color: #334155;
 }
 
 .step-params, .step-output {
-  background: #0d0d1a;
+  background: #f1f5f9;
   padding: 8px 12px;
   border-radius: 6px;
   font-size: 12px;
   font-family: 'Consolas', 'Monaco', monospace;
   line-height: 1.5;
   overflow-x: auto;
-  color: #aaa;
+  color: #475569;
   margin-top: 4px;
   white-space: pre-wrap;
   word-break: break-all;
+  border: 1px solid #e2e8f0;
 }
 
 .step-think .step-text {
-  color: #b8b8d0;
-  border-left: 3px solid #3a3a6a;
+  color: #475569;
+  border-left: 3px solid #a5b4fc;
   padding-left: 10px;
 }
 
 .step-reflect .step-text {
-  color: #a0a0c0;
-  border-left: 3px solid #6a4a3a;
+  color: #475569;
+  border-left: 3px solid #fbbf24;
   padding-left: 10px;
 }
 
 .step-complete .step-text {
-  color: #e0e0e0;
-  background: #1a2a1a;
-  border: 1px solid #2a4a2a;
+  color: #166534;
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
   border-radius: 8px;
   padding: 12px;
 }
 
 .step-error .step-text {
-  color: #ff6b6b;
-  background: #2a1a1a;
-  border: 1px solid #4a2a2a;
+  color: #dc2626;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
   border-radius: 6px;
   padding: 8px 12px;
 }
 
 .step-session .step-text {
-  color: #888;
+  color: #94a3b8;
   font-size: 12px;
 }
 
 /* markdown 样式 */
 .markdown-body :deep(h1), .markdown-body :deep(h2), .markdown-body :deep(h3) {
-  color: #00d4ff;
+  color: #4f46e5;
   margin: 10px 0 6px;
 }
 
 .markdown-body :deep(pre) {
-  background: #0d0d1a;
+  background: #f1f5f9;
   padding: 10px;
   border-radius: 6px;
   overflow-x: auto;
+  border: 1px solid #e2e8f0;
 }
 
 .markdown-body :deep(code) {
@@ -475,17 +484,17 @@ async function abortAgent() {
   font-size: 12px;
 }
 
-.markdown-body :deep(strong) { color: #ffd700; }
+.markdown-body :deep(strong) { color: #d97706; }
 .markdown-body :deep(p) { margin: 4px 0; }
 
 /* 底部统计 */
 .agent-stats {
   padding: 8px 20px;
-  background: #12122a;
-  border-top: 1px solid #2a2a4a;
+  background: #fff;
+  border-top: 1px solid #e2e8f0;
   display: flex;
   gap: 16px;
   font-size: 11px;
-  color: #555;
+  color: #94a3b8;
 }
 </style>

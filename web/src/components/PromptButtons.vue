@@ -39,18 +39,18 @@ const buttons = [
   align-items: center;
   gap: 8px;
   padding: 10px 18px;
-  background: #1a1a2e;
-  border: 1px solid #2a2a4a;
+  background: #fff;
+  border: 1px solid #e2e8f0;
   border-radius: 10px;
-  color: #e0e0e0;
+  color: #1e293b;
   font-size: 14px;
   cursor: pointer;
   transition: all 0.15s;
 }
 
 .prompt-btn:hover:not(:disabled) {
-  border-color: #00d4ff;
-  background: #1a2a4a;
+  border-color: #4f46e5;
+  background: #eef2ff;
 }
 
 .prompt-btn:disabled {

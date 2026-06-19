@@ -21,7 +21,7 @@
         v-else-if="activeTool === 'agent'"
       />
 
-      <!-- Opener mode (算法脑洞) -->
+      <!-- Opener mode (算法脑洞 - 浅色主题) -->
       <div v-else-if="activeTool === 'opener'" class="tool-panel">
         <h2>💡 AI 算法脑洞</h2>
         <div class="input-row">
@@ -30,16 +30,14 @@
             {{ loading ? '生成中...' : '💡 生成脑洞' }}
           </button>
         </div>
-        <!-- 脑洞展示（大字号，适合上课投影） -->
+        <!-- 脑洞展示 -->
         <div v-if="brainstormData" class="brainstorm-result">
-          <div class="brainstorm-card group relative overflow-hidden rounded-2xl border border-slate-700/50 bg-slate-800/80 backdrop-blur-sm shadow-xl shadow-slate-950/50 border-l-4 border-l-indigo-500">
-            <!-- 顶部装饰 -->
-            <div class="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-indigo-500/50 to-transparent"></div>
+          <div class="brainstorm-card group relative overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-xl shadow-slate-200/60 border-l-4 border-l-indigo-500">
             <!-- 标题栏 -->
-            <div class="px-8 py-5 border-b border-slate-700/40">
-              <h3 class="text-5xl font-bold text-white tracking-wide flex items-center gap-4">
+            <div class="px-8 py-5 border-b border-slate-100 bg-gradient-to-r from-indigo-50 to-cyan-50">
+              <h3 class="text-5xl font-bold tracking-wide flex items-center gap-4">
                 <span class="text-6xl">🎬</span>
-                <span class="bg-gradient-to-r from-cyan-400 to-indigo-400 bg-clip-text text-transparent">3分钟脑洞</span>
+                <span class="text-indigo-600">3分钟脑洞</span>
               </h3>
             </div>
             <!-- Markdown 内容区 -->
@@ -217,8 +215,8 @@ async function debugCodeAction() {
 
 body {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
-  background: #0f0f23;
-  color: #e0e0e0;
+  background: #f8fafc;
+  color: #1e293b;
 }
 
 .app-container {
@@ -231,12 +229,13 @@ body {
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  background: #f8fafc;
 }
 
 .app-header {
   padding: 12px 24px;
-  background: #1a1a2e;
-  border-bottom: 1px solid #2a2a4a;
+  background: #fff;
+  border-bottom: 1px solid #e2e8f0;
   display: flex;
   align-items: center;
   gap: 16px;
@@ -244,13 +243,13 @@ body {
 
 .app-header h1 {
   font-size: 18px;
-  color: #00d4ff;
+  color: #4f46e5;
 }
 
 .course-label {
   font-size: 13px;
-  color: #888;
-  background: #1e1e3a;
+  color: #64748b;
+  background: #f1f5f9;
   padding: 4px 12px;
   border-radius: 12px;
 }
@@ -266,17 +265,17 @@ body {
 
 .tool-panel h2 {
   font-size: 16px;
-  color: #00d4ff;
+  color: #4f46e5;
 }
 
 .tool-panel input,
 .tool-panel textarea {
   width: 100%;
   padding: 10px 14px;
-  background: #1a1a2e;
-  border: 1px solid #2a2a4a;
+  background: #fff;
+  border: 1px solid #e2e8f0;
   border-radius: 8px;
-  color: #e0e0e0;
+  color: #1e293b;
   font-size: 14px;
   font-family: inherit;
   resize: vertical;
@@ -285,7 +284,8 @@ body {
 .tool-panel input:focus,
 .tool-panel textarea:focus {
   outline: none;
-  border-color: #00d4ff;
+  border-color: #4f46e5;
+  box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.1);
 }
 
 .code-input {
@@ -296,7 +296,7 @@ body {
 
 .tool-panel button {
   padding: 10px 20px;
-  background: linear-gradient(135deg, #00d4ff, #0099cc);
+  background: linear-gradient(135deg, #4f46e5, #6366f1);
   border: none;
   border-radius: 8px;
   color: #fff;
@@ -318,7 +318,8 @@ body {
 .result-area {
   flex: 1;
   padding: 16px;
-  background: #1a1a2e;
+  background: #fff;
+  border: 1px solid #e2e8f0;
   border-radius: 8px;
   overflow-y: auto;
   line-height: 1.7;
@@ -326,16 +327,17 @@ body {
 }
 
 .result-area h1, .result-area h2, .result-area h3 {
-  color: #00d4ff;
+  color: #4f46e5;
   margin: 16px 0 8px;
 }
 
 .result-area pre {
-  background: #0d0d1a;
+  background: #f1f5f9;
   padding: 14px;
   border-radius: 6px;
   overflow-x: auto;
   margin: 10px 0;
+  border: 1px solid #e2e8f0;
 }
 
 .result-area code {
@@ -348,7 +350,7 @@ body {
 }
 
 .result-area strong {
-  color: #ffd700;
+  color: #d97706;
 }
 
 .input-row {
@@ -375,19 +377,8 @@ body {
   align-self: flex-start;
 }
 
-/* prose 排版覆盖 */
-.brainstorm-content :deep(.prose),
-.brainstorm-content.prose {
-  --tw-prose-body: #d1d5db;
-  --tw-prose-bold: #fbbf24;
-  --tw-prose-links: #60a5fa;
-  --tw-prose-bullets: #6366f1;
-  --tw-prose-counters: #94a3b8;
-  --tw-prose-li-marker: #6366f1;
-}
-
 .brainstorm-content :deep(strong) {
-  color: #fbbf24;
+  color: #d97706;
   font-weight: 800;
 }
 
@@ -400,12 +391,12 @@ body {
   position: relative;
   padding: 16px 20px 16px 60px;
   margin: 16px 0;
-  background: rgba(99, 102, 241, 0.06);
+  background: #f0f5ff;
   border-radius: 12px;
   border-left: 4px solid #6366f1;
   font-size: 6rem !important;
   line-height: 10 !important;
-  color: #e5e7eb;
+  color: #1e293b;
 }
 
 .brainstorm-content :deep(li)::before {
@@ -419,7 +410,7 @@ body {
 .brainstorm-content :deep(p) {
   font-size: 6rem !important;
   line-height: 10 !important;
-  color: #e5e7eb;
+  color: #1e293b;
 }
 
 .brainstorm-content :deep(h3) {
@@ -427,7 +418,7 @@ body {
 }
 
 .brainstorm-content :deep(em) {
-  color: #fb923c;
+  color: #ea580c;
   font-style: normal;
 }
 </style>

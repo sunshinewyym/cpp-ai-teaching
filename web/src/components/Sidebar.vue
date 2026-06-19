@@ -43,8 +43,8 @@ const tools = [
 <style scoped>
 .sidebar {
   width: 200px;
-  background: #12122a;
-  border-right: 1px solid #2a2a4a;
+  background: #fff;
+  border-right: 1px solid #e2e8f0;
   display: flex;
   flex-direction: column;
   flex-shrink: 0;
@@ -55,7 +55,7 @@ const tools = [
   display: flex;
   align-items: center;
   gap: 10px;
-  border-bottom: 1px solid #2a2a4a;
+  border-bottom: 1px solid #e2e8f0;
 }
 
 .logo-icon {
@@ -65,7 +65,7 @@ const tools = [
 .logo-text {
   font-size: 16px;
   font-weight: 700;
-  color: #00d4ff;
+  color: #4f46e5;
 }
 
 .sidebar-nav {
@@ -84,7 +84,7 @@ const tools = [
   border: none;
   background: transparent;
   border-radius: 8px;
-  color: #999;
+  color: #64748b;
   font-size: 14px;
   cursor: pointer;
   transition: all 0.15s;
@@ -92,13 +92,13 @@ const tools = [
 }
 
 .nav-item:hover {
-  background: #1e1e3a;
-  color: #e0e0e0;
+  background: #f1f5f9;
+  color: #1e293b;
 }
 
 .nav-item.active {
-  background: #1a2a4a;
-  color: #00d4ff;
+  background: #eef2ff;
+  color: #4f46e5;
 }
 
 .nav-icon {
@@ -107,12 +107,12 @@ const tools = [
 
 .sidebar-footer {
   padding: 12px 16px;
-  border-top: 1px solid #2a2a4a;
+  border-top: 1px solid #e2e8f0;
 }
 
 .version {
   font-size: 11px;
-  color: #555;
+  color: #94a3b8;
   text-align: center;
 }
 </style>
