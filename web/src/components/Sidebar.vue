@@ -32,8 +32,8 @@ defineEmits(['select-tool']);
 
 const tools = [
   { id: 'chat', icon: '💬', label: 'AI 对话' },
-  { id: 'agent', icon: '🤖', label: 'AI Agent' },
-  { id: 'opener', icon: '💡', label: '算法脑洞' },
+  { id: 'opener', icon: '⚡', label: '算法速懂卡' },
+  { id: 'visualizer', icon: '🎞️', label: '算法可视化' },
   { id: 'edge-case', icon: '🧨', label: '边界盲盒' },
   { id: 'teaching', icon: '🧑‍🏫', label: '教学工具' },
   { id: 'debug', icon: '🔍', label: '代码调试' },

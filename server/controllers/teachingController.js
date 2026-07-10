@@ -43,36 +43,45 @@ async function handleGenerateExample(req, res) {
  * Generate practice exercises
  */
 async function handleGenerateExercise(req, res) {
-  const { courseTopic, count = 3, style = 'fill-blank' } = req.body;
+  const { courseTopic, count = 10 } = req.body;
 
   if (!courseTopic) {
     return res.status(400).json({ error: 'courseTopic is required' });
   }
 
-  const styleMap = {
-    'fill-blank': '填空题',
-    'choice': '选择题',
-    'code': '编程题',
-    'mixed': '混合题型',
-  };
-
-  const prompt = `请为"${courseTopic}"生成${count}道${styleMap[style] || '练习题'}。
+  const prompt = `请围绕"${courseTopic}"生成${count}道 C++ / 算法单项选择题。
 
 ## 要求
-1. 适合10-14岁学生
+1. 适合六年级、初中生
 2. 由浅入深排列
-3. 每题配答案和解析
-4. 编程题配C++参考代码
+3. 每题 4 个选项，只有 1 个正确答案
+4. 每题必须给出简短解析
+5. 题目尽量贴近"${courseTopic}"的核心概念、易错点、实际代码判断
+6. 只输出合法 JSON，不要 markdown，不要代码块，不要额外说明
+7. 题干或选项需要展示 C++ 代码时，在对应字符串中使用 \`\`\`cpp 和 \`\`\` 包裹代码；保留换行和缩进，JSON 中换行必须写成 \n
 
-## 输出格式
-### 练习X
-**题目**：...
-**答案**：...
-**解析**：...
+JSON 格式：
+{
+  "title": "${courseTopic} 选择题自测",
+  "questions": [
+    {
+      "id": 1,
+      "question": "题干",
+      "options": [
+        { "id": "A", "text": "选项A" },
+        { "id": "B", "text": "选项B" },
+        { "id": "C", "text": "选项C" },
+        { "id": "D", "text": "选项D" }
+      ],
+      "correctAnswer": "A",
+      "explanation": "解析"
+    }
+  ]
+}
 
 请出题：`;
 
-  await streamResponse(res, prompt, 0.7, 3000);
+  await streamResponse(res, prompt, 0.5, 4096);
 }
 
 /**

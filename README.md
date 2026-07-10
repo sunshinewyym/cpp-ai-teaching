@@ -1,33 +1,64 @@
-# 🎓 C++ AI 教学系统
+# C++ AI 教学系统
 
-PowerPoint 内嵌 AI 助教平台 — 面向 CSP-J / 少儿编程 / 机器人课程
+面向 C++、算法与竞赛入门教学的 AI 助教平台。它把教师备课和学生自学中常见的提问、算法理解、边界测试、练习与可视化演示集中在一个中文界面中。
 
-## 🧱 系统架构
+## 功能
 
+- AI 对话：根据课程主题回答 C++ 与算法问题。
+- 算法速懂卡：用分卡形式生成核心思路、关键步骤、模板、易错点和算法小故事。
+- 边界盲盒：输入题目描述或四位 OJ 题号，生成边界、特殊数据、复杂度和样例陷阱测试点；支持数学公式显示。
+- 教学工具：生成例题、讲稿、代码调试建议，以及 10 道可即时判题和查看解析的选择题。
+- 算法可视化：逐步演示递归调用与返回、二分查找、冒泡排序、BFS 走迷宫和 DFS 寻找迷宫出口。
+- 等待提示：AI 生成期间展示中文 AI、编程新闻或历史上的今天内容。
+
+## 技术栈
+
+- 前端：Vue 3、Vite、Marked、Highlight.js
+- 后端：Node.js、Express、DeepSeek API
+- 通信：普通 JSON 接口与 SSE 流式输出
+
+## 项目结构
+
+```text
+server/                 Express 后端与 DeepSeek 调用
+  controllers/          对话、算法卡、边界测试、教学工具、新闻控制器
+  routes/               API 路由
+  prompts/              教学提示词
+  services/             模型、题目与知识库服务
+  public/panel.html     可嵌入 PPT 的独立教学面板
+web/                    Vue 前端
+  src/components/       对话、侧边栏、算法可视化等组件
+knowledge/              课程知识库
+docker/                 Docker、Nginx 与 PM2 部署文件
 ```
-ppt-ai-system/
-├── server/          Node.js 后端（Express + DeepSeek API）
-├── web/             Vue3 前端（Vite + SSE 流式输出）
-├── office-addin/    PowerPoint TaskPane 插件
-├── prompts/         Prompt 工程中心（按课程自动路由）
-├── knowledge/       课程知识库（RAG 基础版）
-├── docker/          Docker + Nginx + PM2 部署文件
-└── README.md
-```
 
-## 🚀 快速启动
+## 快速开始
 
-### 1. 后端
+### 1. 配置后端
 
 ```bash
 cd server
 cp .env.example .env
-# 编辑 .env，填入 DeepSeek API Key
 npm install
 npm run dev
 ```
 
-### 2. 前端
+在 `server/.env` 中填写 DeepSeek 配置：
+
+```env
+DEEPSEEK_API_KEY=你的_API_Key
+DEEPSEEK_BASE_URL=https://api.deepseek.com
+DEEPSEEK_MODEL=deepseek-chat
+PORT=3000
+```
+
+Windows PowerShell 可使用：
+
+```powershell
+Copy-Item .env.example .env
+```
+
+### 2. 启动前端
 
 ```bash
 cd web
@@ -35,57 +66,44 @@ npm install
 npm run dev
 ```
 
-访问 http://localhost:5173
+默认访问 `http://localhost:5173`。开发环境会将 `/api` 请求代理到 `http://localhost:3000`。
 
-### 3. Docker 部署
+### 3. 局域网访问
 
-```bash
-cd docker
-docker-compose up -d
-```
-
-### 4. PM2 部署
+前端使用本机网卡监听：
 
 ```bash
-npm install -g pm2
-pm2 start docker/ecosystem.config.js
+npm run dev -- --host 0.0.0.0
 ```
 
-## 📡 API 列表
+局域网设备可通过 `http://你的电脑IP:5173` 访问。后端也需要保持运行；如更换后端端口，可设置 `VITE_API_PROXY_TARGET`。
 
-| 端点 | 方法 | 功能 |
-|------|------|------|
-| `/api/chat` | POST (SSE) | AI 多轮对话 |
-| `/api/opener` | POST (SSE) | 算法脑洞生成 |
-| `/api/edge-case` | POST (SSE) | 边界盲盒 |
-| `/api/generate-example` | POST (SSE) | 生成例题 |
-| `/api/generate-exercise` | POST (SSE) | 生成练习题 |
-| `/api/generate-script` | POST (SSE) | 生成讲稿 |
-| `/api/debug-code` | POST (SSE) | 代码调试分析 |
+## 接口
+
+| 接口 | 方法 | 用途 |
+| --- | --- | --- |
 | `/api/health` | GET | 健康检查 |
+| `/api/chat` | POST | AI 对话，SSE 流式输出 |
+| `/api/opener` | POST | 生成算法速懂卡 |
+| `/api/edge-case` | POST | 生成边界测试点 |
+| `/api/edge-case/problem/:id` | GET | 获取四位 OJ 题号对应题目 |
+| `/api/news` | GET | 获取中文等待内容 |
+| `/api/generate-example` | POST | 生成教学例题 |
+| `/api/generate-exercise` | POST | 生成 10 道选择练习题 |
+| `/api/generate-script` | POST | 生成课程讲稿 |
+| `/api/debug-code` | POST | 分析代码问题 |
 
-## 🔐 安全
+## 构建
 
-- DeepSeek API Key 仅存于后端 `.env`
-- 前端所有请求走 `/api/*` 代理
-- 前端禁止直连 AI 服务
-
-## 📦 PPT 中使用
-
-### 推荐方式：插入链接
-
-在 PPT 中插入超链接，指向 AI 面板地址：
-
+```bash
+cd web
+npm run build
 ```
-http://yourdomain.com/panel.html?topic=单调栈
-```
 
-- 点击链接后浏览器打开独立 AI 助教页面
-- `?topic=` 参数会自动填充课程主题
-- 支持所有功能：对话、脑洞、盲盒、例题、讲稿、调试
+构建产物位于 `web/dist`。
 
-### 备选方式：Office Add-in
+## 安全说明
 
-1. 在 PowerPoint 中选择 **插入 → 我的加载项 → 共享文件夹**
-2. 指向 `office-addin/manifest.xml`
-3. 点击工具栏的 **AI 教学** 按钮打开侧边栏
+- 不要提交 `server/.env` 或任何 API Key。
+- 前端通过 `/api/*` 访问后端，不应在浏览器中保存模型密钥。
+- 对外部署时请配置 HTTPS、访问控制与反向代理。

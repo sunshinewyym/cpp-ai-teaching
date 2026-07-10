@@ -7,7 +7,7 @@ const chatRouter = require('./routes/chat');
 const openerRouter = require('./routes/opener');
 const edgeCaseRouter = require('./routes/edgeCase');
 const teachingRouter = require('./routes/teaching');
-const agentRouter = require('./routes/agent');
+const newsRouter = require('./routes/news');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -28,7 +28,7 @@ app.use('/api/chat', chatRouter);
 app.use('/api/opener', openerRouter);
 app.use('/api/edge-case', edgeCaseRouter);
 app.use('/api', teachingRouter);
-app.use('/api/agent', agentRouter);
+app.use('/api/news', newsRouter);
 
 // Error handler
 app.use((err, req, res, next) => {
