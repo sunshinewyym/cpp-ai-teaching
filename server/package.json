@@ -5,7 +5,8 @@
   "main": "app.js",
   "scripts": {
     "start": "node app.js",
-    "dev": "node --watch app.js"
+    "dev": "node --watch app.js",
+    "test:copy-style": "node services/copyStyle.test.js"
   },
   "dependencies": {
     "express": "^4.18.2",

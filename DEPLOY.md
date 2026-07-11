@@ -22,6 +22,7 @@
 - **附录**
   - [11. 常见问题排查](#11-常见问题排查)
   - [12. 命令速查表](#12-命令速查表)
+  - [13. 代码调试执行环境](#13-代码调试执行环境)
 
 ---
 
@@ -64,11 +65,11 @@ npm --version    # 应显示 10.x.x 或更高
 
 ```bash
 # 方式一：Git 克隆
-git clone https://github.com/你的用户名/ppt-ai-system.git
-cd ppt-ai-system
+git clone https://github.com/你的用户名/cpp-ai-teaching.git
+cd cpp-ai-teaching
 
 # 方式二：下载 ZIP 解压后进入目录
-cd ppt-ai-system
+cd cpp-ai-teaching
 ```
 
 ## 4. 配置 DeepSeek API Key
@@ -114,7 +115,7 @@ npm install
 npm run dev
 ```
 
-浏览器打开 **http://localhost:5173** 即可使用。
+浏览器打开 **http://localhost:5174** 即可使用。
 
 ## 7. 在 PPT 中使用
 
@@ -241,12 +242,12 @@ SSH 登录服务器后，执行：
 
 ```bash
 # 下载部署脚本（方式一：从 Git 仓库获取）
-git clone https://github.com/你的用户名/ppt-ai-system.git /opt/ppt-ai-system
-cd /opt/ppt-ai-system
+git clone https://github.com/你的用户名/cpp-ai-teaching.git /opt/cpp-ai-teaching
+cd /opt/cpp-ai-teaching
 bash deploy.sh
 ```
 
-或者手动上传项目代码到 `/opt/ppt-ai-system` 后执行 `bash deploy.sh`。
+或者手动上传项目代码到 `/opt/cpp-ai-teaching` 后执行 `bash deploy.sh`。
 
 **脚本会自动完成：**
 1. ✅ 检查系统环境（内存不足自动创建 swap）
@@ -278,7 +279,7 @@ apt update
 apt install -y docker-ce docker-ce-cli containerd.io docker-compose-plugin
 
 # 2. 进入项目目录
-cd /opt/ppt-ai-system
+cd /opt/cpp-ai-teaching
 
 # 3. 配置环境变量
 cp server/.env.example server/.env
@@ -340,12 +341,12 @@ echo "0 3 * * * root certbot renew --quiet && docker compose restart web" \
 
 ```bash
 # 本地执行
-scp yourdomain.com_nginx/* root@你的IP:/opt/ppt-ai-system/ssl/
+scp yourdomain.com_nginx/* root@你的IP:/opt/cpp-ai-teaching/ssl/
 ```
 
 4. 服务器上执行：
 ```bash
-cd /opt/ppt-ai-system
+cd /opt/cpp-ai-teaching
 cp docker/docker-compose.ssl.yml docker/docker-compose.override.yml
 docker compose up -d
 ```
@@ -372,7 +373,7 @@ sed -i 's|https://localhost:3000|https://yourdomain.com|g' office-addin/manifest
 ### 8.10 日常运维
 
 ```bash
-cd /opt/ppt-ai-system
+cd /opt/cpp-ai-teaching
 
 # 查看日志（实时跟踪）
 docker compose logs -f
@@ -420,11 +421,11 @@ docker system df
 ```bash
 # 备份配置和数据
 tar czf /tmp/ppt-ai-backup-$(date +%Y%m%d).tar.gz \
-  /opt/ppt-ai-system/server/.env \
-  /opt/ppt-ai-system/knowledge/ \
-  /opt/ppt-ai-system/server/prompts/ \
-  /opt/ppt-ai-system/ssl/ \
-  /opt/ppt-ai-system/.env
+  /opt/cpp-ai-teaching/server/.env \
+  /opt/cpp-ai-teaching/knowledge/ \
+  /opt/cpp-ai-teaching/server/prompts/ \
+  /opt/cpp-ai-teaching/ssl/ \
+  /opt/cpp-ai-teaching/.env
 
 # 下载备份到本地（在本地执行）
 scp root@你的IP:/tmp/ppt-ai-backup-*.tar.gz ./
@@ -443,7 +444,7 @@ scp root@你的IP:/tmp/ppt-ai-backup-*.tar.gz ./
 npm install -g pm2
 
 # 启动后端
-cd /opt/ppt-ai-system
+cd /opt/cpp-ai-teaching
 pm2 start docker/ecosystem.config.js
 
 # 常用命令
@@ -467,7 +468,7 @@ pm2 save
 apt install -y nginx
 
 # 构建前端
-cd /opt/ppt-ai-system/web
+cd /opt/cpp-ai-teaching/web
 npm install
 npm run build
 
@@ -616,16 +617,81 @@ docker compose restart web
 | 备份 | `tar czf backup.tar.gz server/.env knowledge/ server/prompts/ ssl/` |
 | 申请 SSL | `certbot certonly --standalone -d domain.com` |
 
-### API 端点
+---
+
+## 13. 代码调试执行环境
+
+### 13.1 当前本地开发：使用本机 g++
+
+代码调试功能在本地开发阶段使用 `server/services/codeRunner.js` 调用本机 `g++`，完成：
+
+- 编译学生提交的 C++17 代码。
+- 使用 OJ 题面中的样例输入运行程序并对比输出。
+- 返回编译错误、运行错误、超时或样例不通过信息。
+
+开始使用前确认编译器可用：
+
+```bash
+g++ --version
+```
+
+这套方式只用于本机开发和受控课堂演示。不要把当前直接执行 `g++` 的实现开放到公网或局域网环境，因为学生代码是不可信输入。
+
+### 13.2 正式部署：Docker + 自建 Judge0 CE
+
+生产环境不在业务 `server` 容器中安装或执行 `g++`。代码执行统一迁移到 Docker 部署的 Judge0 CE，由业务后端通过内网 API 提交代码和样例。
+
+目标结构：
+
+```text
+浏览器 -> Nginx -> 教学系统 server -> Judge0 CE API/Worker -> 隔离执行环境
+```
+
+Judge0 CE 负责 C++ 编译、运行、时间/内存限制和执行结果；教学系统只负责题面样例、调试引导和结果展示。Judge0 不应映射公网端口，应只加入项目的 Docker 内部网络。
+
+部署 Judge0 前，需要准备：
+
+- Docker 与 Docker Compose。
+- Judge0 CE、PostgreSQL 和 Redis 容器。
+- 业务后端访问 Judge0 的内部地址和认证令牌。
+- 时间、内存、输出大小和并发任务限制。
+
+建议在 `server/.env` 中预留以下生产配置，密钥不要提交到仓库：
+
+```env
+CODE_RUNNER=judge0
+JUDGE0_URL=http://judge0:2358
+JUDGE0_AUTH_TOKEN=replace_with_private_token
+JUDGE0_CPP_LANGUAGE_ID=54
+JUDGE0_TIME_LIMIT=2
+JUDGE0_MEMORY_LIMIT=128000
+```
+
+后续迁移时，将 `server/services/codeRunner.js` 替换为 Judge0 API 客户端即可，前端和“编译 -> 样例验证 -> 边界盲盒引导”的教学流程保持不变。
+
+### 13.3 Judge0 上线验收清单
+
+- [ ] Judge0 API 仅能从 `server` 容器访问，公网无法直接访问。
+- [ ] C++17 编译错误能返回给教学系统。
+- [ ] 单样例、多样例和只有输出的样例都能按预期处理。
+- [ ] 死循环会在时间限制内终止，超大输出会被限制。
+- [ ] 业务容器内没有额外安装 `g++`，不直接执行学生代码。
+- [ ] 代码调试模块仍只给编译信息和调试引导，绝不返回完整解题代码。
+
+Judge0 官方文档：<https://ce.judge0.com/docs>
+
+### 当前 API 端点
 
 | 端点 | 方法 | 功能 |
 |------|------|------|
 | `/api/health` | GET | 健康检查 |
 | `/api/chat` | POST | AI 对话（SSE） |
-| `/api/opener` | POST | 算法脑洞（SSE） |
+| `/api/opener` | POST | 算法速懂卡（SSE） |
 | `/api/edge-case` | POST | 边界盲盒（SSE） |
-| `/api/agent/execute` | POST | Agent 自主执行（SSE） |
-| `/api/generate-example` | POST | 生成例题（SSE） |
+| `/api/edge-case/problem/:id` | GET | 按 4 位题号获取题面和样例 |
+| `/api/news` | GET | 获取中文新闻和历史上的今天 |
 | `/api/generate-exercise` | POST | 生成练习题（SSE） |
 | `/api/generate-script` | POST | 生成讲稿（SSE） |
 | `/api/debug-code` | POST | 代码调试（SSE） |
+
+教学工具中的「题目列表」由前端内置题号索引提供，不调用 AI，也不依赖外部数据文件。旧版 `/api/generate-example` 仅作为兼容接口保留，当前主界面不再使用。

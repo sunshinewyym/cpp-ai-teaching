@@ -3,9 +3,10 @@
  * @param {string} url - API endpoint
  * @param {object} body - request body
  * @param {function} onChunk - callback for each text chunk
+ * @param {function} onEvent - callback for the full SSE payload
  * @returns {Promise<void>}
  */
-export async function streamPost(url, body, onChunk) {
+export async function streamPost(url, body, onChunk, onEvent = () => {}) {
   try {
     const response = await fetch(url, {
       method: 'POST',
@@ -37,6 +38,7 @@ export async function streamPost(url, body, onChunk) {
           if (data === '[DONE]') return;
           try {
             const parsed = JSON.parse(data);
+            onEvent(parsed);
             if (parsed.content) {
               onChunk(parsed.content);
             }

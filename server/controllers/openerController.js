@@ -10,10 +10,10 @@ async function handleOpener(req, res) {
   const { courseTopic } = req.body;
 
   if (!courseTopic) {
-    return res.status(400).json({ error: 'courseTopic is required' });
+    return res.status(400).json({ error: '请输入算法或题型。' });
   }
 
-  const prompt = `你是一名 C++ 一线竞赛教学老师。请为"${courseTopic}"生成一张"算法速懂卡"，目标是让六年级、初中生或备课老师最快抓住算法。
+  const prompt = `你是一名 C++ 一线竞赛教学老师。请为「${courseTopic}」生成一张「算法速懂卡」，目标是让六年级、初中生或备课老师最快抓住算法。
 
 要求：
 - 用中文，大白话，生动但不绕弯。
@@ -21,7 +21,7 @@ async function handleOpener(req, res) {
 - 不要强行用文字手算复杂过程，复杂算法优先讲直觉、使用场景和背景故事。
 - C++ 模板要短，只给最小可背版本。
 - 算法小故事可以讲起源、历史背景、相关趣事；如果没有可靠起源，就讲它为什么会被发明出来。
-- 不要输出 markdown 外壳，不要输出多余解释，只输出合法 JSON。
+- 不要输出 Markdown 外壳，不要输出多余解释，只输出合法 JSON。
 
 JSON 格式：
 {
@@ -35,7 +35,7 @@ JSON 格式：
   "story": "算法小故事：讲讲这个算法的起源、相关趣事、为什么它会出现，适合学生听"
 }
 
-请为"${courseTopic}"生成完整输出：`;
+请为「${courseTopic}」生成完整输出：`;
 
   setupSSE(res);
 

@@ -61,12 +61,12 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Micr
 <body>
 <div class="header">
   <h1>🎓 C++ AI 教学助手</h1>
-  <input id="topicInput" placeholder="课程主题（自动从URL读取）"/>
+  <input id="topicInput" placeholder="课程主题（自动从 URL 读取）"/>
   <span id="statusText" style="font-size:11px;color:#555"></span>
 </div>
 <div class="tabs">
   <button class="active" onclick="switchTab('chat')">💬 对话</button>
-  <button onclick="switchTab('brain')">💡 脑洞</button>
+  <button onclick="switchTab('brain')">⚡ 速懂卡</button>
   <button onclick="switchTab('edge')">🧨 盲盒</button>
   <button onclick="switchTab('example')">📝 例题</button>
   <button onclick="switchTab('exercise')">✏️ 练习</button>
@@ -77,18 +77,18 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Micr
   <!-- Chat -->
   <div id="tab-chat" class="chat-area"></div>
   <div id="input-chat" class="input-area">
-    <textarea id="chatInput" rows="2" placeholder="输入问题... (Enter发送)"></textarea>
+    <textarea id="chatInput" rows="2" placeholder="输入问题（Enter 发送）"></textarea>
     <button id="chatBtn" onclick="sendChat()">发送</button>
   </div>
   <!-- Brain -->
   <div id="tab-brain" class="brain-area hidden"></div>
   <div id="input-brain" class="input-area hidden">
-    <button onclick="genBrain()" id="brainBtn">💡 生成脑洞</button>
+    <button onclick="genBrain()" id="brainBtn">⚡ 生成速懂卡</button>
   </div>
   <!-- Edge -->
   <div id="tab-edge" class="chat-area hidden"></div>
   <div id="input-edge" class="input-area hidden">
-    <textarea id="edgeInput" rows="3" placeholder="粘贴题目描述..."></textarea>
+    <textarea id="edgeInput" rows="3" placeholder="粘贴题目描述"></textarea>
     <button onclick="genEdge()" id="edgeBtn">🧨 生成</button>
   </div>
   <!-- Example -->
@@ -109,11 +109,11 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Micr
   <!-- Debug -->
   <div id="tab-debug" class="chat-area hidden"></div>
   <div id="input-debug" class="input-area hidden">
-    <textarea id="debugInput" rows="5" placeholder="粘贴C++代码..."></textarea>
+    <textarea id="debugInput" rows="5" placeholder="粘贴 C++ 代码"></textarea>
     <button onclick="genDebug()" id="debugBtn">🔍 分析</button>
   </div>
 </div>
-<div class="status">💡 从 PPT 链接打开此页面，课程主题会自动填充。API: <span id="apiBase"></span></div>
+<div class="status">💡 从 PPT 链接打开此页面，课程主题会自动填充。API：<span id="apiBase"></span></div>
 
 <script>
 const API = location.origin;
@@ -141,7 +141,7 @@ function switchTab(tab) {
 }
 
 function getTopic() {
-  return document.getElementById('topicInput').value.trim() || 'C++编程';
+  return document.getElementById('topicInput').value.trim() || 'C++ 编程';
 }
 
 function setStatus(msg) {
@@ -204,7 +204,7 @@ async function streamPost(url, body, onChunk) {
       }
     }
   } catch(e) {
-    onChunk('\n⚠️ 网络错误: '+e.message);
+    onChunk('\n⚠️ 网络错误：'+e.message);
   }
 }
 
@@ -217,9 +217,9 @@ async function sendChat() {
   const container = document.getElementById('tab-chat');
   appendMsg(container, 'user', renderMd(msg));
   chatHistory.push({role:'user', content:msg});
-  const div = appendMsg(container, 'assistant', '⏳ 思考中...');
+  const div = appendMsg(container, 'assistant', '⏳ 思考中……');
   let content = '';
-  setStatus('AI 思考中...');
+  setStatus('AI 思考中……');
   await streamPost('/api/chat', {
     message: msg,
     history: chatHistory.slice(0,-1),
@@ -240,11 +240,11 @@ document.getElementById('chatInput').addEventListener('keydown', e => {
 // Brainstorm
 async function genBrain() {
   const btn = document.getElementById('brainBtn');
-  btn.disabled = true; btn.textContent = '生成中...';
+  btn.disabled = true; btn.textContent = '生成中……';
   const container = document.getElementById('tab-brain');
   container.innerHTML = '';
   let raw = '';
-  setStatus('正在生成脑洞...');
+  setStatus('正在生成速懂卡……');
   await streamPost('/api/opener', {courseTopic: getTopic()}, chunk => { raw += chunk; });
   try {
     let cleaned = raw.trim();
@@ -255,7 +255,7 @@ async function genBrain() {
         <div class="px-8 py-5 border-b border-slate-100 bg-gradient-to-r from-indigo-50 to-cyan-50">
           <h3 class="text-5xl font-bold tracking-wide flex items-center gap-4" style="margin:0">
             <span class="text-6xl">🎬</span>
-            <span class="text-indigo-600">3分钟脑洞</span>
+            <span class="text-indigo-600">算法速懂卡</span>
           </h3>
         </div>
         <div class="px-8 py-6 brain-content">${renderMd(data.brainstorm)}</div>
@@ -263,7 +263,7 @@ async function genBrain() {
   } catch(e) {
     container.innerHTML = '<div class="msg"><div class="msg-av">🤖</div><div class="msg-bd">'+renderMd(raw)+'</div></div>';
   }
-  btn.disabled = false; btn.textContent = '💡 生成脑洞';
+  btn.disabled = false; btn.textContent = '⚡ 生成速懂卡';
   setStatus('');
 }
 
@@ -275,9 +275,9 @@ async function genEdge() {
   btn.disabled = true;
   const container = document.getElementById('tab-edge');
   appendMsg(container, 'user', '题目：'+problem.slice(0,200));
-  const div = appendMsg(container, 'assistant', '⏳ 分析边界...');
+  const div = appendMsg(container, 'assistant', '⏳ 分析边界……');
   let content = '';
-  setStatus('生成边界测试点...');
+  setStatus('生成边界测试点……');
   await streamPost('/api/edge-case', {problem}, chunk => {
     content += chunk;
     div.innerHTML = renderMd(content);
@@ -295,9 +295,9 @@ async function genTeach(endpoint) {
   const btnId = endpoint.includes('example') ? 'exBtn' : endpoint.includes('exercise') ? 'exerBtn' : 'scriptBtn';
   const btn = document.getElementById(btnId);
   btn.disabled = true;
-  const div = appendMsg(container, 'assistant', '⏳ 生成中...');
+  const div = appendMsg(container, 'assistant', '⏳ 生成中……');
   let content = '';
-  setStatus('生成中...');
+  setStatus('生成中……');
   const body = {courseTopic: topic};
   if (endpoint.includes('exercise')) { body.count=3; body.style='mixed'; }
   if (endpoint.includes('script')) { body.duration=45; }
@@ -318,9 +318,9 @@ async function genDebug() {
   btn.disabled = true;
   const container = document.getElementById('tab-debug');
   appendMsg(container, 'user', '<pre><code>'+code.replace(/</g,'&lt;')+'</code></pre>');
-  const div = appendMsg(container, 'assistant', '⏳ 分析代码...');
+  const div = appendMsg(container, 'assistant', '⏳ 分析代码……');
   let content = '';
-  setStatus('代码分析中...');
+  setStatus('代码分析中……');
   await streamPost('/api/debug-code', {code}, chunk => {
     content += chunk;
     div.innerHTML = renderMd(content);

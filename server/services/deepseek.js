@@ -1,4 +1,5 @@
 const axios = require('axios');
+const { applyCopyStyle } = require('./copyStyle');
 
 const BASE_URL = process.env.DEEPSEEK_BASE_URL || 'https://api.deepseek.com';
 const API_KEY = process.env.DEEPSEEK_API_KEY;
@@ -12,7 +13,7 @@ async function chat(messages, options = {}) {
     `${BASE_URL}/v1/chat/completions`,
     {
       model: options.model || MODEL,
-      messages,
+      messages: applyCopyStyle(messages),
       temperature: options.temperature ?? 0.7,
       max_tokens: options.max_tokens ?? 2048,
     },
@@ -21,6 +22,7 @@ async function chat(messages, options = {}) {
         Authorization: `Bearer ${API_KEY}`,
         'Content-Type': 'application/json',
       },
+      timeout: options.timeout ?? 60000,
       responseType: 'json',
       responseEncoding: 'utf-8',
     }
@@ -36,7 +38,7 @@ async function chatStream(messages, options = {}) {
     `${BASE_URL}/v1/chat/completions`,
     {
       model: options.model || MODEL,
-      messages,
+      messages: applyCopyStyle(messages),
       temperature: options.temperature ?? 0.7,
       max_tokens: options.max_tokens ?? 2048,
       stream: true,

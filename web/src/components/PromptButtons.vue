@@ -21,7 +21,7 @@ defineProps({
 defineEmits(['action']);
 
 const buttons = [
-  { action: 'generate-example', icon: '📝', label: '生成例题' },
+  { action: 'show-problem-list', icon: '📚', label: '题目列表' },
   { action: 'generate-exercise', icon: '✏️', label: '生成练习题' },
   { action: 'generate-script', icon: '📋', label: '生成讲稿' },
 ];

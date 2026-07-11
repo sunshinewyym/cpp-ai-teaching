@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>二叉树遍历 - 丝滑曲线增强版</title>
+    <style>
+        :root {
+            --bg-color: #ffffff;
+            --text-color: #2c3e50;
+            --line-color: #3498db; 
+            --edge-color: #e8e8e8; 
+            --node-stroke: #2c3e50; 
+            
+            --color-pre: #2ecc71;  /* 前序：绿 */
+            --color-in: #f1c40f;   /* 中序：黄 */
+            --color-post: #e74c3c; /* 后序：红 */
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-family: "PingFang SC", "Microsoft YaHei", sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            user-select: none;
+        }
+
+        .header { margin-top: 30px; text-align: center; }
+        .header h1 { margin: 0; font-size: 24px; color: #2c3e50; letter-spacing: 1px; }
+
+        .controls-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 20px 0;
+            gap: 12px;
+        }
+
+        .controls {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+            padding: 10px 25px;
+            background: #ffffff;
+            border-radius: 50px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            border: 1px solid #f0f0f0;
+        }
+
+        .hint-box {
+            font-size: 16px;
+            font-weight: 600;
+            padding: 5px 20px;
+            border-radius: 20px;
+            background-color: #f9f9f9;
+            color: #7f8c8d;
+            border: 1px solid #eee;
+            transition: all 0.3s ease;
+        }
+
+        .hint-box span.root-highlight {
+            color: #2c3e50;
+            text-decoration: underline;
+            font-size: 1.1em;
+            margin: 0 2px;
+        }
+
+        .radio-group {
+            display: flex;
+            gap: 15px;
+            border-right: 1px solid #eee;
+            padding-right: 20px;
+        }
+
+        .radio-label {
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-weight: 600;
+            font-size: 15px;
+            transition: opacity 0.2s;
+        }
+        .radio-label:hover { opacity: 0.7; }
+
+        button {
+            background: white;
+            border: 1px solid #ddd;
+            padding: 7px 18px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: 0.2s;
+        }
+        button:hover { border-color: var(--line-color); color: var(--line-color); }
+        .btn-primary { background: var(--line-color); color: white; border: none; }
+        .btn-primary:hover { background: #2980b9; color: white; }
+        button:disabled { opacity: 0.3; cursor: not-allowed; }
+
+        .canvas-container { position: relative; background: white; margin-bottom: 10px; }
+
+        .result-panel {
+            font-size: 32px;
+            font-weight: bold;
+            padding: 20px 40px;
+            min-width: 500px;
+            text-align: center;
+            letter-spacing: 12px;
+            min-height: 48px;
+            color: #333;
+            border-top: 2px solid #fafafa;
+        }
+
+        /* SVG 样式 */
+        .edge { stroke: var(--edge-color); stroke-width: 3; stroke-linecap: round; }
+        .node-circle { fill: white; stroke: var(--node-stroke); stroke-width: 3; } 
+        .node-text { fill: var(--text-color); font-size: 18px; font-weight: bold; text-anchor: middle; dominant-baseline: central; }
+        .rope-path {
+            fill: none;
+            stroke: var(--line-color);
+            stroke-width: 4.5;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            transition: stroke-dashoffset 0.1s linear;
+        }
+
+        .dot { r: 5; stroke: #fff; stroke-width: 1.5; opacity: 0.15; transition: 0.3s; }
+        .dot.active { r: 10; opacity: 1; filter: drop-shadow(0 2px 5px rgba(0,0,0,0.15)); }
+
+        .mode-pre .dot-pre { fill: var(--color-pre); display: block; }
+        .mode-pre .dot-in, .mode-pre .dot-post { display: none; }
+        .mode-in .dot-in { fill: var(--color-in); display: block; }
+        .mode-in .dot-pre, .mode-in .dot-post { display: none; }
+        .mode-post .dot-post { fill: var(--color-post); display: block; }
+        .mode-post .dot-pre, .mode-post .dot-in { display: none; }
+
+        html, body { height: 100%; overflow: hidden; }
+        body { display: grid; width: 100%; grid-template-rows: auto auto minmax(0, 1fr) auto; align-items: stretch; justify-items: center; }
+        .header { margin-top: 10px; }
+        .controls-container { margin: 8px 0; gap: 6px; }
+        .canvas-container { width: min(800px, 100%); height: 100%; min-height: 0; margin-bottom: 0; overflow: hidden; }
+        .canvas-container .hint-box { position: absolute; z-index: 2; top: 12px; left: 16px; white-space: nowrap; }
+        #tree-svg { width: 100%; height: 100%; }
+        .result-panel { min-height: 32px; padding: 8px 40px; font-size: 26px; }
+
+    </style>
+</head>
+<body class="mode-pre">
+
+    <div class="header">
+        <h1>二叉树遍历：平滑绕圈法</h1>
+    </div>
+
+    <div class="controls-container">
+        <div class="controls">
+            <div class="radio-group">
+                <label class="radio-label" style="color: var(--color-pre);">
+                    <input type="radio" name="traversal" value="pre" checked> 前序
+                </label>
+                <label class="radio-label" style="color: #b7950b;">
+                    <input type="radio" name="traversal" value="in"> 中序
+                </label>
+                <label class="radio-label" style="color: var(--color-post);">
+                    <input type="radio" name="traversal" value="post"> 后序
+                </label>
+            </div>
+            <div class="btn-group">
+                <button id="btn-next" class="btn-primary">下一步</button>
+                <button id="btn-auto">自动播放</button>
+                <button id="btn-reset">重置</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="canvas-container">
+        <div id="mode-hint" class="hint-box">
+            口诀：<span class="root-highlight">根</span> → 左 → 右
+        </div>
+        <svg id="tree-svg" width="800" height="500" viewBox="0 0 800 500"></svg>
+    </div>
+
+    <div class="result-panel" id="result-display"></div>
+
+    <script>
+        const treeData = {
+            id: 'A', x: 400, y: 80,
+            left: {
+                id: 'B', x: 230, y: 210,
+                left: { id: 'D', x: 130, y: 370, left: null, right: null },
+                right: { id: 'E', x: 330, y: 370, left: null, right: null }
+            },
+            right: {
+                id: 'C', x: 570, y: 210,
+                left: { id: 'F', x: 470, y: 370, left: null, right: null },
+                right: { id: 'G', x: 670, y: 370, left: null, right: null }
+            }
+        };
+
+        const R = 25;       
+        const OFFSET = 48; 
+
+        const hints = {
+            pre: '口诀：<span class="root-highlight">根</span> → 左 → 右',
+            in: '口诀：左 → <span class="root-highlight">根</span> → 右',
+            post: '口诀：左 → 右 → <span class="root-highlight">根</span>'
+        };
+
+        let waypoints = [];    
+        let finePoints = [];   
+        let distances = [];    
+        let totalPathLength = 0;
+        let targets = [];      
+        let currentStep = 0;
+        let selectedMode = 'pre';
+        let autoPlayInterval = null;
+
+        const svg = document.getElementById('tree-svg');
+        const resultDisplay = document.getElementById('result-display');
+        const modeHint = document.getElementById('mode-hint');
+        const btnNext = document.getElementById('btn-next');
+        const btnAuto = document.getElementById('btn-auto');
+        const btnReset = document.getElementById('btn-reset');
+
+        function initSVG() {
+            svg.innerHTML = '';
+            const gEdges = createSVG('g');
+            const gRope = createSVG('path', { id: 'rope', class: 'rope-path' });
+            const gDots = createSVG('g');
+            const gNodes = createSVG('g');
+            svg.append(gEdges, gRope, gDots, gNodes);
+
+            function draw(node) {
+                if (!node) return;
+                if (node.left) {
+                    gEdges.append(createSVG('line', { class: 'edge', x1: node.x, y1: node.y, x2: node.left.x, y2: node.left.y }));
+                    draw(node.left);
+                }
+                if (node.right) {
+                    gEdges.append(createSVG('line', { class: 'edge', x1: node.x, y1: node.y, x2: node.right.x, y2: node.right.y }));
+                    draw(node.right);
+                }
+                
+                gDots.append(createSVG('circle', { id: `dot-${node.id}-pre`, class: `dot dot-pre`, cx: node.x - OFFSET, cy: node.y }));
+                gDots.append(createSVG('circle', { id: `dot-${node.id}-in`, class: `dot dot-in`, cx: node.x, cy: node.y + OFFSET }));
+                gDots.append(createSVG('circle', { id: `dot-${node.id}-post`, class: `dot dot-post`, cx: node.x + OFFSET, cy: node.y }));
+
+                gNodes.append(createSVG('circle', { class: 'node-circle', cx: node.x, cy: node.y, r: R }));
+                const t = createSVG('text', { class: 'node-text', x: node.x, y: node.y });
+                t.textContent = node.id;
+                gNodes.append(t);
+            }
+            draw(treeData);
+        }
+
+        function generateSmoothPath() {
+            waypoints = [];
+            
+            function add(x, y, type = 'wrap', node = null) {
+                waypoints.push({ x, y, type, node });
+            }
+
+            function build(node) {
+                if (!node) return;
+
+                add(node.x - OFFSET, node.y - OFFSET * 0.4); 
+                add(node.x - OFFSET, node.y, 'pre', node);   
+
+                if (node.left) {
+                    add(node.x - OFFSET, node.y + OFFSET * 0.4); 
+                    build(node.left);                           
+                    add(node.x - OFFSET * 0.4, node.y + OFFSET); 
+                } else {
+                    add(node.x - OFFSET, node.y + OFFSET); 
+                }
+
+                add(node.x, node.y + OFFSET, 'in', node);    
+
+                if (node.right) {
+                    add(node.x + OFFSET * 0.4, node.y + OFFSET); 
+                    build(node.right);                           
+                    add(node.x + OFFSET, node.y + OFFSET * 0.4); 
+                } else {
+                    add(node.x + OFFSET, node.y + OFFSET);
+                }
+
+                add(node.x + OFFSET, node.y, 'post', node);  
+                add(node.x + OFFSET, node.y - OFFSET * 0.4); 
+            }
+
+            add(treeData.x - OFFSET, treeData.y - OFFSET);
+            build(treeData);
+            add(treeData.x + OFFSET, treeData.y - OFFSET);
+
+            finePoints = [];
+            finePoints.push(waypoints[0]);
+
+            for (let i = 1; i < waypoints.length - 1; i++) {
+                const prev = waypoints[i-1];
+                const curr = waypoints[i];
+                const next = waypoints[i+1];
+
+                for (let t = 0.1; t <= 1.0; t += 0.1) {
+                    const m1x = (prev.x + curr.x) / 2;
+                    const m1y = (prev.y + curr.y) / 2;
+                    const m2x = (curr.x + next.x) / 2;
+                    const m2y = (curr.y + next.y) / 2;
+
+                    const invT = 1 - t;
+                    const fx = invT * invT * m1x + 2 * invT * t * curr.x + t * t * m2x;
+                    const fy = invT * invT * m1y + 2 * invT * t * curr.y + t * t * m2y;
+                    
+                    let type = 'wrap';
+                    let node = null;
+                    if (t >= 0.5 && t < 0.6) { 
+                        type = curr.type;
+                        node = curr.node;
+                    }
+                    finePoints.push({ x: fx, y: fy, type, node });
+                }
+            }
+            finePoints.push(waypoints[waypoints.length - 1]);
+
+            let d = `M ${finePoints[0].x} ${finePoints[0].y}`;
+            distances = [0];
+            let len = 0;
+            for (let i = 1; i < finePoints.length; i++) {
+                d += ` L ${finePoints[i].x} ${finePoints[i].y}`;
+                len += Math.hypot(finePoints[i].x - finePoints[i-1].x, finePoints[i].y - finePoints[i-1].y);
+                distances.push(len);
+            }
+            totalPathLength = len;
+            const rope = document.getElementById('rope');
+            rope.setAttribute('d', d);
+            rope.style.strokeDasharray = totalPathLength;
+            rope.style.strokeDashoffset = totalPathLength;
+        }
+
+        function reset() {
+            stopAuto();
+            currentStep = 0;
+            resultDisplay.innerHTML = '';
+            document.querySelectorAll('.dot.active').forEach(d => d.classList.remove('active'));
+            const rope = document.getElementById('rope');
+            rope.style.transition = 'none';
+            rope.style.strokeDashoffset = totalPathLength;
+            rope.getBoundingClientRect();
+            rope.style.transition = 'stroke-dashoffset 0.3s linear';
+            
+            targets = [];
+            finePoints.forEach((p, i) => { 
+                if (p.type === selectedMode) {
+                    if (targets.length === 0 || targets[targets.length-1].p.node !== p.node) {
+                        targets.push({ p, i }); 
+                    }
+                }
+            });
+            btnNext.disabled = false;
+            btnAuto.disabled = false;
+        }
+
+        function next() {
+            if (currentStep < targets.length) {
+                const target = targets[currentStep];
+                document.getElementById('rope').style.strokeDashoffset = totalPathLength - distances[target.i];
+
+                setTimeout(() => {
+                    const dot = document.getElementById(`dot-${target.p.node.id}-${selectedMode}`);
+                    if (dot) dot.classList.add('active');
+                    const span = document.createElement('span');
+                    span.textContent = target.p.node.id + " ";
+                    resultDisplay.appendChild(span);
+                }, 250);
+                currentStep++;
+            } else if (currentStep === targets.length) {
+                document.getElementById('rope').style.strokeDashoffset = 0;
+                btnNext.disabled = true;
+                btnAuto.disabled = true;
+                stopAuto();
+            }
+        }
+
+        function toggleAuto() {
+            if (autoPlayInterval) { stopAuto(); }
+            else {
+                btnAuto.textContent = "■";
+                btnAuto.title = "停止播放";
+                btnNext.disabled = true;
+                autoPlayInterval = setInterval(() => {
+                    if (currentStep <= targets.length) next();
+                    else stopAuto();
+                }, 800);
+            }
+        }
+
+        function stopAuto() {
+            clearInterval(autoPlayInterval);
+            autoPlayInterval = null;
+            btnAuto.textContent = "自动播放";
+            btnAuto.title = "自动播放";
+            if (currentStep <= targets.length) btnNext.disabled = false;
+        }
+
+        function createSVG(tag, attrs = {}) {
+            const el = document.createElementNS('http://www.w3.org/2000/svg', tag);
+            for (let k in attrs) el.setAttribute(k, attrs[k]);
+            return el;
+        }
+
+        document.querySelectorAll('input[name="traversal"]').forEach(r => {
+            r.addEventListener('change', e => {
+                selectedMode = e.target.value;
+                document.body.className = `mode-${selectedMode}`;
+                
+                // 更新口诀提示
+                modeHint.innerHTML = hints[selectedMode];
+                
+                reset();
+            });
+        });
+
+        btnNext.addEventListener('click', next);
+        btnAuto.addEventListener('click', toggleAuto);
+        btnReset.addEventListener('click', reset);
+
+        initSVG();
+        generateSmoothPath();
+        reset();
+    </script>
+</body>
+</html>

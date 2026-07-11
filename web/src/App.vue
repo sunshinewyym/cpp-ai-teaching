@@ -2,7 +2,7 @@
   <div class="app-container">
     <Sidebar
       :activeTool="activeTool"
-      @select-tool="activeTool = $event"
+      @select-tool="switchTool"
     />
     <div class="main-content">
       <header class="app-header">
@@ -13,7 +13,6 @@
       <!-- Chat mode -->
       <ChatPanel
         v-if="activeTool === 'chat'"
-        :courseTopic="courseTopic"
       />
 
       <!-- Algorithm quick card -->
@@ -22,11 +21,11 @@
         <div class="input-row">
           <input
             v-model="courseTopic"
-            placeholder="输入算法或题型，如：单调栈、BFS、DP背包"
+            placeholder="输入算法或题型，例如：单调栈、BFS、DP 背包"
             @keydown.enter="generateOpener"
           />
           <button @click="generateOpener" :disabled="loading">
-            {{ loading ? '生成中...' : '⚡ 生成速懂卡' }}
+            {{ loading ? '生成中……' : '⚡ 生成速懂卡' }}
           </button>
         </div>
         <div v-if="loading && !brainstormData" class="loading-card">
@@ -36,7 +35,7 @@
             <span></span>
           </div>
           <div class="loading-copy">
-            <strong>AI 正在把算法揉成一张速懂卡...</strong>
+            <strong>AI 正在把算法整理成一张速懂卡……</strong>
             <div class="tip-window">
               <div class="tip-track">
                 <p v-for="tip in loadingTips" :key="tip">{{ tip }}</p>
@@ -45,10 +44,15 @@
           </div>
         </div>
         <div v-if="brainstormData" class="brainstorm-result">
-          <div class="brainstorm-card group relative overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-xl shadow-slate-200/60 border-l-4 border-l-indigo-500">
+          <div class="quick-card-actions">
+            <button @click="exportAlgorithmCards" :disabled="exportingCard" class="export-card-button">
+              {{ exportingCard ? '正在导出……' : '🖼️ 导出全部卡牌' }}
+            </button>
+          </div>
+          <div ref="quickCardExport" class="brainstorm-card group relative overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-xl shadow-slate-200/60 border-l-4 border-l-indigo-500">
             <div class="px-8 py-5 border-b border-slate-100 bg-gradient-to-r from-indigo-50 to-cyan-50">
-              <h3 class="text-5xl font-bold tracking-wide flex items-center gap-4">
-                <span class="text-6xl">⚡</span>
+              <h3 class="text-4xl font-bold tracking-wide flex items-center gap-4">
+                <span class="text-5xl">⚡</span>
                 <span class="text-indigo-600">{{ brainstormData.title || '算法速懂卡' }}</span>
               </h3>
             </div>
@@ -73,6 +77,8 @@
 
       <AlgorithmVisualizer v-else-if="activeTool === 'visualizer'" />
 
+      <CspPractice v-else-if="activeTool === 'csp-practice'" />
+
       <!-- Edge case mode -->
       <div v-else-if="activeTool === 'edge-case'" class="tool-panel">
         <h2>🧨 边界盲盒</h2>
@@ -83,23 +89,26 @@
         <div class="input-row">
           <input
             v-model="problemId"
-            placeholder="输入4位题号，如：1000"
+            placeholder="输入 4 位题号，例如：1000"
             maxlength="4"
             @keydown.enter="fetchProblemById"
           />
           <button @click="fetchProblemById" :disabled="fetchingProblem || !/^\d{4}$/.test(problemId)">
-            {{ fetchingProblem ? '获取中...' : '🔎 获取题面' }}
+            {{ fetchingProblem ? '获取中……' : '🔎 获取题面' }}
           </button>
         </div>
         <p class="helper-text" v-if="problemFetchMessage">{{ problemFetchMessage }}</p>
-        <textarea v-model="problemDesc" placeholder="粘贴题目描述..." rows="4"></textarea>
-        <textarea v-model="studentCode" placeholder="粘贴学生代码（可选）..." rows="6"></textarea>
+        <textarea v-model="problemDesc" placeholder="粘贴题目描述" rows="4"></textarea>
+        <textarea v-model="studentCode" placeholder="粘贴学生代码（可选）" rows="6"></textarea>
         <button @click="generateEdgeCases" :disabled="loading">
-          {{ loading ? '生成中...' : '🧨 生成边界测试点' }}
+          {{ loading ? '生成中……' : '🧨 生成边界测试点' }}
         </button>
-        <div v-if="loading && (!result || teachingAction === 'generate-exercise')" class="loading-card compact">
+        <div v-if="loading && !edgeCases.length" class="loading-card compact">
           <div class="loading-orbit"><span></span><span></span><span></span></div>
-          <div class="loading-copy"><strong>AI 正在翻找边界角落...</strong></div>
+          <div class="loading-copy">
+            <strong>AI 正在检查容易遗漏的边界……</strong>
+            <div class="tip-window"><div class="tip-track"><p v-for="tip in loadingTips" :key="tip">{{ tip }}</p></div></div>
+          </div>
         </div>
         <div v-if="edgeCases.length" class="edge-case-grid">
           <section v-for="(item, index) in edgeCases" :key="index" class="edge-case-card">
@@ -125,21 +134,25 @@
       <div v-else-if="activeTool === 'teaching'" class="tool-panel">
         <h2>🧑‍🏫 教学工具箱</h2>
         <div class="input-row">
-          <input v-model="courseTopic" placeholder="课程主题，如：单调栈、BFS、DP背包" />
+          <input v-model="courseTopic" placeholder="课程主题，例如：单调栈、BFS、DP 背包" />
         </div>
         <PromptButtons @action="handleTeachingAction" :loading="loading" />
         <div v-if="loading && !result" class="loading-card compact">
           <div class="loading-orbit"><span></span><span></span><span></span></div>
-          <div class="loading-copy"><strong>AI 正在整理课堂节奏...</strong></div>
+          <div class="loading-copy">
+            <strong>AI 正在整理课堂节奏……</strong>
+            <div class="tip-window"><div class="tip-track"><p v-for="tip in loadingTips" :key="tip">{{ tip }}</p></div></div>
+          </div>
         </div>
-        <div v-if="quizQuestions.length" class="quiz-shell">
+        <ProblemList v-if="teachingAction === 'show-problem-list'" />
+        <div v-else-if="quizQuestions.length" class="quiz-shell">
           <header class="quiz-header">
             <div>
               <h3>{{ quizTitle }}</h3>
               <p>共 {{ quizQuestions.length }} 道单项选择题，点击选项后立即显示对错和解析。</p>
             </div>
             <div class="quiz-score">
-              <span>进度 {{ answeredCount }} / {{ quizQuestions.length }}</span>
+              <span>进度 {{ answeredCount }}/{{ quizQuestions.length }}</span>
               <strong>{{ quizScore }} 分</strong>
             </div>
           </header>
@@ -150,7 +163,7 @@
             :class="quizCardClass(q, index)"
           >
             <div class="quiz-question">
-              <span>第 {{ index + 1 }} 题.</span>
+              <span>第 {{ index + 1 }} 题</span>
               <div class="quiz-question-content" v-html="renderMd(q.question)"></div>
             </div>
             <div class="quiz-options">
@@ -167,7 +180,7 @@
               </button>
             </div>
             <div v-if="quizAnswers[q.id || index]" class="quiz-explain" :class="{ wrong: quizAnswers[q.id || index] !== q.correctAnswer }">
-              <strong>{{ quizAnswers[q.id || index] === q.correctAnswer ? '✅ 回答正确！' : `❌ 回答错误，正确答案是 ${q.correctAnswer}` }}</strong>
+              <strong>{{ quizAnswers[q.id || index] === q.correctAnswer ? '✅ 回答正确' : `❌ 回答错误，正确答案是 ${q.correctAnswer}` }}</strong>
               <p><b>📌 题目解析：</b>{{ q.explanation }}</p>
             </div>
           </section>
@@ -178,16 +191,52 @@
       <!-- Debug mode -->
       <div v-else-if="activeTool === 'debug'" class="tool-panel">
         <h2>🔍 代码调试</h2>
-        <textarea v-model="debugCode" placeholder="粘贴学生C++代码..." rows="10" class="code-input"></textarea>
-        <textarea v-model="debugProblem" placeholder="题目描述（可选）..." rows="3"></textarea>
+        <details class="debug-inputs" :open="!debugInputsCollapsed" @toggle="debugInputsCollapsed = !$event.target.open">
+          <summary>题目描述与学生代码</summary>
+        <div class="input-row">
+          <input
+            v-model="debugProblemId"
+            placeholder="输入 4 位题号，例如：1000"
+            maxlength="4"
+            inputmode="numeric"
+            @keydown.enter="fetchDebugProblemById"
+          />
+          <button
+            @click="fetchDebugProblemById"
+            :disabled="fetchingDebugProblem || !/^\d{4}$/.test(debugProblemId)"
+          >
+            {{ fetchingDebugProblem ? '获取中……' : '🔎 获取题面' }}
+          </button>
+        </div>
+        <p class="helper-text" v-if="debugProblemFetchMessage">{{ debugProblemFetchMessage }}</p>
+        <textarea v-model="debugProblem" @input="debugSamples = []" placeholder="题目描述（可选）" rows="8"></textarea>
+        <textarea v-model="debugCode" placeholder="粘贴学生 C++ 代码" rows="10" class="code-input"></textarea>
         <button @click="debugCodeAction" :disabled="loading || !debugCode">
-          {{ loading ? '分析中...' : '🔍 分析代码' }}
+          {{ loading ? '分析中……' : '🔍 分析代码' }}
         </button>
-        <div v-if="loading && !result" class="loading-card compact">
+        </details>
+        <div v-if="loading && (!result || debugGeneratingEdges)" class="loading-card compact">
           <div class="loading-orbit"><span></span><span></span><span></span></div>
-          <div class="loading-copy"><strong>AI 正在和 Bug 对视...</strong></div>
+          <div class="loading-copy">
+            <strong>{{ debugGeneratingEdges ? 'AI 正在设计边界测试点……' : 'AI 正在检查 Bug……' }}</strong>
+            <div class="tip-window"><div class="tip-track"><p v-for="tip in loadingTips" :key="tip">{{ tip }}</p></div></div>
+          </div>
         </div>
         <div class="result-area" v-html="renderedResult"></div>
+        <section v-if="debugEdgeCases.length" class="debug-edge-output">
+          <h3>边界盲盒测试点</h3>
+          <div class="edge-case-grid">
+            <article v-for="(item, index) in debugEdgeCases" :key="index" class="edge-case-card">
+              <h4>{{ item.title || `测试点 ${index + 1}` }}</h4>
+              <p class="edge-tag">{{ item.boundaryType }}</p>
+              <div class="io-grid">
+                <div><strong>测试点输入</strong><pre>{{ item.testInput }}</pre></div>
+                <div><strong>测试点输出</strong><pre>{{ item.expectedOutput }}</pre></div>
+              </div>
+              <p class="edge-reason">{{ item.reason }}</p>
+            </article>
+          </div>
+        </section>
       </div>
     </div>
   </div>
@@ -195,12 +244,15 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue';
+import html2canvas from 'html2canvas';
 import { marked } from 'marked';
 import hljs from 'highlight.js';
 import 'highlight.js/styles/github-dark.css';
 import Sidebar from './components/Sidebar.vue';
 import ChatPanel from './components/ChatPanel.vue';
 import AlgorithmVisualizer from './components/AlgorithmVisualizer.vue';
+import CspPractice from './components/CspPractice.vue';
+import ProblemList from './components/ProblemList.vue';
 import PromptButtons from './components/PromptButtons.vue';
 import { streamPost } from './utils/api';
 
@@ -224,6 +276,8 @@ const courseTopic = ref('');
 const loading = ref(false);
 const result = ref('');
 const brainstormData = ref(null);
+const quickCardExport = ref(null);
+const exportingCard = ref(false);
 
 const problemDesc = ref('');
 const problemId = ref('');
@@ -233,6 +287,13 @@ const edgeCases = ref([]);
 const studentCode = ref('');
 const debugCode = ref('');
 const debugProblem = ref('');
+const debugProblemId = ref('');
+const debugSamples = ref([]);
+const debugEdgeCases = ref([]);
+const fetchingDebugProblem = ref(false);
+const debugProblemFetchMessage = ref('');
+const debugInputsCollapsed = ref(false);
+const debugGeneratingEdges = ref(false);
 const teachingAction = ref('');
 const newsTips = ref([]);
 const quizTitle = ref('');
@@ -248,12 +309,25 @@ const fallbackTips = [
 ];
 
 const loadingTips = computed(() => {
-  return newsTips.value.length ? newsTips.value : fallbackTips;
+  const items = [...newsTips.value, ...fallbackTips];
+  return Array.from({ length: 8 }, (_, index) => items[index % items.length]);
 });
 
 const renderedResult = computed(() => {
   return result.value ? marked.parse(result.value) : '';
 });
+
+function switchTool(tool) {
+  activeTool.value = tool;
+  result.value = '';
+  brainstormData.value = null;
+  edgeCases.value = [];
+  quizTitle.value = '';
+  quizQuestions.value = [];
+  quizAnswers.value = {};
+  teachingAction.value = '';
+  debugGeneratingEdges.value = false;
+}
 
 const algorithmCardSections = computed(() => {
   return getAlgorithmCardSections(brainstormData.value);
@@ -290,7 +364,7 @@ function getAlgorithmCardSections(card) {
     ['核心动作', '⚙️', card.coreSteps],
     ['算法小故事', '📚', card.story || card.quiz, true],
     ['C++ 最小模板', '💻', card.cppTemplate && `\`\`\`cpp\n${card.cppTemplate}\n\`\`\``, true],
-    ['易错点', '⚠️', card.pitfalls],
+    ['易错点', '⚠️', card.pitfalls, true],
   ];
 
   return sections
@@ -303,6 +377,56 @@ function getAlgorithmCardSections(card) {
     }));
 }
 
+async function exportAlgorithmCards() {
+  if (!quickCardExport.value || exportingCard.value) return;
+
+  exportingCard.value = true;
+  let exportNode;
+  try {
+    await document.fonts?.ready;
+    const source = quickCardExport.value;
+    const width = Math.ceil(source.getBoundingClientRect().width);
+    exportNode = source.cloneNode(true);
+    Object.assign(exportNode.style, {
+      position: 'fixed',
+      left: '-100000px',
+      top: '0',
+      width: `${width}px`,
+      height: 'auto',
+      maxHeight: 'none',
+      overflow: 'visible',
+      margin: '0',
+    });
+    document.body.append(exportNode);
+    await new Promise((resolve) => requestAnimationFrame(resolve));
+    const height = exportNode.scrollHeight;
+    const canvas = await html2canvas(exportNode, {
+      backgroundColor: '#f8fafc',
+      scale: Math.min(2, 16000 / height),
+      useCORS: true,
+      logging: false,
+      width,
+      height,
+      windowWidth: width,
+      windowHeight: height,
+      scrollX: 0,
+      scrollY: 0,
+    });
+    const title = (brainstormData.value?.title || courseTopic.value || '算法速懂卡')
+      .replace(/[\\/:*?"<>|]/g, '_');
+    const link = document.createElement('a');
+    link.download = `${title}-算法速懂卡.png`;
+    const blob = await new Promise((resolve) => canvas.toBlob(resolve, 'image/png'));
+    if (!blob) throw new Error('图片生成失败');
+    link.href = URL.createObjectURL(blob);
+    link.click();
+    setTimeout(() => URL.revokeObjectURL(link.href), 0);
+  } finally {
+    exportNode?.remove();
+    exportingCard.value = false;
+  }
+}
+
 onMounted(loadNewsTips);
 
 async function loadNewsTips() {
@@ -311,7 +435,7 @@ async function loadNewsTips() {
     const data = await resp.json();
     newsTips.value = (data.items || [])
       .filter(item => item.title)
-      .slice(0, 5)
+      .slice(0, 8)
       .map(item => item.title);
   } catch (e) {
     newsTips.value = [];
@@ -354,29 +478,39 @@ async function generateEdgeCases() {
     result.value += chunk;
   });
   parseEdgeCases();
-  if (!result.value.trim() && !edgeCases.value.length) {
-    result.value = '⚠️ 模型没有返回内容，请稍后重试。';
+  if (!edgeCases.value.length) {
+    result.value = '⚠️ 边界测试点格式解析失败，请稍后重试。';
   }
   loading.value = false;
 }
 
 function parseEdgeCases() {
+  edgeCases.value = parseEdgeCasePayload(result.value);
+  if (edgeCases.value.length) result.value = '';
+}
+
+function parseEdgeCasePayload(raw) {
   try {
-    let cleaned = result.value.trim();
+    let cleaned = raw.trim();
     if (cleaned.startsWith('```')) {
       cleaned = cleaned.replace(/^```(?:json)?\s*\n?/, '').replace(/\n?```\s*$/, '');
     }
+    if (!cleaned.trimStart().startsWith('{') && cleaned.includes('"cases"')) {
+      cleaned = `{${cleaned}}`;
+    }
+    const start = cleaned.indexOf('{');
+    const end = cleaned.lastIndexOf('}');
+    if (start >= 0 && end > start) cleaned = cleaned.slice(start, end + 1);
     const parsed = JSON.parse(cleaned);
-    edgeCases.value = Array.isArray(parsed) ? parsed : (parsed.cases || []);
-    if (edgeCases.value.length) result.value = '';
+    return Array.isArray(parsed) ? parsed : (parsed.cases || []);
   } catch (e) {
-    edgeCases.value = [];
+    return [];
   }
 }
 
 async function fetchProblemById() {
   if (!/^\d{4}$/.test(problemId.value)) {
-    problemFetchMessage.value = '请输入4位数字题号';
+    problemFetchMessage.value = '请输入 4 位数字题号。';
     return;
   }
 
@@ -395,9 +529,40 @@ async function fetchProblemById() {
   }
 }
 
+async function fetchDebugProblemById() {
+  if (!/^\d{4}$/.test(debugProblemId.value)) {
+    debugProblemFetchMessage.value = '请输入 4 位数字题号。';
+    return;
+  }
+
+  fetchingDebugProblem.value = true;
+  debugProblemFetchMessage.value = '';
+  debugSamples.value = [];
+  try {
+    const resp = await fetch(`/api/edge-case/problem/${debugProblemId.value}`);
+    const data = await resp.json();
+    if (!resp.ok) throw new Error(data.error || '获取题目失败');
+    debugProblem.value = data.description;
+    debugSamples.value = data.samples || [];
+    debugProblemFetchMessage.value = `已获取：${data.title}`;
+  } catch (err) {
+    debugProblemFetchMessage.value = err.message;
+  } finally {
+    fetchingDebugProblem.value = false;
+  }
+}
+
 async function handleTeachingAction(action) {
+  if (action === 'show-problem-list') {
+    teachingAction.value = action;
+    result.value = '';
+    quizTitle.value = '';
+    quizQuestions.value = [];
+    quizAnswers.value = {};
+    return;
+  }
   if (!courseTopic.value) {
-    result.value = '⚠️ 请先输入课程主题';
+    result.value = '⚠️ 请先输入课程主题。';
     return;
   }
   teachingAction.value = action;
@@ -414,7 +579,7 @@ async function handleTeachingAction(action) {
     body.count = 10;
   }
   if (action === 'generate-script') {
-    body.duration = 45;
+    body.duration = 135;
   }
 
   let streamed = '';
@@ -471,15 +636,39 @@ function quizCardClass(question, index) {
 
 async function debugCodeAction() {
   if (!debugCode.value) return;
+  debugInputsCollapsed.value = true;
   loading.value = true;
   result.value = '';
+  debugEdgeCases.value = [];
+  let nextAction = '';
   await streamPost('/api/debug-code', {
     code: debugCode.value,
+    samples: debugSamples.value,
     problem: debugProblem.value,
   }, (chunk) => {
     result.value += chunk;
+  }, (event) => {
+    nextAction = event.nextAction || nextAction;
   });
   loading.value = false;
+
+  if (nextAction === 'generate-edge-cases') {
+    result.value += '\n\n### 正在生成边界测试点……';
+    loading.value = true;
+    debugGeneratingEdges.value = true;
+    let raw = '';
+    await streamPost('/api/edge-case', { problem: debugProblem.value, code: debugCode.value }, (chunk) => {
+      raw += chunk;
+    });
+    debugEdgeCases.value = parseEdgeCasePayload(raw);
+    if (!debugEdgeCases.value.length) {
+      result.value += '\n\n### 边界测试点生成失败\n\n返回内容暂时无法解析，请重试。';
+    } else {
+      result.value = result.value.replace('### 正在生成边界测试点……', '### 边界测试点生成完成');
+    }
+    debugGeneratingEdges.value = false;
+    loading.value = false;
+  }
 }
 </script>
 
@@ -670,6 +859,18 @@ body {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 14px;
+}
+
+.debug-edge-output {
+  margin-top: 20px;
+  padding-top: 18px;
+  border-top: 2px solid #c7d2fe;
+}
+
+.debug-edge-output h3 {
+  margin-bottom: 14px;
+  color: #4f46e5;
+  font-size: 20px;
 }
 
 .edge-case-card {
@@ -1029,7 +1230,7 @@ body {
 }
 
 .tip-track {
-  animation: tip-scroll 12s steps(5) infinite;
+  animation: tip-scroll 28s steps(8) infinite;
 }
 
 .tip-track p {
@@ -1056,23 +1257,37 @@ body {
     transform: translateY(0);
   }
   to {
-    transform: translateY(-120px);
+    transform: translateY(-192px);
   }
 }
 
 /* 算法速懂卡 */
 .brainstorm-result {
   flex: 1;
+  min-height: 0;
+  width: 100%;
   overflow-y: auto;
-  display: flex;
-  justify-content: center;
+  display: block;
   padding: 20px 24px 0;
+}
+
+.quick-card-actions {
+  width: min(1080px, 100%);
+  display: flex;
+  justify-content: flex-end;
+  margin: 0 auto 12px;
+}
+
+.tool-panel .export-card-button {
+  padding: 9px 16px;
+  background: #0f766e;
+  box-shadow: 0 4px 12px rgba(15, 118, 110, 0.2);
 }
 
 .brainstorm-card {
   max-width: 1080px;
   width: 100%;
-  align-self: flex-start;
+  margin: 0 auto 24px;
 }
 
 .quick-card-grid {

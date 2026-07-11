@@ -16,7 +16,7 @@ async function handleNews(req, res) {
     const items = settled
       .flatMap(result => (result.status === 'fulfilled' ? result.value : []))
       .filter(item => item.title && isClassroomFriendly(item.title))
-      .slice(0, 8);
+      .slice(0, 10);
 
     cache = { time: now, items };
     res.json({ items });
@@ -32,7 +32,7 @@ async function fetchTechNews() {
     .map(match => decodeXml(match[1] || match[2] || '').trim())
     .filter(title => title && title !== 'IT之家')
     .filter(title => TECH_WORDS.some(word => title.includes(word)))
-    .slice(0, 4);
+    .slice(0, 2);
 
   return titles.map(title => ({
     title: `中文科技新闻：${title}`,
@@ -51,7 +51,7 @@ async function fetchTodayHistory() {
   return ((resp.data[month] || {})[`${month}${day}`] || [])
     .map(event => `${event.year} 年：${stripHtml(event.title)}`)
     .filter(text => isClassroomFriendly(text))
-    .slice(0, 4)
+    .slice(0, 8)
     .map(title => ({
       title: `历史上的今天：${title}`,
       source: '百度百科',
