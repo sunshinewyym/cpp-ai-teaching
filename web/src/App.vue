@@ -479,7 +479,7 @@ async function generateEdgeCases() {
   });
   parseEdgeCases();
   if (!edgeCases.value.length) {
-    result.value = '⚠️ 边界测试点格式解析失败，请稍后重试。';
+    result.value = buildEdgeCaseAdvice();
   }
   loading.value = false;
 }
@@ -506,6 +506,19 @@ function parseEdgeCasePayload(raw) {
   } catch (e) {
     return [];
   }
+}
+
+function buildEdgeCaseAdvice(title = '边界测试点暂时没有生成成功') {
+  return `### ${title}
+
+先不用急着改代码，可以按下面的顺序自己检查：
+
+1. 重新阅读题目的数据范围，确认最小值、最大值以及是否允许出现 0、负数或空数据。
+2. 手动准备一组最小规模数据，逐步记录循环变量、数组下标和关键变量的变化。
+3. 再准备一组“刚好到达上限”的数据，重点检查循环结束条件、数组越界和整数溢出。
+4. 如果题目涉及排序、去重、图或动态规划，再检查相同值、全相同、完全有序、孤立点和无解等特殊结构。
+
+边界盲盒没有给出可验证的测试点，因此这次不展示模型原始内容。你可以修改代码后重新分析，或到“边界盲盒”模块手动生成测试点。`;
 }
 
 async function fetchProblemById() {
@@ -662,9 +675,9 @@ async function debugCodeAction() {
     });
     debugEdgeCases.value = parseEdgeCasePayload(raw);
     if (!debugEdgeCases.value.length) {
-      result.value += '\n\n### 边界测试点生成失败\n\n返回内容暂时无法解析，请重试。';
+      result.value = buildEdgeCaseAdvice('样例通过了，但边界测试点暂时没有生成成功');
     } else {
-      result.value = result.value.replace('### 正在生成边界测试点……', '### 边界测试点生成完成');
+      result.value = result.value.replace('### 正在生成边界测试点……', '### 边界测试点检查完成');
     }
     debugGeneratingEdges.value = false;
     loading.value = false;
