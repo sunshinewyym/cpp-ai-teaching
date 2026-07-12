@@ -1,697 +1,457 @@
-# 📘 C++ AI 教学系统 — 部署手册
+# 腾讯云 Lighthouse 部署手册
 
-> 本手册覆盖本地开发和腾讯云轻量应用服务器生产部署两种场景。
+本文用于把 C++ AI 教学系统部署到腾讯云轻量应用服务器（Lighthouse）。默认方案为 Ubuntu + Docker Compose + Nginx，适合单机课堂服务和小规模教学使用。
 
----
+项目地址：<https://github.com/sunshinewyym/cpp-ai-teaching>
 
-## 目录
+## 1. 部署结构
 
-- **第一部分：本地开发**
-  - [1. 系统要求](#1-系统要求)
-  - [2. 安装基础软件](#2-安装基础软件)
-  - [3. 获取项目代码](#3-获取项目代码)
-  - [4. 配置 DeepSeek API Key](#4-配置-deepseek-api-key)
-  - [5. 启动后端](#5-启动后端)
-  - [6. 启动前端](#6-启动前端)
-  - [7. PowerPoint 插件](#7-powerpoint-插件)
-- **第二部分：腾讯云轻量应用服务器部署（推荐）**
-  - [8. 腾讯云 Lighthouse 部署](#8-腾讯云-lighthouse-部署)
-- **第三部分：其他部署方式**
-  - [9. PM2 部署](#9-pm2-部署)
-  - [10. 手动 Nginx 配置](#10-手动-nginx-配置)
-- **附录**
-  - [11. 常见问题排查](#11-常见问题排查)
-  - [12. 命令速查表](#12-命令速查表)
-  - [13. 代码调试执行环境](#13-代码调试执行环境)
+```text
+浏览器
+  -> Lighthouse 防火墙 80/443
+  -> Nginx web 容器
+     -> Vue 静态页面
+     -> /api 反向代理到 server:3000
+  -> Express server 容器
+     -> DeepSeek 或其他 OpenAI 兼容模型接口
+```
 
----
+只有 `80` 和 `443` 对公网开放。不要开放 `3000`、`5174`、`5175`，后续接入 Judge0 时也不要开放 `2358`。
 
-# 第一部分：本地开发
+## 2. 准备 Lighthouse 实例
 
-## 1. 系统要求
+推荐配置：
 
-| 项目 | 最低要求 |
-|------|----------|
-| 内存 | ≥ 2GB |
-| 硬盘 | ≥ 1GB 可用空间 |
-| 网络 | 需要互联网（调用 DeepSeek API） |
-| 操作系统 | Windows 10+ / macOS / Linux |
+| 项目 | 推荐值 |
+| --- | --- |
+| 镜像 | Ubuntu 22.04 LTS |
+| CPU/内存 | 2 核 4 GB |
+| 系统盘 | 60 GB SSD |
+| 带宽 | 按课堂并发人数选择 |
 
-## 2. 安装基础软件
+2 核 2 GB 可以运行，但首次构建前建议创建 2 GB Swap。
 
-### 2.1 Node.js（必须）
+如果服务器位于中国大陆并使用域名对外提供网站服务，请先确认域名实名认证和 ICP 备案要求。备案主体信息应与域名所有者信息一致，具体规则以[腾讯云 ICP 备案文档](https://cloud.tencent.com/document/product/243/18905)为准。
 
-1. 访问 https://nodejs.org ，下载 **LTS 版本**（v20 或更高）
-2. 安装时确保勾选 **"Add to PATH"**
-3. 验证：
+## 3. 配置 Lighthouse 防火墙
+
+进入腾讯云控制台：轻量应用服务器 -> 实例 -> 防火墙，添加或确认以下规则：
+
+| 协议 | 端口 | 来源 | 用途 |
+| --- | --- | --- | --- |
+| TCP | 22 | 你的固定公网 IP，或临时使用 `0.0.0.0/0` | SSH |
+| TCP | 80 | `0.0.0.0/0` | HTTP 与证书申请 |
+| TCP | 443 | `0.0.0.0/0` | HTTPS |
+
+腾讯云建议遵循最小授权原则。Lighthouse 防火墙只控制入站流量，规则说明见[管理实例防火墙](https://cloud.tencent.com/document/product/1207/44577)。
+
+服务器内部同时配置 UFW：
 
 ```bash
-node --version   # 应显示 v20.x.x 或更高
-npm --version    # 应显示 10.x.x 或更高
-```
-
-### 2.2 Git（推荐）
-
-1. 访问 https://git-scm.com/download/win 下载安装
-2. 验证：`git --version`
-
-### 2.3 Docker（可选，用于容器化部署）
-
-1. 访问 https://www.docker.com/products/docker-desktop/ 下载 Docker Desktop
-2. 安装后重启电脑
-3. 验证：`docker --version`
-
-## 3. 获取项目代码
-
-```bash
-# 方式一：Git 克隆
-git clone https://github.com/你的用户名/cpp-ai-teaching.git
-cd cpp-ai-teaching
-
-# 方式二：下载 ZIP 解压后进入目录
-cd cpp-ai-teaching
-```
-
-## 4. 配置 DeepSeek API Key
-
-1. 访问 https://platform.deepseek.com 注册并登录
-2. 左侧菜单 → **API Keys** → **创建 API Key**
-3. 复制 `sk-xxx...` 密钥
-
-```bash
-cd server
-cp .env.example .env
-notepad .env   # Windows
-# 或 vim .env  # Linux/macOS
-```
-
-将 `DEEPSEEK_API_KEY=sk-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx` 替换为你的真实密钥。
-
-> ⚠️ 不要把 API Key 上传到公开仓库！
-
-## 5. 启动后端
-
-```bash
-cd server
-npm install
-npm run dev
-```
-
-看到 `Server running on http://localhost:3000` 即成功。**保持窗口不关。**
-
-验证：
-```bash
-curl http://localhost:3000/api/health
-# 返回 {"status":"ok","time":"..."}
-```
-
-## 6. 启动前端
-
-新开一个终端：
-
-```bash
-cd web
-npm install
-npm run dev
-```
-
-浏览器打开 **http://localhost:5174** 即可使用。
-
-## 7. 在 PPT 中使用
-
-### 方式一：插入链接（推荐，最简单）
-
-1. 后端启动后，AI 面板地址为：`http://localhost:3000/panel.html`
-2. 在 PPT 中选中文字或按钮 → **插入 → 链接** → 粘贴上面的 URL
-3. 演示时点击链接，浏览器会打开 AI 助教面板
-4. **自动填充课程主题**：URL 支持参数 `?topic=课程名`，如：
-```
-http://localhost:3000/panel.html?topic=单调栈
-```
-
-**部署到服务器后**，把 `localhost:3000` 替换为你的域名：
-```
-https://yourdomain.com/panel.html?topic=BFS
-```
-
-### 方式二：Office Add-in（需要额外配置）
-
-前提：后端正在运行，且已配置 HTTPS。
-
-1. 安装 HTTPS 证书工具：
-```bash
-npm install -g office-addin-dev-certs
-office-addin-dev-certs install
-```
-
-2. 打开 PowerPoint → **文件 → 选项 → 信任中心 → 受信任的加载项目录**
-
-3. 添加 `office-addin` 文件夹路径
-
-4. 关闭重开 PowerPoint → **插入 → 我的加载项** → 选择 **C++ AI 教学助手**
-
----
-
-# 第二部分：腾讯云轻量应用服务器部署
-
-## 8. 腾讯云 Lighthouse 部署
-
-### 8.1 购买服务器
-
-1. 登录 [腾讯云控制台](https://console.cloud.tencent.com/)
-2. 搜索 **轻量应用服务器** → 点击 **创建**
-3. 推荐配置：
-
-| 配置项 | 推荐值 |
-|--------|--------|
-| 地域 | 离你最近（广州/上海/北京） |
-| 镜像 | **Ubuntu 22.04 LTS** |
-| 套餐 | **2核4G**（2核2G 也可，但构建时可能需要 swap） |
-| 系统盘 | 60GB SSD |
-| 购买时长 | 按需选择 |
-
-4. 购买完成后，在实例列表中找到你的服务器，记录 **公网 IP**
-
-### 8.2 重置密码并连接
-
-1. 控制台 → 轻量应用服务器 → 点击实例 → **更多操作 → 重置密码**
-2. 设置 root 密码
-3. SSH 连接：
-
-```bash
-ssh root@你的公网IP
-```
-
-> Windows 用户可以用 PowerShell 自带的 ssh，或使用 [MobaXterm](https://mobaxterm.mobatek.net/) / [Termius](https://termius.com/) 等工具。
-
-4. 连接成功后更新系统：
-
-```bash
-apt update && apt upgrade -y
-```
-
-### 8.3 域名绑定（可选但推荐）
-
-**为什么要域名？** 域名比 IP 好记，且配置 HTTPS 必须有域名。
-
-1. 在腾讯云或其他平台购买域名
-2. 进入 [云解析 DNS 控制台](https://console.cloud.tencent.com/cns)
-3. 添加两条记录：
-
-| 记录类型 | 主机记录 | 记录值 |
-|----------|----------|--------|
-| A | @ | 你的公网IP |
-| A | www | 你的公网IP |
-
-4. 等待 DNS 生效（通常 10 分钟内）
-
-验证：
-```bash
-ping yourdomain.com
-# 应该解析到你的公网 IP
-```
-
-### 8.4 配置防火墙
-
-**这一步非常关键！** 腾讯云有两层防火墙，都需要配置。
-
-**第一层：控制台防火墙**
-
-1. 控制台 → 轻量应用服务器 → 点击实例 → **防火墙** → **添加规则**
-
-| 协议 | 端口 | 来源 | 备注 |
-|------|------|------|------|
-| TCP | 80 | 0.0.0.0/0 | HTTP |
-| TCP | 443 | 0.0.0.0/0 | HTTPS |
-| TCP | 22 | 0.0.0.0/0 | SSH（通常已有） |
-
-> ⚠️ **不要开放 3000 端口！** 后端通过 Nginx 内部代理访问，不需要对外暴露。
-
-**第二层：Linux 防火墙（deploy.sh 会自动配置）**
-
-```bash
+apt update
+apt install -y ufw
 ufw allow 22/tcp
 ufw allow 80/tcp
 ufw allow 443/tcp
-ufw enable
+ufw --force enable
+ufw status
 ```
 
-### 8.5 一键部署
-
-SSH 登录服务器后，执行：
+## 4. 连接服务器并准备环境
 
 ```bash
-# 下载部署脚本（方式一：从 Git 仓库获取）
-git clone https://github.com/你的用户名/cpp-ai-teaching.git /opt/cpp-ai-teaching
-cd /opt/cpp-ai-teaching
-bash deploy.sh
+ssh root@你的公网IP
+
+apt update && apt upgrade -y
+apt install -y git ca-certificates curl gnupg lsb-release
+timedatectl set-timezone Asia/Shanghai
 ```
 
-或者手动上传项目代码到 `/opt/cpp-ai-teaching` 后执行 `bash deploy.sh`。
-
-**脚本会自动完成：**
-1. ✅ 检查系统环境（内存不足自动创建 swap）
-2. ✅ 安装 Docker 和 Docker Compose
-3. ✅ 配置防火墙（ufw）
-4. ✅ 交互式配置 DeepSeek API Key
-5. ✅ 交互式配置域名
-6. ✅ 构建 Docker 镜像并启动
-7. ✅ 等待健康检查通过
-8. ✅ 验证服务可用
-9. ✅ 可选：自动申请 Let's Encrypt SSL 证书
-
-部署完成后会显示访问地址和常用命令。
-
-### 8.6 手动部署（不用脚本）
-
-如果你更喜欢手动操作：
+2 GB 内存实例建议创建 Swap：
 
 ```bash
-# 1. 安装 Docker
-apt update
-apt install -y ca-certificates curl gnupg
-install -m 0755 -d /etc/apt/keyrings
-curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor -o /etc/apt/keyrings/docker.gpg
-echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] \
-  https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" \
-  > /etc/apt/sources.list.d/docker.list
-apt update
-apt install -y docker-ce docker-ce-cli containerd.io docker-compose-plugin
-
-# 2. 进入项目目录
-cd /opt/cpp-ai-teaching
-
-# 3. 配置环境变量
-cp server/.env.example server/.env
-vim server/.env   # 填入 API Key
-
-# 4. 创建 .env 文件（给 docker-compose 用）
-echo "DOMAIN=yourdomain.com" > .env
-
-# 5. 构建启动
-docker compose up -d --build
-
-# 6. 查看状态
-docker compose ps
-```
-
-### 8.7 配置 HTTPS（强烈推荐）
-
-HTTPS 对 Office Add-in 是必须的，也保护用户数据安全。
-
-#### 方式 A：Let's Encrypt 免费证书（推荐）
-
-```bash
-# 安装 certbot
-apt install -y certbot
-
-# 停止 web 容器（释放 80 端口）
-docker compose stop web
-
-# 申请证书
-certbot certonly --standalone \
-  -d yourdomain.com \
-  --agree-tos \
-  -m your@email.com
-
-# 复制证书到项目目录
-mkdir -p ssl
-cp /etc/letsencrypt/live/yourdomain.com/fullchain.pem ssl/
-cp /etc/letsencrypt/live/yourdomain.com/privkey.pem ssl/
-chmod 600 ssl/*.pem
-
-# 启用 SSL 配置
-cp docker/docker-compose.ssl.yml docker/docker-compose.override.yml
-
-# 重启
-docker compose up -d
-
-# 设置自动续期
-echo "0 3 * * * root certbot renew --quiet && docker compose restart web" \
-  > /etc/cron.d/certbot-renew
-```
-
-验证：浏览器访问 `https://yourdomain.com` 应显示安全锁图标。
-
-#### 方式 B：腾讯云免费证书
-
-1. 控制台 → **SSL 证书** → **申请免费证书**
-2. 下载 **Nginx 格式**证书
-3. 上传到服务器：
-
-```bash
-# 本地执行
-scp yourdomain.com_nginx/* root@你的IP:/opt/cpp-ai-teaching/ssl/
-```
-
-4. 服务器上执行：
-```bash
-cd /opt/cpp-ai-teaching
-cp docker/docker-compose.ssl.yml docker/docker-compose.override.yml
-docker compose up -d
-```
-
-### 8.8 更新 Office Add-in 的 URL
-
-配置 HTTPS 后，需要更新 `office-addin/manifest.xml` 中的 URL：
-
-```bash
-# 替换所有 localhost 为你的域名
-sed -i 's|https://localhost:3000|https://yourdomain.com|g' office-addin/manifest.xml
-```
-
-然后在 PowerPoint 中重新加载插件。
-
-### 8.9 部署后验证清单
-
-- [ ] `curl http://yourdomain.com/api/health` → `{"status":"ok"}`
-- [ ] 浏览器打开 `http://yourdomain.com` 能看到界面
-- [ ] AI 对话能正常流式回复
-- [ ] （如配置 HTTPS）`https://yourdomain.com` 显示安全锁
-- [ ] （如使用 Office Add-in）PowerPoint 右侧面板正常加载
-
-### 8.10 日常运维
-
-```bash
-cd /opt/cpp-ai-teaching
-
-# 查看日志（实时跟踪）
-docker compose logs -f
-
-# 只看后端日志
-docker compose logs -f server
-
-# 重启服务
-docker compose restart
-
-# 停止服务
-docker compose down
-
-# 更新代码并重新部署
-git pull
-docker compose up -d --build
-
-# 更新知识库（无需重建！直接编辑即可）
-vim knowledge/bfs.md
-
-# 更新 Prompt 模板（无需重建！直接编辑即可）
-vim server/prompts/csp.md
-```
-
-### 8.11 监控
-
-```bash
-# Docker 容器状态（显示 healthy/unhealthy）
-docker compose ps
-
-# 系统资源
-htop   # 如果没有: apt install htop
-
-# 磁盘使用
-df -h
-
-# Docker 磁盘占用
-docker system df
-```
-
-腾讯云控制台也提供 CPU、内存、带宽监控：控制台 → 轻量应用服务器 → 实例详情 → 监控。
-
-### 8.12 备份
-
-```bash
-# 备份配置和数据
-tar czf /tmp/ppt-ai-backup-$(date +%Y%m%d).tar.gz \
-  /opt/cpp-ai-teaching/server/.env \
-  /opt/cpp-ai-teaching/knowledge/ \
-  /opt/cpp-ai-teaching/server/prompts/ \
-  /opt/cpp-ai-teaching/ssl/ \
-  /opt/cpp-ai-teaching/.env
-
-# 下载备份到本地（在本地执行）
-scp root@你的IP:/tmp/ppt-ai-backup-*.tar.gz ./
-```
-
----
-
-# 第三部分：其他部署方式
-
-## 9. PM2 部署
-
-不用 Docker 的方案，适合快速测试。
-
-```bash
-# 安装 PM2
-npm install -g pm2
-
-# 启动后端
-cd /opt/cpp-ai-teaching
-pm2 start docker/ecosystem.config.js
-
-# 常用命令
-pm2 list              # 查看状态
-pm2 logs ppt-ai-server  # 查看日志
-pm2 restart ppt-ai-server  # 重启
-
-# 开机自启
-pm2 startup
-pm2 save
-```
-
-前端需要用 Nginx 单独部署（见第 10 节）。
-
-## 10. 手动 Nginx 配置
-
-不用 Docker 时，需要手动安装和配置 Nginx。
-
-```bash
-# 安装 Nginx
-apt install -y nginx
-
-# 构建前端
-cd /opt/cpp-ai-teaching/web
-npm install
-npm run build
-
-# 复制前端文件
-cp -r dist/* /var/www/html/
-
-# 配置 Nginx
-cat > /etc/nginx/sites-available/ppt-ai << 'EOF'
-server {
-    listen 80;
-    server_name yourdomain.com;
-    client_max_body_size 2m;
-
-    location / {
-        root /var/www/html;
-        index index.html;
-        try_files $uri $uri/ /index.html;
-    }
-
-    location /api/ {
-        proxy_pass http://127.0.0.1:3000;
-        proxy_http_version 1.1;
-        proxy_set_header Upgrade $http_upgrade;
-        proxy_set_header Connection 'upgrade';
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_buffering off;
-        proxy_read_timeout 300s;
-    }
-}
-EOF
-
-ln -s /etc/nginx/sites-available/ppt-ai /etc/nginx/sites-enabled/
-nginx -t && systemctl reload nginx
-```
-
----
-
-# 附录
-
-## 11. 常见问题排查
-
-### ❌ 问题 1：`npm install` 报错 ERESOLVE
-
-```bash
-npm install --legacy-peer-deps
-```
-
-### ❌ 问题 2：后端报错 `DEEPSEEK_API_KEY is not set`
-
-确认 `server/.env` 文件存在且包含真实的 API Key（不是 `sk-xxx...` 示例值）。
-
-### ❌ 问题 3：前端报错 `Failed to fetch`
-
-后端没启动。确认 `http://localhost:3000/api/health` 能访问。
-
-### ❌ 问题 4：AI 不回复
-
-1. 登录 https://platform.deepseek.com 检查 API Key 有效性和余额
-2. 查看后端日志是否有错误
-
-### ❌ 问题 5：Docker 构建失败
-
-```bash
-# 确认 Docker 正在运行
-docker info
-
-# 如果报权限错误
-usermod -aG docker $USER
-```
-
-### ❌ 问题 6：端口被占用
-
-```bash
-# 查看占用端口的进程
-lsof -i :3000   # Linux
-netstat -ano | findstr :3000   # Windows
-
-# 修改端口：编辑 server/.env 中的 PORT=3001
-```
-
-### ❌ 问题 7：PowerPoint 插件加载失败
-
-- 确认后端正在运行
-- 确认 manifest.xml 中的 URL 可以在浏览器访问
-- 尝试删除 `%LOCALAPPDATA%\Microsoft\Office\16.0\Wef` 后重启 PowerPoint
-
-### ❌ 问题 8：Docker build OOM（2核2G 服务器）
-
-```bash
-# 创建 2GB swap
+free -h
 fallocate -l 2G /swapfile
 chmod 600 /swapfile
 mkswap /swapfile
 swapon /swapfile
-echo '/swapfile none swap sw 0 0' >> /etc/fstab
+grep -q '^/swapfile ' /etc/fstab || echo '/swapfile none swap sw 0 0' >> /etc/fstab
+free -h
 ```
 
-### ❌ 问题 9：SSL 证书续期失败
+## 5. 一键部署
+
+首次部署执行：
 
 ```bash
-# 测试续期
-certbot renew --dry-run
-
-# 确认 80 端口可从外网访问
-curl http://yourdomain.com
+git clone https://github.com/sunshinewyym/cpp-ai-teaching.git /opt/cpp-ai-teaching
+cd /opt/cpp-ai-teaching
+bash deploy.sh
 ```
 
-### ❌ 问题 10：nginx 报错 "host not found in upstream"
+脚本会完成：
 
-web 容器先于 server 启动。解决：
-```bash
-docker compose restart web
-```
+- 安装 Docker Engine 和 Docker Compose 插件；
+- 配置 UFW；
+- 创建低内存实例所需的 Swap；
+- 创建 `server/.env` 并读取 DeepSeek API Key；
+- 配置公网 IP 或域名；
+- 构建、启动并检查两个容器；
+- 可选申请 Let's Encrypt 证书。
 
-健康检查机制（`depends_on: condition: service_healthy`）会自动处理这个问题。
-
-### ❌ 问题 11：腾讯云控制台无法访问服务器
-
-- 检查实例状态是否为"运行中"
-- 检查防火墙规则是否放行了对应端口
-- 检查安全组是否绑定到实例
-
-## 12. 命令速查表
-
-### Docker 命令
-
-| 操作 | 命令 |
-|------|------|
-| 构建并启动 | `docker compose up -d --build` |
-| 查看状态 | `docker compose ps` |
-| 查看日志 | `docker compose logs -f` |
-| 重启 | `docker compose restart` |
-| 停止 | `docker compose down` |
-| 查看资源 | `docker stats` |
-| 清理空间 | `docker system prune -a` |
-
-### 项目维护命令
-
-| 操作 | 命令 |
-|------|------|
-| 更新代码 | `git pull && docker compose up -d --build` |
-| 编辑知识库 | `vim knowledge/bfs.md`（自动生效） |
-| 编辑 Prompt | `vim server/prompts/csp.md`（自动生效） |
-| 查看 API 日志 | `docker compose logs -f server` |
-| 备份 | `tar czf backup.tar.gz server/.env knowledge/ server/prompts/ ssl/` |
-| 申请 SSL | `certbot certonly --standalone -d domain.com` |
-
----
-
-## 13. 代码调试执行环境
-
-### 13.1 当前本地开发：使用本机 g++
-
-代码调试功能在本地开发阶段使用 `server/services/codeRunner.js` 调用本机 `g++`，完成：
-
-- 编译学生提交的 C++17 代码。
-- 使用 OJ 题面中的样例输入运行程序并对比输出。
-- 返回编译错误、运行错误、超时或样例不通过信息。
-
-开始使用前确认编译器可用：
-
-```bash
-g++ --version
-```
-
-这套方式只用于本机开发和受控课堂演示。不要把当前直接执行 `g++` 的实现开放到公网或局域网环境，因为学生代码是不可信输入。
-
-### 13.2 正式部署：Docker + 自建 Judge0 CE
-
-生产环境不在业务 `server` 容器中安装或执行 `g++`。代码执行统一迁移到 Docker 部署的 Judge0 CE，由业务后端通过内网 API 提交代码和样例。
-
-目标结构：
+部署完成后访问：
 
 ```text
-浏览器 -> Nginx -> 教学系统 server -> Judge0 CE API/Worker -> 隔离执行环境
+http://你的公网IP
 ```
 
-Judge0 CE 负责 C++ 编译、运行、时间/内存限制和执行结果；教学系统只负责题面样例、调试引导和结果展示。Judge0 不应映射公网端口，应只加入项目的 Docker 内部网络。
+配置域名和 HTTPS 后访问：
 
-部署 Judge0 前，需要准备：
+```text
+https://你的域名
+```
 
-- Docker 与 Docker Compose。
-- Judge0 CE、PostgreSQL 和 Redis 容器。
-- 业务后端访问 Judge0 的内部地址和认证令牌。
-- 时间、内存、输出大小和并发任务限制。
+## 6. 手动部署
 
-建议在 `server/.env` 中预留以下生产配置，密钥不要提交到仓库：
+### 6.1 安装 Docker
+
+下面使用 Docker 官方 APT 仓库。完整安装说明见[Docker Engine for Ubuntu](https://docs.docker.com/engine/install/ubuntu/)。
+
+```bash
+install -m 0755 -d /etc/apt/keyrings
+curl -fsSL https://download.docker.com/linux/ubuntu/gpg \
+  | gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+chmod a+r /etc/apt/keyrings/docker.gpg
+
+echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] \
+https://download.docker.com/linux/ubuntu $(. /etc/os-release && echo "$VERSION_CODENAME") stable" \
+  > /etc/apt/sources.list.d/docker.list
+
+apt update
+apt install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+systemctl enable --now docker
+
+docker --version
+docker compose version
+```
+
+### 6.2 获取代码
+
+```bash
+git clone https://github.com/sunshinewyym/cpp-ai-teaching.git /opt/cpp-ai-teaching
+cd /opt/cpp-ai-teaching
+```
+
+### 6.3 配置模型密钥
+
+```bash
+cp server/.env.example server/.env
+nano server/.env
+chmod 600 server/.env
+```
+
+至少修改：
+
+```env
+DEEPSEEK_API_KEY=你的真实密钥
+DEEPSEEK_BASE_URL=https://api.deepseek.com
+DEEPSEEK_MODEL=deepseek-chat
+PORT=3000
+```
+
+算法教练相关默认配置可以直接使用：
+
+```env
+COACH_TIMEOUT_MS=90000
+COACH_MODEL_RETRIES=1
+COACH_MAX_ROUNDS=16
+```
+
+不要把 `server/.env` 提交到 GitHub，也不要在日志或聊天中发送密钥。
+
+### 6.4 配置访问域名
+
+无域名时写公网 IP：
+
+```bash
+printf 'DOMAIN=%s\n' '你的公网IP' > .env
+```
+
+有域名时写域名：
+
+```bash
+printf 'DOMAIN=%s\n' 'yourdomain.com' > .env
+```
+
+根目录 `.env` 只供 Docker Compose 和 Nginx 读取域名；`server/.env` 保存模型与算法教练配置，两者用途不同。
+
+### 6.5 检查并启动
+
+所有 Compose 命令都从仓库根目录执行：
+
+```bash
+cd /opt/cpp-ai-teaching
+
+docker compose --env-file .env \
+  -f docker/docker-compose.yml config
+
+docker compose --env-file .env \
+  -f docker/docker-compose.yml up -d --build
+
+docker compose --env-file .env \
+  -f docker/docker-compose.yml ps
+```
+
+健康检查：
+
+```bash
+curl --fail http://127.0.0.1/api/health
+curl -I http://127.0.0.1/
+```
+
+预期结果：
+
+```json
+{"status":"ok","time":"..."}
+```
+
+## 7. 域名与 HTTPS
+
+### 7.1 配置 DNS
+
+在腾讯云 DNSPod 添加 A 记录，将主域名或子域名指向 Lighthouse 公网 IP。等待解析生效后验证：
+
+```bash
+getent hosts yourdomain.com
+```
+
+### 7.2 申请 Let's Encrypt 证书
+
+```bash
+cd /opt/cpp-ai-teaching
+apt install -y certbot
+
+docker compose --env-file .env \
+  -f docker/docker-compose.yml stop web
+
+certbot certonly --standalone \
+  -d yourdomain.com \
+  --agree-tos \
+  -m your@email.com \
+  --non-interactive
+
+mkdir -p ssl
+install -m 600 /etc/letsencrypt/live/yourdomain.com/fullchain.pem ssl/fullchain.pem
+install -m 600 /etc/letsencrypt/live/yourdomain.com/privkey.pem ssl/privkey.pem
+
+docker compose --env-file .env \
+  -f docker/docker-compose.yml \
+  -f docker/docker-compose.ssl.yml up -d
+```
+
+也可以在腾讯云申请证书，下载 Nginx 格式后分别保存为：
+
+```text
+/opt/cpp-ai-teaching/ssl/fullchain.pem
+/opt/cpp-ai-teaching/ssl/privkey.pem
+```
+
+腾讯云提供的 Nginx 证书部署说明见[Nginx 服务器 SSL 证书安装部署](https://cloud.tencent.com/document/product/400/35244)。
+
+### 7.3 配置自动续期
+
+创建 Certbot 部署钩子：
+
+```bash
+cat > /etc/letsencrypt/renewal-hooks/deploy/cpp-ai-teaching <<'EOF'
+#!/bin/sh
+set -e
+DOMAIN='yourdomain.com'
+APP_DIR='/opt/cpp-ai-teaching'
+install -m 600 "/etc/letsencrypt/live/$DOMAIN/fullchain.pem" "$APP_DIR/ssl/fullchain.pem"
+install -m 600 "/etc/letsencrypt/live/$DOMAIN/privkey.pem" "$APP_DIR/ssl/privkey.pem"
+cd "$APP_DIR"
+docker compose --env-file .env \
+  -f docker/docker-compose.yml \
+  -f docker/docker-compose.ssl.yml restart web
+EOF
+
+chmod +x /etc/letsencrypt/renewal-hooks/deploy/cpp-ai-teaching
+certbot renew --dry-run
+```
+
+验证 HTTPS：
+
+```bash
+curl --fail https://yourdomain.com/api/health
+```
+
+## 8. 上线验收
+
+逐项检查：
+
+- [ ] `docker compose ... ps` 显示 `ppt-ai-server` 和 `ppt-ai-web` 正常运行；
+- [ ] `/api/health` 返回 `status: ok`；
+- [ ] 首页和 `panel.html?topic=BFS` 可以访问；
+- [ ] AI 对话可以流式输出；
+- [ ] 算法速懂卡、边界盲盒、练习题和讲稿可以生成；
+- [ ] 算法教练可以创建会话、点击选项并进入下一轮；
+- [ ] 浏览器开发者工具中没有 `/api` 的 401 或 500 错误；
+- [ ] Lighthouse 控制台未开放 `3000/5174/5175/2358`；
+- [ ] 配置 HTTPS 后，HTTP 会跳转到 HTTPS。
+
+## 9. 日常运维
+
+先定义方便使用的命令：
+
+```bash
+cd /opt/cpp-ai-teaching
+COMPOSE='docker compose --env-file .env -f docker/docker-compose.yml'
+```
+
+常用操作：
+
+```bash
+# 查看状态
+$COMPOSE ps
+
+# 查看后端日志
+$COMPOSE logs -f --tail 200 server
+
+# 查看前端日志
+$COMPOSE logs -f --tail 200 web
+
+# 重启
+$COMPOSE restart
+
+# 停止但保留镜像
+$COMPOSE down
+
+# 查看资源
+docker stats
+df -h
+docker system df
+```
+
+更新到 GitHub 最新版本：
+
+```bash
+cd /opt/cpp-ai-teaching
+git status --short
+git pull --ff-only
+
+docker compose --env-file .env \
+  -f docker/docker-compose.yml up -d --build
+
+curl --fail http://127.0.0.1/api/health
+```
+
+如果正在使用 HTTPS，更新后使用两份 Compose 文件：
+
+```bash
+docker compose --env-file .env \
+  -f docker/docker-compose.yml \
+  -f docker/docker-compose.ssl.yml up -d --build
+```
+
+更新失败时先查看最近提交，再切回上一个确认可用的提交并重新构建：
+
+```bash
+git log --oneline -5
+git checkout <可用提交ID>
+docker compose --env-file .env -f docker/docker-compose.yml up -d --build
+```
+
+## 10. 备份与恢复
+
+需要备份的内容只有配置、知识库、Prompt 和证书：
+
+```bash
+cd /opt/cpp-ai-teaching
+tar czf "/root/cpp-ai-teaching-$(date +%Y%m%d-%H%M).tar.gz" \
+  server/.env .env knowledge server/prompts ssl 2>/dev/null
+```
+
+算法教练 v1.0 的会话保存在 Node.js 进程内，容器重启后会清空。需要长期保存学习记录时，再接入 Redis 或数据库。
+
+## 11. 代码调试与 Judge0
+
+当前生产镜像不会在业务容器中直接运行学生代码，也没有安装 `g++`。因此公网部署后，代码调试模块的本地编译能力不可用，这是安全限制，不是部署故障。
+
+正式开放代码调试前，应部署自建 Judge0 CE，并满足：
+
+- Judge0、PostgreSQL 和 Redis 只加入 Docker 内网；
+- 不向 Lighthouse 公网防火墙开放 `2358`；
+- 业务后端通过内部地址调用 Judge0；
+- 设置时间、内存、输出和并发限制；
+- 保留“不给完整解题代码”的教学守卫。
+
+建议环境变量：
 
 ```env
 CODE_RUNNER=judge0
 JUDGE0_URL=http://judge0:2358
-JUDGE0_AUTH_TOKEN=replace_with_private_token
+JUDGE0_AUTH_TOKEN=替换为内部令牌
 JUDGE0_CPP_LANGUAGE_ID=54
 JUDGE0_TIME_LIMIT=2
 JUDGE0_MEMORY_LIMIT=128000
 ```
 
-后续迁移时，将 `server/services/codeRunner.js` 替换为 Judge0 API 客户端即可，前端和“编译 -> 样例验证 -> 边界盲盒引导”的教学流程保持不变。
+业务后端尚未接入 Judge0 客户端前，不要单独启动 Judge0 对公网提供服务。
 
-### 13.3 Judge0 上线验收清单
+## 12. 常见问题
 
-- [ ] Judge0 API 仅能从 `server` 容器访问，公网无法直接访问。
-- [ ] C++17 编译错误能返回给教学系统。
-- [ ] 单样例、多样例和只有输出的样例都能按预期处理。
-- [ ] 死循环会在时间限制内终止，超大输出会被限制。
-- [ ] 业务容器内没有额外安装 `g++`，不直接执行学生代码。
-- [ ] 代码调试模块仍只给编译信息和调试引导，绝不返回完整解题代码。
+### 页面打不开
 
-Judge0 官方文档：<https://ce.judge0.com/docs>
+```bash
+docker compose --env-file .env -f docker/docker-compose.yml ps
+docker compose --env-file .env -f docker/docker-compose.yml logs --tail 100 web
+curl -I http://127.0.0.1/
+```
 
-### 当前 API 端点
+同时检查 Lighthouse 控制台防火墙和 UFW 的 `80/443` 规则。
 
-| 端点 | 方法 | 功能 |
-|------|------|------|
-| `/api/health` | GET | 健康检查 |
-| `/api/chat` | POST | AI 对话（SSE） |
-| `/api/opener` | POST | 算法速懂卡（SSE） |
-| `/api/edge-case` | POST | 边界盲盒（SSE） |
-| `/api/edge-case/problem/:id` | GET | 按 4 位题号获取题面和样例 |
-| `/api/news` | GET | 获取中文新闻和历史上的今天 |
-| `/api/generate-exercise` | POST | 生成练习题（SSE） |
-| `/api/generate-script` | POST | 生成讲稿（SSE） |
-| `/api/debug-code` | POST | 代码调试（SSE） |
+### API 返回 401
 
-教学工具中的「题目列表」由前端内置题号索引提供，不调用 AI，也不依赖外部数据文件。旧版 `/api/generate-example` 仅作为兼容接口保留，当前主界面不再使用。
+检查 `server/.env` 中的 API Key、模型名和接口地址，然后重启后端：
+
+```bash
+docker compose --env-file .env -f docker/docker-compose.yml restart server
+docker compose --env-file .env -f docker/docker-compose.yml logs --tail 100 server
+```
+
+### API 返回 500 或算法教练无响应
+
+```bash
+docker compose --env-file .env -f docker/docker-compose.yml logs --tail 200 server
+curl http://127.0.0.1/api/health
+```
+
+确认 Lighthouse 可以访问模型服务，并检查 `COACH_TIMEOUT_MS` 是否过小。
+
+### 构建时内存不足
+
+确认已创建 Swap，然后只重新构建：
+
+```bash
+free -h
+docker compose --env-file .env -f docker/docker-compose.yml build --no-cache
+docker compose --env-file .env -f docker/docker-compose.yml up -d
+```
+
+### Nginx 报 `host not found in upstream`
+
+```bash
+docker compose --env-file .env -f docker/docker-compose.yml restart server web
+```
+
+### HTTPS 启动失败
+
+```bash
+ls -l ssl/fullchain.pem ssl/privkey.pem
+docker compose --env-file .env \
+  -f docker/docker-compose.yml \
+  -f docker/docker-compose.ssl.yml config
+```
+
+证书文件名必须是 `fullchain.pem` 和 `privkey.pem`。

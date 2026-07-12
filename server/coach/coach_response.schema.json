@@ -1,0 +1,63 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Algorithm Coach Response",
+  "type": "object",
+  "required": [
+    "stage",
+    "coach_message",
+    "focus",
+    "choices",
+    "hint_level",
+    "progress",
+    "state_patch"
+  ],
+  "properties": {
+    "stage": {
+      "type": "string",
+      "enum": ["INGEST", "DIAGNOSE", "UNDERSTAND", "EXPLORE", "MODEL", "VALIDATE", "PLAN", "REFLECT", "COMPLETE"]
+    },
+    "coach_message": {"type": "string", "minLength": 1, "maxLength": 600},
+    "focus": {"type": "string", "minLength": 1, "maxLength": 100},
+    "choices": {
+      "type": "array",
+      "minItems": 3,
+      "maxItems": 5,
+      "uniqueItems": true,
+      "items": {
+        "type": "object",
+        "required": ["id", "text", "intent"],
+        "properties": {
+          "id": {"type": "string", "pattern": "^[A-E]$"},
+          "text": {"type": "string", "minLength": 1, "maxLength": 60},
+          "intent": {"type": "string", "minLength": 1, "maxLength": 80}
+        },
+        "additionalProperties": false
+      }
+    },
+    "hint_level": {"type": "integer", "minimum": 0, "maximum": 5},
+    "progress": {
+      "type": "object",
+      "required": ["goal_understood", "sample_understood", "candidate_method_found", "method_validated", "ready_for_reflection"],
+      "properties": {
+        "goal_understood": {"type": "boolean"},
+        "sample_understood": {"type": "boolean"},
+        "candidate_method_found": {"type": "boolean"},
+        "method_validated": {"type": "boolean"},
+        "ready_for_reflection": {"type": "boolean"}
+      },
+      "additionalProperties": true
+    },
+    "state_patch": {
+      "type": "object",
+      "required": ["primary_blocker", "last_strategy", "student_evidence"],
+      "properties": {
+        "primary_blocker": {"type": "string"},
+        "last_strategy": {"type": "string"},
+        "student_evidence": {"type": "array", "items": {"type": "string"}},
+        "revealed_insights": {"type": "array", "items": {"type": "string"}}
+      },
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": false
+}

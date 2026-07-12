@@ -4,6 +4,7 @@ const {
   handleGenerateExample,
   handleGenerateExercise,
   handleGenerateScript,
+  handleGenerateHint,
   handleDebugCode,
   handleDebugHint,
 } = require('../controllers/teachingController');
@@ -11,6 +12,7 @@ const {
 router.post('/generate-example', handleGenerateExample);
 router.post('/generate-exercise', handleGenerateExercise);
 router.post('/generate-script', handleGenerateScript);
+router.post('/generate-hint', handleGenerateHint);
 router.post('/debug-code', handleDebugCode);
 router.post('/debug-code/hint', handleDebugHint);
 

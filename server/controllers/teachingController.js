@@ -121,6 +121,66 @@ async function handleGenerateScript(req, res) {
   await streamResponse(res, prompt, 0.7, 4096, systemPrompt);
 }
 
+function sanitizeNoSolutionCode(content, title = '### 思路提示') {
+  const sanitized = sanitizeChatContent(String(content || ''));
+  const looksLikeSolution = /#include|using\s+namespace|\bmain\s*\(|\b(?:void|int|long\s+long|auto)\s+\w+\s*\([^)]*\)\s*\{|\bcin\s*>>|\bcout\s*<</.test(sanitized);
+  if (!looksLikeSolution) return sanitized;
+  return `${title}
+
+这次回答包含了过多实现细节，系统已拦截。请先按下面的顺序思考：
+
+1. 题目要我们求什么？答案是一个数、一个序列，还是判断结果？
+2. 输入规模决定能不能暴力枚举。先估算最慢的做法会跑多少步。
+3. 找一个最小样例，手算每一步状态变化。
+4. 写出关键状态或关键变量，不要急着写完整程序。
+5. 最后只把核心转移、判断条件或循环范围补进自己的代码。`;
+}
+
+async function handleGenerateHint(req, res) {
+  const { problem } = req.body;
+
+  if (!problem) {
+    return res.status(400).json({ error: '请先输入题目描述。' });
+  }
+
+  setupSSE(res);
+
+  const prompt = `你是一位 C++ 竞赛课老师。请根据下面的题目，给学生生成“思路提示”，帮助学生自己想出解法。
+
+## 题目
+${String(problem).slice(0, 20000)}
+
+## 输出要求
+- 面向 10～18 岁学生，语言清楚、自然、具体。
+- 不要给完整 C++ 代码，不要给 main、头文件、完整输入输出框架，也不要给可直接提交的函数。
+- 可以给不超过 8 行伪代码，或 1～3 行关键定义语句。
+- 不要直接替学生写最终答案，要用引导式提示。
+- 重点说明：读题抓手、如何建模、关键状态/变量、核心转移或核心判断、手算小样例、易错提醒。
+- 如果题目适合多种做法，优先给最适合课堂讲解和学生实现的做法，再简单提一句替代思路。
+- 使用 Markdown，按下面结构输出：
+
+### 读题先抓什么
+### 可以怎么建模
+### 关键变量或状态
+### 核心思路
+### 伪代码提示
+### 手算一个小例子
+### 易错提醒`;
+
+  try {
+    const content = await chat([{ role: 'user', content: prompt }], {
+      temperature: 0.35,
+      max_tokens: 2600,
+      timeout: 90000,
+    });
+    sendSSE(res, { content: sanitizeNoSolutionCode(content) });
+  } catch (err) {
+    console.error('[Generate Hint Error]', err.message);
+    sendSSE(res, { error: '思路提示生成失败，请稍后重试。' });
+  }
+  endSSE(res);
+}
+
 /**
  * POST /api/debug-code
  * Analyze and debug C++ code
@@ -334,7 +394,9 @@ module.exports = {
   handleGenerateExample,
   handleGenerateExercise,
   handleGenerateScript,
+  handleGenerateHint,
   handleDebugCode,
   handleDebugHint,
   sanitizeDebugHint,
+  sanitizeNoSolutionCode,
 };

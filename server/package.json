@@ -7,7 +7,8 @@
     "start": "node app.js",
     "dev": "node --watch app.js",
     "test:copy-style": "node services/copyStyle.test.js",
-    "test:debug-hint": "node controllers/teachingController.test.js"
+    "test:debug-hint": "node controllers/teachingController.test.js",
+    "test:coach": "node coach/engine.test.js"
   },
   "dependencies": {
     "express": "^4.18.2",

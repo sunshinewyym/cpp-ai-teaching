@@ -137,6 +137,91 @@
           <input v-model="courseTopic" placeholder="课程主题，例如：单调栈、BFS、DP 背包" />
         </div>
         <PromptButtons @action="handleTeachingAction" :loading="loading" />
+        <section v-if="teachingAction === 'algorithm-coach'" class="coach-tool">
+          <details class="coach-inputs" :open="!hintInputsCollapsed" @toggle="hintInputsCollapsed = !$event.target.open">
+            <summary>题目与教练设置</summary>
+            <div class="hint-tool-card">
+              <div class="module-note">
+                <strong>给学生一点方向，不直接给答案</strong>
+                <span>算法教练每轮只推进一个思考步骤，并根据学生的选择继续追问，不提供完整代码或完整解法。</span>
+              </div>
+              <div class="input-row">
+                <input
+                  v-model="hintProblemId"
+                  placeholder="输入 4 位题号，例如：1000"
+                  maxlength="4"
+                  inputmode="numeric"
+                  @keydown.enter="fetchHintProblemById"
+                />
+                <button @click="fetchHintProblemById" :disabled="fetchingHintProblem || !/^\d{4}$/.test(hintProblemId)">
+                  {{ fetchingHintProblem ? '获取中……' : '🔎 获取题面' }}
+                </button>
+              </div>
+              <p class="helper-text" v-if="hintProblemFetchMessage">{{ hintProblemFetchMessage }}</p>
+              <label class="coach-grade">
+                <span>学生年级</span>
+                <select v-model.number="coachGrade">
+                  <option v-for="grade in [5, 6, 7, 8, 9]" :key="grade" :value="grade">{{ grade }} 年级</option>
+                </select>
+              </label>
+              <textarea v-model="hintProblem" placeholder="也可以直接粘贴题目描述" rows="9"></textarea>
+              <button @click="startAlgorithmCoach" :disabled="loading || !hintProblem">
+                {{ loading ? '准备中……' : '🧭 开始算法教练' }}
+              </button>
+            </div>
+          </details>
+
+          <p v-if="coachError" class="coach-error">{{ coachError }}</p>
+          <div v-if="coachHistory.length" class="coach-shell">
+            <header class="coach-header">
+              <div>
+                <span class="coach-stage">{{ coachStageLabel(coachResponse?.stage) }}</span>
+                <strong>{{ coachResponse?.focus }}</strong>
+              </div>
+              <div class="coach-header-actions">
+                <span>第 {{ coachHistory.length }} 轮</span>
+                <button type="button" @click="resetAlgorithmCoach">重新开始</button>
+              </div>
+            </header>
+
+            <div class="coach-history" aria-live="polite">
+              <article v-for="(turn, index) in coachHistory" :key="index" class="coach-turn-card">
+                <p v-if="turn.student" class="coach-student"><strong>学生：</strong>{{ turn.student }}</p>
+                <div class="coach-answer">
+                  <span>教练</span>
+                  <p>{{ turn.response.coach_message }}</p>
+                  <small>当前只看：{{ turn.response.focus }}</small>
+                </div>
+              </article>
+            </div>
+
+            <div v-if="coachResponse && coachResponse.stage !== 'COMPLETE'" class="coach-next">
+              <h3>你现在更接近哪一种想法？</h3>
+              <div class="coach-choices">
+                <button
+                  v-for="choice in coachResponse.choices"
+                  :key="choice.id"
+                  type="button"
+                  class="coach-choice"
+                  :disabled="loading"
+                  @click="sendCoachTurn('', choice)"
+                >
+                  <b>{{ choice.id }}</b>
+                  <span>{{ choice.text }}</span>
+                </button>
+              </div>
+              <div class="coach-free-input">
+                <textarea
+                  v-model="coachMessage"
+                  rows="3"
+                  placeholder="也可以写下自己的想法，按 Enter 发送，Shift + Enter 换行"
+                  @keydown.enter.exact.prevent="sendCoachTurn(coachMessage)"
+                ></textarea>
+                <button type="button" :disabled="loading || !coachMessage.trim()" @click="sendCoachTurn(coachMessage)">发送想法</button>
+              </div>
+            </div>
+          </div>
+        </section>
         <div v-if="loading && !result" class="loading-card compact">
           <div class="loading-orbit"><span></span><span></span><span></span></div>
           <div class="loading-copy">
@@ -185,7 +270,7 @@
             </div>
           </section>
         </div>
-        <div v-else class="result-area" v-html="renderedResult"></div>
+        <div v-else-if="teachingAction !== 'algorithm-coach'" class="result-area" v-html="renderedResult"></div>
       </div>
 
       <!-- Debug mode -->
@@ -302,6 +387,19 @@ const debugInputsCollapsed = ref(false);
 const debugGeneratingEdges = ref(false);
 const debugHintLoading = ref(false);
 const debugCanAskMore = ref(false);
+const hintProblemId = ref('');
+const hintProblem = ref('');
+const fetchingHintProblem = ref(false);
+const hintProblemFetchMessage = ref('');
+const hintProblemTitle = ref('');
+const hintSamples = ref([]);
+const hintInputsCollapsed = ref(false);
+const coachGrade = ref(6);
+const coachSessionId = ref('');
+const coachResponse = ref(null);
+const coachHistory = ref([]);
+const coachMessage = ref('');
+const coachError = ref('');
 const teachingAction = ref('');
 const newsTips = ref([]);
 const quizTitle = ref('');
@@ -337,6 +435,12 @@ function switchTool(tool) {
   debugGeneratingEdges.value = false;
   debugHintLoading.value = false;
   debugCanAskMore.value = false;
+  fetchingHintProblem.value = false;
+  hintInputsCollapsed.value = false;
+  coachResponse.value = null;
+  coachHistory.value = [];
+  coachMessage.value = '';
+  coachError.value = '';
 }
 
 const algorithmCardSections = computed(() => {
@@ -575,6 +679,29 @@ async function fetchDebugProblemById() {
   }
 }
 
+async function fetchHintProblemById() {
+  if (!/^\d{4}$/.test(hintProblemId.value)) {
+    hintProblemFetchMessage.value = '请输入 4 位数字题号。';
+    return;
+  }
+
+  fetchingHintProblem.value = true;
+  hintProblemFetchMessage.value = '';
+  try {
+    const resp = await fetch(`/api/edge-case/problem/${hintProblemId.value}`);
+    const data = await resp.json();
+    if (!resp.ok) throw new Error(data.error || '获取题目失败');
+    hintProblem.value = data.description;
+    hintProblemTitle.value = data.title || `${hintProblemId.value} 题`;
+    hintSamples.value = data.samples || [];
+    hintProblemFetchMessage.value = `已获取：${data.title}`;
+  } catch (err) {
+    hintProblemFetchMessage.value = err.message;
+  } finally {
+    fetchingHintProblem.value = false;
+  }
+}
+
 async function handleTeachingAction(action) {
   if (action === 'show-problem-list') {
     teachingAction.value = action;
@@ -582,6 +709,15 @@ async function handleTeachingAction(action) {
     quizTitle.value = '';
     quizQuestions.value = [];
     quizAnswers.value = {};
+    return;
+  }
+  if (action === 'algorithm-coach') {
+    teachingAction.value = action;
+    result.value = '';
+    quizTitle.value = '';
+    quizQuestions.value = [];
+    quizAnswers.value = {};
+    coachError.value = '';
     return;
   }
   if (!courseTopic.value) {
@@ -617,6 +753,112 @@ async function handleTeachingAction(action) {
     parseQuizResult();
   }
   loading.value = false;
+}
+
+async function coachRequest(url, options = {}) {
+  const response = await fetch(url, {
+    method: options.method || 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: options.body ? JSON.stringify(options.body) : undefined,
+  });
+  if (response.status === 204) return null;
+  const raw = await response.text();
+  let data = {};
+  if (raw) {
+    try {
+      data = JSON.parse(raw);
+    } catch (error) {
+      throw new Error('算法教练返回内容暂时无法解析，请重试。');
+    }
+  }
+  if (!response.ok) throw new Error(data.error || '算法教练请求失败。');
+  if (!raw) throw new Error('算法教练没有返回内容，请重试。');
+  return data;
+}
+
+function coachStageLabel(stage) {
+  return {
+    INGEST: '核对题目',
+    DIAGNOSE: '定位卡点',
+    UNDERSTAND: '理解题意',
+    EXPLORE: '小步探索',
+    MODEL: '建立模型',
+    VALIDATE: '验证想法',
+    PLAN: '整理思路',
+    REFLECT: '复盘迁移',
+    COMPLETE: '本题完成',
+  }[stage] || '准备开始';
+}
+
+async function startAlgorithmCoach() {
+  if (!hintProblem.value || loading.value) return;
+  if (coachSessionId.value) {
+    fetch(`/api/coach/sessions/${coachSessionId.value}`, { method: 'DELETE' }).catch(() => {});
+  }
+  teachingAction.value = 'algorithm-coach';
+  hintInputsCollapsed.value = true;
+  loading.value = true;
+  result.value = '';
+  coachError.value = '';
+  coachResponse.value = null;
+  coachHistory.value = [];
+  coachMessage.value = '';
+  try {
+    const created = await coachRequest('/api/coach/sessions', {
+      body: { student: { grade: coachGrade.value } },
+    });
+    coachSessionId.value = created.session.session_id;
+    const data = await coachRequest(`/api/coach/sessions/${coachSessionId.value}/problem`, {
+      body: {
+        problem: {
+          title: hintProblemTitle.value || `${hintProblemId.value || '自定义'} 题`,
+          text: hintProblem.value,
+          samples: hintSamples.value,
+        },
+      },
+    });
+    coachResponse.value = data.response;
+    coachHistory.value = [{ student: '', response: data.response }];
+  } catch (error) {
+    coachError.value = error.message;
+    hintInputsCollapsed.value = false;
+  } finally {
+    loading.value = false;
+  }
+}
+
+async function sendCoachTurn(message = '', choice = null) {
+  const studentText = choice?.text || String(message || '').trim();
+  if (!coachSessionId.value || !studentText || loading.value) return;
+  loading.value = true;
+  coachError.value = '';
+  try {
+    const data = await coachRequest(`/api/coach/sessions/${coachSessionId.value}/turns`, {
+      body: {
+        message: choice ? '' : studentText,
+        selected_choice_id: choice?.id || null,
+      },
+    });
+    coachResponse.value = data.response;
+    coachHistory.value.push({ student: studentText, response: data.response });
+    coachMessage.value = '';
+  } catch (error) {
+    coachError.value = error.message;
+  } finally {
+    loading.value = false;
+  }
+}
+
+function resetAlgorithmCoach() {
+  if (coachSessionId.value) {
+    fetch(`/api/coach/sessions/${coachSessionId.value}`, { method: 'DELETE' }).catch(() => {});
+  }
+  coachSessionId.value = '';
+  coachResponse.value = null;
+  coachHistory.value = [];
+  coachMessage.value = '';
+  coachError.value = '';
+  hintInputsCollapsed.value = false;
 }
 
 function parseQuizResult() {
@@ -902,6 +1144,236 @@ body {
   color: #9a3412;
   font-size: 13px;
   line-height: 1.5;
+}
+
+.hint-tool-card {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 14px;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+}
+
+.hint-tool-card textarea {
+  min-height: 180px;
+}
+
+.coach-tool {
+  width: min(1100px, 100%);
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.coach-inputs {
+  background: #fff;
+  border: 1px solid #dbe4f0;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.coach-inputs > summary {
+  padding: 13px 16px;
+  color: #334155;
+  font-weight: 700;
+  cursor: pointer;
+  list-style-position: inside;
+}
+
+.coach-inputs[open] > summary {
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.coach-inputs .hint-tool-card {
+  border: 0;
+  border-radius: 0;
+}
+
+.coach-grade {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: #475569;
+  font-size: 14px;
+}
+
+.coach-grade select {
+  min-width: 130px;
+  padding: 9px 12px;
+  background: #fff;
+  border: 1px solid #dbe4f0;
+  border-radius: 8px;
+  color: #1e293b;
+  font: inherit;
+}
+
+.coach-error {
+  padding: 12px 14px;
+  color: #b91c1c;
+  background: #fff;
+  border: 1px solid #fecaca;
+  border-left: 4px solid #ef4444;
+  border-radius: 8px;
+}
+
+.coach-shell {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.coach-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 12px 0;
+  border-bottom: 1px solid #dbe4f0;
+}
+
+.coach-header > div {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.coach-stage {
+  padding: 4px 10px;
+  color: #3730a3;
+  background: #eef2ff;
+  border: 1px solid #c7d2fe;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.coach-header-actions {
+  color: #64748b;
+  font-size: 13px;
+}
+
+.tool-panel .coach-header-actions button {
+  padding: 7px 11px;
+  color: #475569;
+  background: #fff;
+  border: 1px solid #cbd5e1;
+}
+
+.coach-history {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.coach-turn-card {
+  padding: 16px;
+  background: #fff;
+  border: 1px solid #dbe4f0;
+  border-radius: 8px;
+}
+
+.coach-student {
+  margin-bottom: 12px;
+  padding: 10px 12px;
+  color: #334155;
+  background: #f8fafc;
+  border-left: 3px solid #94a3b8;
+  line-height: 1.6;
+}
+
+.coach-answer {
+  display: grid;
+  grid-template-columns: 52px minmax(0, 1fr);
+  gap: 8px 12px;
+  align-items: start;
+}
+
+.coach-answer > span {
+  grid-row: 1 / span 2;
+  padding: 5px 8px;
+  color: #fff;
+  background: #4f46e5;
+  border-radius: 6px;
+  text-align: center;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.coach-answer p {
+  color: #1e293b;
+  font-size: 17px;
+  line-height: 1.75;
+  white-space: pre-wrap;
+}
+
+.coach-answer small {
+  color: #64748b;
+  font-size: 13px;
+}
+
+.coach-next {
+  padding-top: 4px;
+}
+
+.coach-next h3 {
+  margin-bottom: 10px;
+  color: #334155;
+  font-size: 15px;
+}
+
+.coach-choices {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.tool-panel .coach-choice {
+  min-height: 58px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  color: #334155;
+  background: #fff;
+  border: 1px solid #cbd5e1;
+  text-align: left;
+}
+
+.tool-panel .coach-choice:hover:not(:disabled) {
+  opacity: 1;
+  color: #3730a3;
+  background: #eef2ff;
+  border-color: #818cf8;
+}
+
+.coach-choice b {
+  width: 28px;
+  height: 28px;
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  color: #4338ca;
+  background: #eef2ff;
+  border-radius: 50%;
+}
+
+.coach-free-input {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 10px;
+  align-items: end;
+  margin-top: 12px;
+}
+
+.coach-free-input textarea {
+  min-height: 76px;
+}
+
+.coach-free-input button {
+  height: 42px;
 }
 
 .edge-case-grid {
@@ -1451,8 +1923,24 @@ body {
   .quick-card-grid,
   .edge-case-grid,
   .io-grid,
-  .quiz-options {
+  .quiz-options,
+  .coach-choices,
+  .coach-free-input {
     grid-template-columns: 1fr;
+  }
+
+  .coach-header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .coach-answer {
+    grid-template-columns: 1fr;
+  }
+
+  .coach-answer > span {
+    grid-row: auto;
+    width: fit-content;
   }
 
   .quiz-header {

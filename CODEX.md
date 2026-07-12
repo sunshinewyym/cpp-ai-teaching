@@ -1,7 +1,7 @@
 # C++ AI 教学系统 — Codex 开发指南
 
 ## 项目概述
-面向少儿编程机构的 AI 教学平台，核心能力：AI 对话、算法脑洞、边界盲盒、代码调试、教学工具。
+面向少儿编程机构的 AI 教学平台，核心能力：AI 对话、算法速懂卡、算法教练、边界盲盒、代码调试、教学工具。
 
 ## 技术栈
 - **后端**: Node.js + Express + DeepSeek API (deepseek-chat)
@@ -12,6 +12,7 @@
 ```
 server/
   app.js              # Express 主入口，路由注册
+  coach/              # 算法教练状态机、Schema、安全守卫与 P0 测试
   routes/             # 6 组路由: chat, opener, edgeCase, teaching, agent, oj
   controllers/        # 6 个控制器
   services/           # deepseek.js, promptRouter.js, knowledge.js, ojService.js
@@ -67,3 +68,8 @@ cd web && npm install && npm run dev
 | `POST /api/oj/submit` | 编译 + 样例 + AI 分析（SSE） |
 | `POST /api/oj/hint` | 思路提示（SSE） |
 | `POST /api/oj/debug-hint` | 调试引导（SSE） |
+| `POST /api/coach/sessions` | 创建算法教练会话 |
+| `POST /api/coach/sessions/:id/problem` | 提交题目并获取首轮诊断 |
+| `POST /api/coach/sessions/:id/turns` | 提交学生表达或选项 |
+| `GET /api/coach/sessions/:id` | 获取公开会话状态 |
+| `DELETE /api/coach/sessions/:id` | 删除算法教练会话 |
