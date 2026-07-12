@@ -62,11 +62,11 @@ ${code ? `## 学生代码\n\`\`\`cpp\n${code}\n\`\`\`` : ''}
           : [
               {
                 role: 'system',
-                content: '请从头重写为合法 JSON，只输出包含 4 个 cases 的 JSON 对象。不要输出 Markdown、代码块、表达式或省略号。每个 testInput 必须是可以直接运行且不超过 500 个字符的具体字符串；规模上限过大时，用不超过 20 个元素的小数据复现同类边界。expectedOutput 必须是具体字符串，换行使用 \\n。',
+                content: '请从头重写为合法 JSON。只输出 JSON 对象，不要 Markdown、代码块、表达式、省略号或“请自行计算”。至少输出 2 个、最多输出 4 个 cases；每个 testInput 和 expectedOutput 都必须是可以直接运行或直接核对的具体字符串，不能使用变量、拼接或 std::string(...)。规模上限过大时，用不超过 20 个元素的小数据复现同类边界；换行写成 \\n。',
               },
               { role: 'user', content: prompt },
             ];
-        const content = await chat(messages, { temperature: 0, max_tokens: 2048, timeout: 30000 });
+        const content = await chat(messages, { temperature: 0.1, max_tokens: 3072, timeout: 90000 });
         parsed = parseJsonCandidate(content);
       } catch (err) {
         console.warn(`[EdgeCase Attempt ${attempt + 1}]`, err.message);
@@ -96,11 +96,30 @@ function parseJsonCandidate(content) {
   if (start < 0 || end <= start) return null;
   try {
     const parsed = JSON.parse(cleaned.slice(start, end + 1));
-    const result = Array.isArray(parsed) ? { cases: parsed } : (parsed.cases ? parsed : null);
-    return result && result.cases.length > 0 && result.cases.every((item) => isConcreteCase(item)) ? result : null;
+    const cases = Array.isArray(parsed) ? parsed : parsed?.cases;
+    if (!Array.isArray(cases)) return null;
+
+    // 一个模型卡牌不合格时，不应让整批结果全部丢失。
+    const validCases = cases
+      .map(normalizeCase)
+      .filter(isConcreteCase)
+      .slice(0, 4);
+    return validCases.length ? { cases: validCases } : null;
   } catch (err) {
     return null;
   }
+}
+
+function normalizeCase(item) {
+  if (!item || typeof item !== 'object') return null;
+  return {
+    ...item,
+    title: item.title == null ? '' : String(item.title),
+    boundaryType: item.boundaryType == null ? '特殊数据' : String(item.boundaryType),
+    testInput: item.testInput == null ? '' : String(item.testInput),
+    expectedOutput: item.expectedOutput == null ? '' : String(item.expectedOutput),
+    reason: item.reason == null ? '' : String(item.reason),
+  };
 }
 
 function isConcreteCase(item) {
