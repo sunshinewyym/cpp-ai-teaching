@@ -3,6 +3,7 @@ const { routePrompt } = require('../services/promptRouter');
 const { augmentWithKnowledge } = require('../services/knowledge');
 const { setupSSE, sendSSE, endSSE } = require('../utils/stream');
 const { verifyCpp } = require('../services/codeRunner');
+const { sanitizeChatContent } = require('./chatController');
 
 /**
  * POST /api/generate-example
@@ -223,6 +224,59 @@ async function handleDebugCode(req, res) {
   }
 }
 
+function sanitizeDebugHint(content) {
+  const sanitized = sanitizeChatContent(String(content || ''));
+  const looksLikeSolution = /#include|using\s+namespace|\bmain\s*\(|\b(?:void|int|long\s+long|auto)\s+\w+\s*\([^)]*\)\s*\{|\bcin\s*>>|\bcout\s*<</.test(sanitized);
+  if (!looksLikeSolution) return sanitized;
+  return `### 进一步提示
+
+这次回答包含了过多实现细节，已被系统拦截。请先锁定一个最小测试数据，逐步记录循环变量、数组下标和关键状态的变化，再检查它们第一次偏离预期的位置。`;
+}
+
+async function handleDebugHint(req, res) {
+  const { code, problem = '', previousAdvice = '', edgeCases = [] } = req.body;
+  if (!code) return res.status(400).json({ error: '请先粘贴学生代码。' });
+
+  setupSSE(res);
+  const prompt = `你是一位耐心但不会直接给答案的 C++ 竞赛调试老师。学生已经看过第一轮提示，但仍然无法定位问题。请给出比上一轮更具体的第二层提示。
+
+## 题目
+${problem || '未提供题目描述'}
+
+## 学生代码
+\`\`\`cpp
+${code.slice(0, 20000)}
+\`\`\`
+
+## 第一轮提示
+${previousAdvice.slice(-6000) || '无'}
+
+## 已生成的边界测试点
+${JSON.stringify(Array.isArray(edgeCases) ? edgeCases.slice(0, 4) : []).slice(0, 5000)}
+
+## 输出要求
+- 只根据题目、学生代码和已有提示分析，不要假设题目中没有出现的算法或数据结构。
+- 指出最值得追踪的变量、条件、循环或状态，以及为什么值得检查。
+- 给一个很小的手算数据，告诉学生每一步应该记录什么，不直接说出最终错误位置。
+- 可以给伪代码或关键定义语句，但代码块最多 8 行。
+- 绝不能给完整程序、完整函数、main、头文件、完整输入输出框架或可直接提交的解题代码。
+- 不要重写学生代码，不要直接给最终修改答案。
+- 使用中文，标题为“### 进一步提示”，内容简洁、具体、适合学生阅读。`;
+
+  try {
+    const content = await chat([{ role: 'user', content: prompt }], {
+      temperature: 0.3,
+      max_tokens: 1800,
+      timeout: 90000,
+    });
+    sendSSE(res, { content: sanitizeDebugHint(content) });
+  } catch (err) {
+    console.error('[Debug Hint Error]', err.message);
+    sendSSE(res, { error: '进一步提示生成失败，请稍后重试。' });
+  }
+  endSSE(res);
+}
+
 /**
  * Helper: streaming response
  */
@@ -281,4 +335,6 @@ module.exports = {
   handleGenerateExercise,
   handleGenerateScript,
   handleDebugCode,
+  handleDebugHint,
+  sanitizeDebugHint,
 };

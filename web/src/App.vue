@@ -215,14 +215,20 @@
           {{ loading ? '分析中……' : '🔍 分析代码' }}
         </button>
         </details>
-        <div v-if="loading && (!result || debugGeneratingEdges)" class="loading-card compact">
+        <div v-if="loading && (!result || debugGeneratingEdges || debugHintLoading)" class="loading-card compact">
           <div class="loading-orbit"><span></span><span></span><span></span></div>
           <div class="loading-copy">
-            <strong>{{ debugGeneratingEdges ? 'AI 正在设计边界测试点……' : 'AI 正在检查 Bug……' }}</strong>
+            <strong>{{ debugHintLoading ? 'AI 正在准备进一步提示……' : (debugGeneratingEdges ? 'AI 正在设计边界测试点……' : 'AI 正在检查 Bug……') }}</strong>
             <div class="tip-window"><div class="tip-track"><p v-for="tip in loadingTips" :key="tip">{{ tip }}</p></div></div>
           </div>
         </div>
         <div class="result-area" v-html="renderedResult"></div>
+        <div v-if="debugCanAskMore" class="debug-hint-action">
+          <button @click="requestFurtherDebugHint" :disabled="loading || debugHintLoading">
+            {{ debugHintLoading ? '生成中……' : '💡 获取进一步提示' }}
+          </button>
+          <span>提示会更具体，但不会提供完整代码或直接答案。</span>
+        </div>
         <section v-if="debugEdgeCases.length" class="debug-edge-output">
           <h3>边界盲盒测试点</h3>
           <div class="edge-case-grid">
@@ -294,6 +300,8 @@ const fetchingDebugProblem = ref(false);
 const debugProblemFetchMessage = ref('');
 const debugInputsCollapsed = ref(false);
 const debugGeneratingEdges = ref(false);
+const debugHintLoading = ref(false);
+const debugCanAskMore = ref(false);
 const teachingAction = ref('');
 const newsTips = ref([]);
 const quizTitle = ref('');
@@ -327,6 +335,8 @@ function switchTool(tool) {
   quizAnswers.value = {};
   teachingAction.value = '';
   debugGeneratingEdges.value = false;
+  debugHintLoading.value = false;
+  debugCanAskMore.value = false;
 }
 
 const algorithmCardSections = computed(() => {
@@ -653,6 +663,7 @@ async function debugCodeAction() {
   loading.value = true;
   result.value = '';
   debugEdgeCases.value = [];
+  debugCanAskMore.value = false;
   let nextAction = '';
   await streamPost('/api/debug-code', {
     code: debugCode.value,
@@ -682,6 +693,31 @@ async function debugCodeAction() {
     debugGeneratingEdges.value = false;
     loading.value = false;
   }
+  debugCanAskMore.value = Boolean(result.value);
+}
+
+async function requestFurtherDebugHint() {
+  if (!debugCode.value || debugHintLoading.value) return;
+  const previousAdvice = result.value;
+  debugCanAskMore.value = false;
+  debugHintLoading.value = true;
+  loading.value = true;
+  let hint = '';
+  await streamPost('/api/debug-code/hint', {
+    code: debugCode.value,
+    problem: debugProblem.value,
+    previousAdvice,
+    edgeCases: debugEdgeCases.value,
+  }, (chunk) => {
+    hint += chunk;
+  });
+  const hintFailed = !hint.trim() || /请求失败|网络错误|进一步提示生成失败/.test(hint);
+  result.value += hintFailed
+    ? '\n\n### 进一步提示暂时生成失败\n\n请稍后再试。'
+    : `\n\n---\n\n${hint.trim()}`;
+  debugCanAskMore.value = hintFailed;
+  debugHintLoading.value = false;
+  loading.value = false;
 }
 </script>
 
@@ -878,6 +914,25 @@ body {
   margin-top: 20px;
   padding-top: 18px;
   border-top: 2px solid #c7d2fe;
+}
+
+.debug-hint-action {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  margin-top: 14px;
+}
+
+.debug-hint-action button {
+  width: auto;
+  padding: 10px 18px;
+  background: #0f766e;
+}
+
+.debug-hint-action span {
+  color: #64748b;
+  font-size: 14px;
 }
 
 .debug-edge-output h3 {
