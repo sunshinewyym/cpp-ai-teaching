@@ -111,7 +111,7 @@ export const trieEdges = [
   { from: 'do', to: 'dog' },
 ];
 
-export function advancedSteps(id) {
+export function advancedSteps(id, options = {}) {
   if (id === 'twoPointer') return twoPointerSteps();
   if (id === 'prefix') return prefixSteps();
   if (id === 'difference') return differenceSteps();
@@ -121,20 +121,21 @@ export function advancedSteps(id) {
   if (id === 'unionFind') return unionFindSteps();
   if (id === 'mst') return mstSteps();
   if (id === 'shortest') return shortestSteps();
-  if (id === 'topological') return topologicalSteps();
+  if (id === 'topological') return topologicalSteps(options.topologicalStart);
   if (id === 'monoStack') return monotonicStackSteps();
   if (id === 'monoQueue') return monotonicQueueSteps();
   if (id === 'trie') return trieSteps();
   return shortestSteps();
 }
 
-function topologicalSteps() {
+function topologicalSteps(startId = 'A') {
   const indegrees = Object.fromEntries(topologicalNodes.map(node => [node.id, 0]));
   for (const edge of topologicalEdges) indegrees[edge.to] += 1;
-  const queue = topologicalNodes.map(node => node.id).filter(id => indegrees[id] === 0);
+  const initialQueue = topologicalNodes.map(node => node.id).filter(id => indegrees[id] === 0);
+  const queue = [startId, ...initialQueue.filter(id => id !== startId)].filter((id, index, list) => list.indexOf(id) === index && indegrees[id] === 0);
   const order = [];
   const removedEdges = [];
-  const result = [{ title: '把入度为 0 的顶点入队', message: 'A、B 没有前置课程，可以最先学习。', indegrees: { ...indegrees }, queue: [...queue], order: [], removedEdges: [], activeEdges: [], current: null }];
+  const result = [{ title: '把入度为 0 的顶点入队', message: `${queue.join('、')} 没有前置课程；本次先从 ${queue[0]} 开始。`, indegrees: { ...indegrees }, queue: [...queue], order: [], removedEdges: [], activeEdges: [], current: null, start: queue[0] }];
 
   while (queue.length) {
     const current = queue.shift();
@@ -313,19 +314,22 @@ function tracePath(parent, end) {
 
 function knapsackSteps() {
   const table = Array.from({ length: knapsackItems.length + 1 }, () => Array(knapsackCapacity + 1).fill(0));
-  const result = [{ title: '初始化 DP 表', message: '没有物品时，无论容量多大，最大价值都是 0。', items: knapsackItems, capacity: knapsackCapacity, table: cloneTable(table), row: 0, col: null }];
+  const filled = Array.from({ length: knapsackItems.length + 1 }, () => Array(knapsackCapacity + 1).fill(false));
+  filled[0].fill(true);
+  const result = [{ title: '初始化 DP 表', message: '没有物品时，无论容量多大，最大价值都是 0。', items: knapsackItems, capacity: knapsackCapacity, table: cloneTable(table), filled: cloneTable(filled), row: 0, col: null }];
   for (let i = 1; i <= knapsackItems.length; i += 1) {
     const item = knapsackItems[i - 1];
     for (let c = 0; c <= knapsackCapacity; c += 1) {
       table[i][c] = table[i - 1][c];
+      filled[i][c] = true;
       if (c < item.weight) continue;
       const skip = table[i - 1][c];
       const take = table[i - 1][c - item.weight] + item.value;
       table[i][c] = Math.max(skip, take);
-      result.push({ title: `物品 ${i}，容量 ${c}：最大价值 ${table[i][c]}`, message: `不选是 ${skip}，选择后是 ${take}，取较大值。`, items: knapsackItems, capacity: knapsackCapacity, table: cloneTable(table), row: i, col: c, fromCol: c - item.weight, decision: take > skip ? 'take' : 'skip' });
+      result.push({ title: `物品 ${i}，容量 ${c}：最大价值 ${table[i][c]}`, message: `不选是 ${skip}，选择后是 ${take}，取较大值。`, items: knapsackItems, capacity: knapsackCapacity, table: cloneTable(table), filled: cloneTable(filled), row: i, col: c, fromCol: c - item.weight, decision: take > skip ? 'take' : 'skip' });
     }
   }
-  result.push({ title: `背包最大价值为 ${table.at(-1).at(-1)}`, message: '右下角就是所有物品、总容量为 6 时的最优答案。', items: knapsackItems, capacity: knapsackCapacity, table: cloneTable(table), row: knapsackItems.length, col: knapsackCapacity, done: true });
+  result.push({ title: `背包最大价值为 ${table.at(-1).at(-1)}`, message: '右下角就是所有物品、总容量为 6 时的最优答案。', items: knapsackItems, capacity: knapsackCapacity, table: cloneTable(table), filled: cloneTable(filled), row: knapsackItems.length, col: knapsackCapacity, done: true });
   return result;
 }
 

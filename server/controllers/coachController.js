@@ -2,6 +2,7 @@ const {
   createSession,
   deleteSession,
   getSession,
+  prefetchNext,
   submitProblem,
   submitTurn,
 } = require('../coach/engine');
@@ -9,7 +10,11 @@ const {
 function sendError(res, error) {
   const status = error.status || 500;
   if (status >= 500) console.error('[Coach API Error]', error);
-  res.status(status).json({ error: status >= 500 ? '算法教练暂时无法回应，请稍后重试。' : error.message });
+  res.status(status).json({
+    error: status >= 500
+      ? (error.publicMessage || '算法教练暂时无法回应，请稍后重试。')
+      : error.message,
+  });
 }
 
 function handleCreateSession(req, res) {
@@ -36,6 +41,14 @@ async function handleSubmitTurn(req, res) {
   }
 }
 
+async function handlePrefetchNext(req, res) {
+  try {
+    res.json(await prefetchNext(req.params.id));
+  } catch (error) {
+    sendError(res, error);
+  }
+}
+
 function handleGetSession(req, res) {
   try {
     res.json({ session: getSession(req.params.id) });
@@ -57,6 +70,7 @@ module.exports = {
   handleCreateSession,
   handleDeleteSession,
   handleGetSession,
+  handlePrefetchNext,
   handleSubmitProblem,
   handleSubmitTurn,
 };

@@ -43,6 +43,16 @@
             </div>
           </div>
         </div>
+        <section v-if="!loading && !brainstormData && !result" class="quick-card-empty" aria-label="算法速懂卡使用提示">
+          <div class="quick-card-empty-mark" aria-hidden="true">⚡</div>
+          <h3>一起把算法讲明白</h3>
+          <p>输入一个算法或题型，我会把它整理成适合课堂观看的算法速懂卡。</p>
+          <div class="quick-card-empty-suggestions">
+            <button type="button" @click="useQuickCardExample('BFS 广度优先搜索')">🗺️ BFS</button>
+            <button type="button" @click="useQuickCardExample('二分查找')">🔎 二分查找</button>
+            <button type="button" @click="useQuickCardExample('背包 DP')">🎒 背包 DP</button>
+          </div>
+        </section>
         <div v-if="brainstormData" class="brainstorm-result">
           <div class="quick-card-actions">
             <button @click="exportAlgorithmCards" :disabled="exportingCard" class="export-card-button">
@@ -139,11 +149,11 @@
         <PromptButtons @action="handleTeachingAction" :loading="loading" />
         <section v-if="teachingAction === 'algorithm-coach'" class="coach-tool">
           <details class="coach-inputs" :open="!hintInputsCollapsed" @toggle="hintInputsCollapsed = !$event.target.open">
-            <summary>题目与教练设置</summary>
+            <summary>题目设置</summary>
             <div class="hint-tool-card">
               <div class="module-note">
-                <strong>给学生一点方向，不直接给答案</strong>
-                <span>算法教练每轮只推进一个思考步骤，并根据学生的选择继续追问，不提供完整代码或完整解法。</span>
+                <strong>先指出关键点，再引导学生自己完成</strong>
+                <span>教练会根据题目难度安排提示层数。简单题直接讲清关键思路，复杂题逐层展开；只在确有必要时用一个例子检验理解。</span>
               </div>
               <div class="input-row">
                 <input
@@ -158,12 +168,6 @@
                 </button>
               </div>
               <p class="helper-text" v-if="hintProblemFetchMessage">{{ hintProblemFetchMessage }}</p>
-              <label class="coach-grade">
-                <span>学生年级</span>
-                <select v-model.number="coachGrade">
-                  <option v-for="grade in [5, 6, 7, 8, 9]" :key="grade" :value="grade">{{ grade }} 年级</option>
-                </select>
-              </label>
               <textarea v-model="hintProblem" placeholder="也可以直接粘贴题目描述" rows="9"></textarea>
               <button @click="startAlgorithmCoach" :disabled="loading || !hintProblem">
                 {{ loading ? '准备中……' : '🧭 开始算法教练' }}
@@ -172,53 +176,74 @@
           </details>
 
           <p v-if="coachError" class="coach-error">{{ coachError }}</p>
-          <div v-if="coachHistory.length" class="coach-shell">
+          <div v-if="coachHistory.length || coachResponse" class="coach-shell">
             <header class="coach-header">
               <div>
                 <span class="coach-stage">{{ coachStageLabel(coachResponse?.stage) }}</span>
                 <strong>{{ coachResponse?.focus }}</strong>
               </div>
               <div class="coach-header-actions">
-                <span>第 {{ coachHistory.length }} 轮</span>
+                <span>提示层 {{ Math.max(1, coachHistory.length) }}</span>
                 <button type="button" @click="resetAlgorithmCoach">重新开始</button>
               </div>
             </header>
 
+            <section class="coach-key-route" aria-label="关键提示路线">
+              <header>
+                <strong>关键提示路线</strong>
+                <span>已整理 {{ coachHistory.length }} 条</span>
+              </header>
+              <ol>
+                <li
+                  v-for="(turn, index) in coachHistory"
+                  :key="`hint-${index}`"
+                  :class="{ current: index === coachHistory.length - 1 }"
+                >
+                  <b>{{ index + 1 }}</b>
+                  <div>
+                    <strong>{{ turn.response.focus }}</strong>
+                    <p>{{ turn.response.key_hint }}</p>
+                  </div>
+                </li>
+              </ol>
+            </section>
+
             <div class="coach-history" aria-live="polite">
-              <article v-for="(turn, index) in coachHistory" :key="index" class="coach-turn-card">
+              <article v-for="(turn, index) in coachHistory.slice(-1)" :key="index" class="coach-turn-card">
                 <p v-if="turn.student" class="coach-student"><strong>学生：</strong>{{ turn.student }}</p>
-                <div class="coach-answer">
-                  <span>教练</span>
+                <div class="coach-thinking">
+                  <strong>这一层怎么想</strong>
                   <p>{{ turn.response.coach_message }}</p>
-                  <small>当前只看：{{ turn.response.focus }}</small>
                 </div>
               </article>
             </div>
 
             <div v-if="coachResponse && coachResponse.stage !== 'COMPLETE'" class="coach-next">
-              <h3>你现在更接近哪一种想法？</h3>
-              <div class="coach-choices">
-                <button
-                  v-for="choice in coachResponse.choices"
-                  :key="choice.id"
-                  type="button"
-                  class="coach-choice"
-                  :disabled="loading"
-                  @click="sendCoachTurn('', choice)"
-                >
-                  <b>{{ choice.id }}</b>
-                  <span>{{ choice.text }}</span>
-                </button>
-              </div>
-              <div class="coach-free-input">
-                <textarea
-                  v-model="coachMessage"
-                  rows="3"
-                  placeholder="也可以写下自己的想法，按 Enter 发送，Shift + Enter 换行"
-                  @keydown.enter.exact.prevent="sendCoachTurn(coachMessage)"
-                ></textarea>
-                <button type="button" :disabled="loading || !coachMessage.trim()" @click="sendCoachTurn(coachMessage)">发送想法</button>
-              </div>
+              <template v-if="coachResponse.choices?.length">
+                <h3>{{ coachResponse.question }}</h3>
+                <div class="coach-choices">
+                  <button
+                    v-for="choice in coachResponse.choices"
+                    :key="choice.id"
+                    type="button"
+                    class="coach-choice"
+                    :disabled="loading"
+                    @click="sendCoachTurn('', choice)"
+                  >
+                    <b>{{ choice.id }}</b>
+                    <span>{{ choice.text }}</span>
+                  </button>
+                </div>
+              </template>
+              <button
+                v-else
+                type="button"
+                class="coach-continue"
+                :disabled="loading"
+                @click="continueAlgorithmCoach"
+              >
+                {{ loading ? '正在整理下一层提示……' : '看下一层提示' }}
+              </button>
             </div>
           </div>
         </section>
@@ -234,7 +259,7 @@
           <header class="quiz-header">
             <div>
               <h3>{{ quizTitle }}</h3>
-              <p>共 {{ quizQuestions.length }} 道单项选择题，点击选项后立即显示对错和解析。</p>
+            <p>共 {{ quizQuestions.length }} 道单项选择题，点击选项后立即显示对错和解析；题目有问题可单独换题。</p>
             </div>
             <div class="quiz-score">
               <span>进度 {{ answeredCount }}/{{ quizQuestions.length }}</span>
@@ -250,6 +275,14 @@
             <div class="quiz-question">
               <span>第 {{ index + 1 }} 题</span>
               <div class="quiz-question-content" v-html="renderMd(q.question)"></div>
+              <button
+                type="button"
+                class="quiz-regenerate"
+                :disabled="loading || quizRegenerating[index]"
+                @click.stop="regenerateQuizQuestion(q, index)"
+              >
+                {{ quizRegenerating[index] ? '生成中……' : '↻ 换一道题' }}
+              </button>
             </div>
             <div class="quiz-options">
               <button
@@ -300,14 +333,14 @@
           {{ loading ? '分析中……' : '🔍 分析代码' }}
         </button>
         </details>
-        <div v-if="loading && (!result || debugGeneratingEdges || debugHintLoading)" class="loading-card compact">
+        <div class="result-area" v-html="renderedResult"></div>
+        <div v-if="loading" class="loading-card compact">
           <div class="loading-orbit"><span></span><span></span><span></span></div>
           <div class="loading-copy">
             <strong>{{ debugHintLoading ? 'AI 正在准备进一步提示……' : (debugGeneratingEdges ? 'AI 正在设计边界测试点……' : 'AI 正在检查 Bug……') }}</strong>
             <div class="tip-window"><div class="tip-track"><p v-for="tip in loadingTips" :key="tip">{{ tip }}</p></div></div>
           </div>
         </div>
-        <div class="result-area" v-html="renderedResult"></div>
         <div v-if="debugCanAskMore" class="debug-hint-action">
           <button @click="requestFurtherDebugHint" :disabled="loading || debugHintLoading">
             {{ debugHintLoading ? '生成中……' : '💡 获取进一步提示' }}
@@ -387,6 +420,9 @@ const debugInputsCollapsed = ref(false);
 const debugGeneratingEdges = ref(false);
 const debugHintLoading = ref(false);
 const debugCanAskMore = ref(false);
+const debugHintCache = ref(null);
+const debugHintPrefetching = ref(false);
+const debugHintPrefetchPromise = ref(null);
 const hintProblemId = ref('');
 const hintProblem = ref('');
 const fetchingHintProblem = ref(false);
@@ -394,7 +430,6 @@ const hintProblemFetchMessage = ref('');
 const hintProblemTitle = ref('');
 const hintSamples = ref([]);
 const hintInputsCollapsed = ref(false);
-const coachGrade = ref(6);
 const coachSessionId = ref('');
 const coachResponse = ref(null);
 const coachHistory = ref([]);
@@ -404,7 +439,9 @@ const teachingAction = ref('');
 const newsTips = ref([]);
 const quizTitle = ref('');
 const quizQuestions = ref([]);
+const quizBackupQuestions = ref([]);
 const quizAnswers = ref({});
+const quizRegenerating = ref({});
 
 const fallbackTips = [
   '好算法像好口诀：先抓住题眼，再背模板。',
@@ -430,11 +467,16 @@ function switchTool(tool) {
   edgeCases.value = [];
   quizTitle.value = '';
   quizQuestions.value = [];
+  quizBackupQuestions.value = [];
   quizAnswers.value = {};
+  quizRegenerating.value = {};
   teachingAction.value = '';
   debugGeneratingEdges.value = false;
   debugHintLoading.value = false;
   debugCanAskMore.value = false;
+  debugHintCache.value = null;
+  debugHintPrefetching.value = false;
+  debugHintPrefetchPromise.value = null;
   fetchingHintProblem.value = false;
   hintInputsCollapsed.value = false;
   coachResponse.value = null;
@@ -583,6 +625,10 @@ async function generateOpener() {
   loading.value = false;
 }
 
+function useQuickCardExample(topic) {
+  courseTopic.value = topic;
+}
+
 async function generateEdgeCases() {
   if (!problemDesc.value) return;
   loading.value = true;
@@ -708,7 +754,9 @@ async function handleTeachingAction(action) {
     result.value = '';
     quizTitle.value = '';
     quizQuestions.value = [];
+    quizBackupQuestions.value = [];
     quizAnswers.value = {};
+    quizRegenerating.value = {};
     return;
   }
   if (action === 'algorithm-coach') {
@@ -716,7 +764,9 @@ async function handleTeachingAction(action) {
     result.value = '';
     quizTitle.value = '';
     quizQuestions.value = [];
+    quizBackupQuestions.value = [];
     quizAnswers.value = {};
+    quizRegenerating.value = {};
     coachError.value = '';
     return;
   }
@@ -729,13 +779,15 @@ async function handleTeachingAction(action) {
   result.value = '';
   quizTitle.value = '';
   quizQuestions.value = [];
+  quizBackupQuestions.value = [];
   quizAnswers.value = {};
+  quizRegenerating.value = {};
 
   const endpoint = `/api/${action}`;
   const body = { courseTopic: courseTopic.value };
 
   if (action === 'generate-exercise') {
-    body.count = 10;
+    body.count = 12;
   }
   if (action === 'generate-script') {
     body.duration = 135;
@@ -778,15 +830,12 @@ async function coachRequest(url, options = {}) {
 
 function coachStageLabel(stage) {
   return {
-    INGEST: '核对题目',
-    DIAGNOSE: '定位卡点',
-    UNDERSTAND: '理解题意',
-    EXPLORE: '小步探索',
-    MODEL: '建立模型',
-    VALIDATE: '验证想法',
-    PLAN: '整理思路',
-    REFLECT: '复盘迁移',
-    COMPLETE: '本题完成',
+    INGEST: '核对题面',
+    EXPLORE: '关键提示',
+    MODEL: '拆解问题',
+    VALIDATE: '例子检验',
+    PLAN: '连成思路',
+    COMPLETE: '迁移总结',
   }[stage] || '准备开始';
 }
 
@@ -804,9 +853,7 @@ async function startAlgorithmCoach() {
   coachHistory.value = [];
   coachMessage.value = '';
   try {
-    const created = await coachRequest('/api/coach/sessions', {
-      body: { student: { grade: coachGrade.value } },
-    });
+    const created = await coachRequest('/api/coach/sessions', { body: { student: {} } });
     coachSessionId.value = created.session.session_id;
     const data = await coachRequest(`/api/coach/sessions/${coachSessionId.value}/problem`, {
       body: {
@@ -819,6 +866,7 @@ async function startAlgorithmCoach() {
     });
     coachResponse.value = data.response;
     coachHistory.value = [{ student: '', response: data.response }];
+    prefetchNextCoachLayer(data.response);
   } catch (error) {
     coachError.value = error.message;
     hintInputsCollapsed.value = false;
@@ -842,11 +890,35 @@ async function sendCoachTurn(message = '', choice = null) {
     coachResponse.value = data.response;
     coachHistory.value.push({ student: studentText, response: data.response });
     coachMessage.value = '';
+    prefetchNextCoachLayer(data.response);
   } catch (error) {
     coachError.value = error.message;
   } finally {
     loading.value = false;
   }
+}
+
+async function continueAlgorithmCoach() {
+  if (!coachSessionId.value || loading.value) return;
+  loading.value = true;
+  coachError.value = '';
+  try {
+    const data = await coachRequest(`/api/coach/sessions/${coachSessionId.value}/turns`, {
+      body: { action: 'continue' },
+    });
+    coachResponse.value = data.response;
+    coachHistory.value.push({ student: '', response: data.response });
+    prefetchNextCoachLayer(data.response);
+  } catch (error) {
+    coachError.value = error.message;
+  } finally {
+    loading.value = false;
+  }
+}
+
+function prefetchNextCoachLayer(response) {
+  if (!coachSessionId.value || response?.stage === 'COMPLETE') return;
+  coachRequest(`/api/coach/sessions/${coachSessionId.value}/prefetch`, { body: {} }).catch(() => {});
 }
 
 function resetAlgorithmCoach() {
@@ -861,19 +933,69 @@ function resetAlgorithmCoach() {
   hintInputsCollapsed.value = false;
 }
 
+function parseQuizPayload(raw) {
+  let cleaned = String(raw || '').trim();
+  if (cleaned.startsWith('```')) {
+    cleaned = cleaned.replace(/^```(?:json)?\s*\n?/, '').replace(/\n?```\s*$/, '');
+  }
+  return JSON.parse(cleaned);
+}
+
 function parseQuizResult() {
   try {
-    let cleaned = result.value.trim();
-    if (cleaned.startsWith('```')) {
-      cleaned = cleaned.replace(/^```(?:json)?\s*\n?/, '').replace(/\n?```\s*$/, '');
-    }
-    const data = JSON.parse(cleaned);
+    const data = parseQuizPayload(result.value);
     quizTitle.value = data.title || `${courseTopic.value} 选择题自测`;
-    quizQuestions.value = data.questions || [];
+    const questions = Array.isArray(data.questions) ? data.questions : [];
+    quizQuestions.value = questions.slice(0, 10);
+    quizBackupQuestions.value = questions.slice(10, 12);
     if (quizQuestions.value.length) result.value = '';
   } catch (e) {
     quizQuestions.value = [];
+    quizBackupQuestions.value = [];
     result.value = '⚠️ 练习题格式解析失败，请重试。';
+  }
+}
+
+async function regenerateQuizQuestion(question, index) {
+  if (loading.value || quizRegenerating.value[index]) return;
+
+  quizRegenerating.value = { ...quizRegenerating.value, [index]: true };
+  const oldKey = question.id || index;
+  let replacement = quizBackupQuestions.value.shift();
+
+  try {
+    if (!replacement) {
+      let raw = '';
+      const existingQuestions = [...quizQuestions.value, ...quizBackupQuestions.value]
+        .map(item => item.question)
+        .filter(Boolean)
+        .slice(0, 12);
+      await streamPost('/api/generate-exercise', {
+        courseTopic: courseTopic.value,
+        count: 1,
+        excludeQuestions: existingQuestions,
+      }, (chunk) => {
+        raw += chunk;
+      });
+      const data = parseQuizPayload(raw);
+      replacement = Array.isArray(data.questions) ? data.questions[0] : null;
+    }
+
+    if (!replacement) throw new Error('没有生成可用的新题目');
+    replacement = { ...replacement, id: question.id || index + 1 };
+    quizQuestions.value = quizQuestions.value.map((item, itemIndex) => (
+      itemIndex === index ? replacement : item
+    ));
+    const nextAnswers = { ...quizAnswers.value };
+    delete nextAnswers[oldKey];
+    quizAnswers.value = nextAnswers;
+  } catch (error) {
+    if (replacement) quizBackupQuestions.value.unshift(replacement);
+    result.value = `⚠️ 单题重新生成失败：${error.message || '请稍后重试。'}`;
+  } finally {
+    const nextRegenerating = { ...quizRegenerating.value };
+    delete nextRegenerating[index];
+    quizRegenerating.value = nextRegenerating;
   }
 }
 
@@ -906,6 +1028,9 @@ async function debugCodeAction() {
   result.value = '';
   debugEdgeCases.value = [];
   debugCanAskMore.value = false;
+  debugHintCache.value = null;
+  debugHintPrefetching.value = false;
+  debugHintPrefetchPromise.value = null;
   let nextAction = '';
   await streamPost('/api/debug-code', {
     code: debugCode.value,
@@ -936,14 +1061,19 @@ async function debugCodeAction() {
     loading.value = false;
   }
   debugCanAskMore.value = Boolean(result.value);
+  if (debugCanAskMore.value) prefetchDebugHint(result.value);
 }
 
-async function requestFurtherDebugHint() {
-  if (!debugCode.value || debugHintLoading.value) return;
-  const previousAdvice = result.value;
-  debugCanAskMore.value = false;
-  debugHintLoading.value = true;
-  loading.value = true;
+function debugHintCacheKey(previousAdvice) {
+  return JSON.stringify({
+    code: debugCode.value,
+    problem: debugProblem.value,
+    previousAdvice,
+    edgeCases: debugEdgeCases.value,
+  });
+}
+
+async function requestDebugHint(previousAdvice) {
   let hint = '';
   await streamPost('/api/debug-code/hint', {
     code: debugCode.value,
@@ -953,6 +1083,44 @@ async function requestFurtherDebugHint() {
   }, (chunk) => {
     hint += chunk;
   });
+  return hint.trim();
+}
+
+function prefetchDebugHint(previousAdvice) {
+  if (!debugCode.value || debugHintPrefetching.value || !previousAdvice.trim()) return;
+  const key = debugHintCacheKey(previousAdvice);
+  if (debugHintCache.value?.key === key) return;
+
+  debugHintPrefetching.value = true;
+  const request = requestDebugHint(previousAdvice)
+    .then((hint) => {
+      if (hint && !/请求失败|网络错误|进一步提示生成失败/.test(hint)) {
+        debugHintCache.value = { key, hint };
+      }
+    })
+    .finally(() => {
+      debugHintPrefetching.value = false;
+      debugHintPrefetchPromise.value = null;
+    });
+  debugHintPrefetchPromise.value = { key, request };
+}
+
+async function requestFurtherDebugHint() {
+  if (!debugCode.value || debugHintLoading.value) return;
+  const previousAdvice = result.value;
+  debugCanAskMore.value = false;
+  debugHintLoading.value = true;
+  loading.value = true;
+  const key = debugHintCacheKey(previousAdvice);
+  let hint = debugHintCache.value?.key === key
+    ? debugHintCache.value.hint
+    : '';
+  if (!hint && debugHintPrefetchPromise.value?.key === key) {
+    await debugHintPrefetchPromise.value.request;
+    hint = debugHintCache.value?.key === key ? debugHintCache.value.hint : '';
+  }
+  if (!hint) hint = await requestDebugHint(previousAdvice);
+  debugHintCache.value = null;
   const hintFailed = !hint.trim() || /请求失败|网络错误|进一步提示生成失败/.test(hint);
   result.value += hintFailed
     ? '\n\n### 进一步提示暂时生成失败\n\n请稍后再试。'
@@ -960,6 +1128,7 @@ async function requestFurtherDebugHint() {
   debugCanAskMore.value = hintFailed;
   debugHintLoading.value = false;
   loading.value = false;
+  if (!hintFailed) prefetchDebugHint(result.value);
 }
 </script>
 
@@ -1161,11 +1330,11 @@ body {
 }
 
 .coach-tool {
-  width: min(1100px, 100%);
-  margin: 0 auto;
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
+   width: 100%;
+   margin: 0;
+   display: flex;
+   flex-direction: column;
+   gap: 16px;
 }
 
 .coach-inputs {
@@ -1190,24 +1359,6 @@ body {
 .coach-inputs .hint-tool-card {
   border: 0;
   border-radius: 0;
-}
-
-.coach-grade {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  color: #475569;
-  font-size: 14px;
-}
-
-.coach-grade select {
-  min-width: 130px;
-  padding: 9px 12px;
-  background: #fff;
-  border: 1px solid #dbe4f0;
-  border-radius: 8px;
-  color: #1e293b;
-  font: inherit;
 }
 
 .coach-error {
@@ -1268,6 +1419,74 @@ body {
   gap: 12px;
 }
 
+.coach-key-route {
+  padding: 2px 4px;
+}
+
+.coach-key-route > header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+  color: #334155;
+}
+
+.coach-key-route > header span {
+  color: #64748b;
+  font-size: 13px;
+}
+
+.coach-key-route ol {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.coach-key-route li {
+  display: grid;
+  grid-template-columns: 30px minmax(0, 1fr);
+  gap: 12px;
+  align-items: start;
+  padding-left: 2px;
+  border-left: 3px solid #cbd5e1;
+}
+
+.coach-key-route li.current {
+  border-left-color: #4f46e5;
+}
+
+.coach-key-route li > b {
+  display: grid;
+  width: 24px;
+  height: 24px;
+  place-items: center;
+  color: #475569;
+  background: #eef2ff;
+  border-radius: 50%;
+  font-size: 12px;
+}
+
+.coach-key-route li.current > b {
+  color: #fff;
+  background: #4f46e5;
+}
+
+.coach-key-route li strong {
+  color: #3730a3;
+  font-size: 14px;
+}
+
+.coach-key-route li p {
+  margin-top: 4px;
+  color: #1e293b;
+  font-size: 16px;
+  line-height: 1.65;
+  white-space: pre-wrap;
+}
+
 .coach-turn-card {
   padding: 16px;
   background: #fff;
@@ -1284,34 +1503,26 @@ body {
   line-height: 1.6;
 }
 
-.coach-answer {
+.coach-thinking {
   display: grid;
-  grid-template-columns: 52px minmax(0, 1fr);
-  gap: 8px 12px;
+  grid-template-columns: 110px minmax(0, 1fr);
+  gap: 12px;
   align-items: start;
 }
 
-.coach-answer > span {
-  grid-row: 1 / span 2;
-  padding: 5px 8px;
-  color: #fff;
-  background: #4f46e5;
-  border-radius: 6px;
-  text-align: center;
-  font-size: 13px;
-  font-weight: 700;
+.coach-thinking {
+  padding: 0 14px;
 }
 
-.coach-answer p {
+.coach-thinking strong {
+  font-size: 14px;
+}
+
+.coach-thinking p {
   color: #1e293b;
   font-size: 17px;
   line-height: 1.75;
   white-space: pre-wrap;
-}
-
-.coach-answer small {
-  color: #64748b;
-  font-size: 13px;
 }
 
 .coach-next {
@@ -1360,20 +1571,11 @@ body {
   border-radius: 50%;
 }
 
-.coach-free-input {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  gap: 10px;
-  align-items: end;
-  margin-top: 12px;
-}
-
-.coach-free-input textarea {
-  min-height: 76px;
-}
-
-.coach-free-input button {
-  height: 42px;
+.tool-panel .coach-continue {
+  width: auto;
+  min-width: 180px;
+  padding: 12px 20px;
+  background: #4f46e5;
 }
 
 .edge-case-grid {
@@ -1547,6 +1749,9 @@ body {
 }
 
 .quiz-question {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
   color: #1e293b;
   font-size: 20px;
   font-weight: 800;
@@ -1555,10 +1760,37 @@ body {
 }
 
 .quiz-question > span {
-  float: left;
-  margin-right: 8px;
+  flex: 0 0 auto;
   color: #1e293b;
   font-size: 20px;
+}
+
+.quiz-question-content {
+  min-width: 0;
+  flex: 1;
+}
+
+.quiz-regenerate {
+  flex: 0 0 auto;
+  margin-left: 12px;
+  padding: 7px 11px;
+  color: #4f46e5;
+  background: #fff;
+  border: 1px solid #c7d2fe;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.quiz-regenerate:hover:not(:disabled) {
+  background: #eef2ff;
+}
+
+.quiz-regenerate:disabled {
+  color: #94a3b8;
+  border-color: #cbd5e1;
+  cursor: wait;
 }
 
 .quiz-question-content::after {
@@ -1802,6 +2034,69 @@ body {
 }
 
 /* 算法速懂卡 */
+.quick-card-empty {
+  display: flex;
+  flex: 1;
+  min-height: 320px;
+  align-items: center;
+  flex-direction: column;
+  justify-content: center;
+  padding: 48px 20px;
+  color: #475569;
+  text-align: center;
+}
+
+.quick-card-empty-mark {
+  display: grid;
+  width: 58px;
+  height: 58px;
+  place-items: center;
+  margin-bottom: 16px;
+  border: 2px solid #a5b4fc;
+  border-radius: 18px;
+  background: #eef2ff;
+  color: #4f46e5;
+  font-size: 28px;
+}
+
+.quick-card-empty h3 {
+  margin: 0 0 8px;
+  color: #1e293b;
+  font-size: 24px;
+}
+
+.quick-card-empty p {
+  max-width: 440px;
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.7;
+  white-space: nowrap;
+}
+
+.quick-card-empty-suggestions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 24px;
+}
+
+.quick-card-empty-suggestions button {
+  padding: 8px 12px;
+  border: 1px solid #c7d2fe;
+  border-radius: 8px;
+  background: #fff;
+  color: #4338ca;
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.quick-card-empty-suggestions button:hover {
+  background: #fff;
+  border-color: #818cf8;
+}
+
 .brainstorm-result {
   flex: 1;
   min-height: 0;
@@ -1925,27 +2220,34 @@ body {
   .io-grid,
   .quiz-options,
   .coach-choices,
-  .coach-free-input {
-    grid-template-columns: 1fr;
-  }
-
   .coach-header {
     align-items: flex-start;
     flex-direction: column;
   }
 
-  .coach-answer {
+  .coach-thinking {
     grid-template-columns: 1fr;
-  }
-
-  .coach-answer > span {
-    grid-row: auto;
-    width: fit-content;
   }
 
   .quiz-header {
     align-items: flex-start;
     flex-direction: column;
+  }
+
+  .quick-card-empty h3 {
+    font-size: 20px;
+  }
+
+  .quick-card-empty p {
+    white-space: normal;
+  }
+
+  .quiz-question {
+    flex-wrap: wrap;
+  }
+
+  .quiz-regenerate {
+    margin-left: auto;
   }
 }
 </style>

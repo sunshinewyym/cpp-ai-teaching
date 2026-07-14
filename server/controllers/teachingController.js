@@ -45,7 +45,7 @@ async function handleGenerateExample(req, res) {
  * Generate practice exercises
  */
 async function handleGenerateExercise(req, res) {
-  const { courseTopic, count = 10 } = req.body;
+  const { courseTopic, count = 10, excludeQuestions = [] } = req.body;
 
   if (!courseTopic) {
     return res.status(400).json({ error: '请输入课程主题。' });
@@ -59,8 +59,12 @@ async function handleGenerateExercise(req, res) {
 3. 每题 4 个选项，只有 1 个正确答案
 4. 每题必须给出简短解析
 5. 题目尽量贴近「${courseTopic}」的核心概念、易错点、实际代码判断
-6. 只输出合法 JSON，不要输出 Markdown、代码块或额外说明
-7. 题干或选项需要展示 C++ 代码时，在对应字符串中使用 \`\`\`cpp 和 \`\`\` 包裹代码；保留换行和缩进，JSON 中换行必须写成 \n
+6. 如果提供了“不要重复的题目”，新题必须换一个考点或问法，不要改几个字后重复生成
+7. 只输出合法 JSON，不要输出 Markdown、代码块或额外说明
+8. 题干或选项需要展示 C++ 代码时，在对应字符串中使用 \`\`\`cpp 和 \`\`\` 包裹代码；保留换行和缩进，JSON 中换行必须写成 \n
+
+## 不要重复的题目
+${Array.isArray(excludeQuestions) ? excludeQuestions.slice(0, 12).map((item, index) => `${index + 1}. ${String(item).slice(0, 600)}`).join('\n') : '无'}
 
 JSON 格式：
 {
@@ -83,7 +87,7 @@ JSON 格式：
 
 请出题：`;
 
-  await streamResponse(res, prompt, 0.5, 4096);
+  await streamResponse(res, prompt, 0.5, count > 1 ? 6000 : 1800);
 }
 
 /**

@@ -2,19 +2,17 @@
   <main class="csp-page">
     <header class="page-head">
       <div><h2>🏆 CSP-J/S 练习</h2><p>完成整套再统一判分，专心保持完整的答题节奏。</p></div>
-      <div class="switch"><button :class="{ on: level === 'J' }" @click="level='J'">CSP-J</button><button :class="{ on: level === 'S' }" @click="level='S'">CSP-S</button></div>
+      <div class="switch"><button :class="{ on: level === 'J' }" @click="switchLevel('J')">CSP-J</button><button :class="{ on: level === 'S' }" @click="switchLevel('S')">CSP-S</button></div>
     </header>
 
-    <div v-if="level === 'S'" class="empty"><b>CSP-S 题库正在校对中</b><span>当前已完整整理 CSP-J 2019-2024 第一轮原卷。</span></div>
-    <template v-else>
       <nav class="tabs"><button v-for="item in types" :key="item.id" :class="{ on:type===item.id }" @click="setType(item.id)">{{ item.label }}</button></nav>
 
       <section v-if="type === 'choice'">
-        <YearTabs :items="choiceYears" :value="year" show-status @change="selectYear" />
-        <div v-if="!paper.length" class="empty"><b>{{ year }} 年选择题扫描原卷正在校对</b><span>题面未确认前不展示，避免将 OCR 错误交给学生。</span></div>
+        <YearTabs :items="level === 'S' ? sChoiceYears : choiceYears" :value="year" show-status @change="selectYear" />
+        <div v-if="!paper.length" class="empty"><b>{{ year }} 年 CSP-{{ level }} 题面正在整理</b><span>当前年份暂未完成题面校对，先不展示不完整内容。</span></div>
         <template v-else>
-          <header class="summary"><div><b>{{ year }} 年 CSP-J 第一轮选择题</b><span>共 {{ paper.length }} 题</span></div><strong>{{ choiceSetSubmitted ? `${choiceScore}/${choiceTotal} 分` : `已答 ${answered}/${paper.length} 题` }}</strong></header>
-          <article v-for="q in paper" :key="q.id" class="card">
+          <header class="summary"><div><b>{{ year }} 年 CSP-{{ level }} 第一轮选择题</b><span>共 {{ paper.length }} 题；答案仅作学习参考</span></div><strong>{{ choiceSetSubmitted ? `${choiceScore}/${choiceTotal} 分` : `已答 ${answered}/${paper.length} 题` }}</strong></header>
+          <article v-for="q in displayPaper" :key="q.id" class="card">
             <h3><i>{{ q.number }}</i><div class="choice-question" v-html="renderMd(q.question)"></div></h3>
             <div class="options"><button v-for="(text,key) in q.options" :key="key" :class="choiceClass(q,key)" :disabled="choiceSetSubmitted" @click="choiceAnswers[q.id]=key"><b>{{ key }}</b><span v-html="renderInline(text)"></span></button></div>
             <AnswerAnalysis v-if="choiceSetSubmitted" :correct="choiceAnswers[q.id]===q.answer" :answer="q.answer" :text="choiceExplanation(q)" />
@@ -29,7 +27,7 @@
       </section>
 
       <section v-else>
-        <YearTabs :items="programYears" :value="year" @change="selectYear" />
+        <YearTabs :items="level === 'S' ? sProgramYears : programYears" :value="year" @change="selectYear" />
         <header class="problem-nav">
           <div><b>{{ year }} 年{{ typeLabel }}</b><span>共 {{ problems.length }} 道大题，每次练习一题</span></div>
           <div class="problem-buttons"><button v-for="(item,i) in problems" :key="item.id" :class="{ on:index===i }" @click="index=i">第 {{ item.number }} 题</button></div>
@@ -58,7 +56,6 @@
           <footer><button @click="index--" :disabled="index===0">上一题</button><strong>第 {{ index+1 }}/{{ problems.length }} 题</strong><button @click="index++" :disabled="index===problems.length-1">下一题</button></footer>
         </article>
       </section>
-    </template>
   </main>
 </template>
 
@@ -68,17 +65,117 @@ import { marked } from 'marked';
 import { cspChoicePapers, cspYearSources } from '../data/cspChoicePapers';
 import { cspProgramProblems } from '../data/cspProgramProblems';
 import { csp2025ChoicePapers, csp2025ProgramProblems, csp2025YearSource } from '../data/csp2025';
+import { cspSChoicePapers, cspSProgramProblems, cspSYearSources } from '../data/cspS';
 
 const YearTabs=defineComponent({props:{items:Array,value:String,showStatus:Boolean},emits:['change'],setup(props,{emit}){return()=>h('div',{class:'filters'},[h('b','选择年份'),...props.items.map(item=>h('button',{class:{on:props.value===item.year},onClick:()=>emit('change',item.year)},[item.year,props.showStatus&&item.status!=='已导入'?h('small','校对中'):null]))])}});
 const AnswerAnalysis=defineComponent({props:{correct:Boolean,answer:String,text:String},setup(props){return()=>h('div',{class:'analysis'},[h('strong',{class:props.correct?'good':'bad'},props.correct?'回答正确':`回答错误，正确答案是 ${props.answer}`),h('p',[h('b','题目解析：'),props.text])])}});
 const types=[{id:'choice',label:'选择题'},{id:'reading',label:'阅读程序题'},{id:'completion',label:'完善程序题'}];
 const level=ref('J'),type=ref('choice'),year=ref('2025'),index=ref(0),choiceAnswers=ref({}),programAnswers=ref({}),submittedSets=ref({});
-const allChoicePapers={...cspChoicePapers,...csp2025ChoicePapers},allYearSources={...cspYearSources,...csp2025YearSource},allProgramProblems=[...cspProgramProblems,...csp2025ProgramProblems];
+const allChoicePapers={...cspChoicePapers,...csp2025ChoicePapers},allYearSources={...cspYearSources,...csp2025YearSource},allProgramProblems=[...cspProgramProblems,...csp2025ProgramProblems],allSProgramProblems=cspSProgramProblems||[];
 const choiceYears=computed(()=>Object.entries(allYearSources).map(([itemYear,source])=>({year:String(itemYear),...source})).sort((a,b)=>+b.year-+a.year));
+const sChoiceYears=computed(()=>Object.entries(cspSYearSources).map(([itemYear,source])=>({year:String(itemYear),...source})).sort((a,b)=>+b.year-+a.year));
 const programYears=computed(()=>[...new Set(allProgramProblems.map(x=>x.year))].sort((a,b)=>+b-+a).map(itemYear=>({year:itemYear,status:'已导入'})));
-const paper=computed(()=>allChoicePapers[year.value]||[]);
+const sProgramYears=computed(()=>[...new Set(allSProgramProblems.map(x=>x.year))].sort((a,b)=>+b-+a).map(itemYear=>({year:itemYear,status:'已导入'})));
+const paper=computed(()=>level.value==='S'?(cspSChoicePapers[year.value]||[]):(allChoicePapers[year.value]||[]));
 const answered=computed(()=>paper.value.filter(q=>choiceAnswers.value[q.id]).length),choiceTotal=computed(()=>paper.value.length*2),choiceScore=computed(()=>paper.value.filter(q=>choiceAnswers.value[q.id]===q.answer).length*2);
-const problems=computed(()=>allProgramProblems.filter(x=>x.type===type.value&&x.year===year.value).sort((a,b)=>a.number-b.number)),problem=computed(()=>problems.value[index.value]);
+const problems=computed(()=> (level.value==='S'?allSProgramProblems:allProgramProblems).filter(x=>x.type===type.value&&x.year===year.value).sort((a,b)=>a.number-b.number));
+const corrected2023Reading1=`#include <iostream>
+using namespace std;
+unsigned short f(unsigned short x) {
+    x ^= x << 6;
+    x ^= x >> 8;
+    return x;
+}
+int main() {
+    unsigned short x;
+    cin >> x;
+    unsigned short y = f(x);
+    cout << y << endl;
+    return 0;
+}`;
+const corrected2023Reading2=`#include <iostream>
+#include <cmath>
+#include <vector>
+#include <algorithm>
+using namespace std;
+
+long long solve1(int n) {
+    vector<bool> p(n + 1, true);
+    vector<long long> f(n + 1, 0), g(n + 1, 0);
+    f[1] = 1;
+    for (int i = 2; i * i <= n; i++) {
+        if (p[i]) {
+            vector<int> d;
+            for (int k = i; k <= n; k *= i) d.push_back(k);
+            reverse(d.begin(), d.end());
+            for (int k : d) {
+                for (int j = k; j <= n; j += k) {
+                    if (p[j]) {
+                        p[j] = false;
+                        f[j] = i;
+                        g[j] = k;
+                    }
+                }
+            }
+        }
+    }
+    for (int i = sqrt(n) + 1; i <= n; i++) {
+        if (p[i]) {
+            f[i] = i;
+            g[i] = i;
+        }
+    }
+    long long sum = 1;
+    for (int i = 2; i <= n; i++) {
+        f[i] = f[i / g[i]] * (g[i] * f[i] - 1) / (f[i] - 1);
+        sum += f[i];
+    }
+    return sum;
+}
+
+long long solve2(int n) {
+    long long sum = 0;
+    for (int i = 1; i <= n; i++) sum += i * (n / i);
+    return sum;
+}
+
+int main() {
+    int n;
+    cin >> n;
+    cout << solve1(n) << endl;
+    cout << solve2(n) << endl;
+    return 0;
+}`;
+const cspSChoiceCorrections={
+  '2023-2':{question:'0, 1, 2, 3, 4 中选取 4 个数字，能组成（ ）个不同四位数（注：最小的四位数是 1000，最大的四位数是 9999）。',options:{A:'96',B:'18',C:'120',D:'84'}},
+  '2023-3':{question:'假设 n 是图的顶点的个数，m 是图的边的个数，为求解某一问题有下面四种不同时间复杂度的算法。对于 m=Θ(n) 的稀疏图而言，下面的四个选项，哪一项的渐近时间复杂度最小（ ）。',options:{A:'O(m√log n · log log n)',B:'O(n^2 + m)',C:'O(n^2 / log m + m log n)',D:'O(m + n log n)'}},
+  '2023-4':{question:'假设有 n 根柱子，需要按照规则依次放置编号为 1, 2, 3, ⋯ 的圆环。每根柱子的底部固定、顶部可以放入圆环；放入时要保证相邻圆环的编号之和是完全平方数。请计算当有 4 根柱子时，最多可以放置（ ）个圆环。',options:{A:'7',B:'9',C:'11',D:'5'}},
+  '2023-7':{question:'最长公共子序列长度常常用来衡量两个序列的相似度。给定序列 X={x₁,x₂,x₃,⋯,xₘ} 和 Y={y₁,y₂,y₃,⋯,yₙ}，再给定序列 Z={z₁,z₂,z₃,⋯,zₖ}。若 Z 同时是 X、Y 的子序列，且 k 最大，则称 Z 为最长公共子序列。序列 ABCAAAABA 和 ABABCBABA 的最长公共子序列长度为（ ）。',options:{A:'4',B:'5',C:'6',D:'7'}},
+  '2023-8':{question:'一位玩家连续掷两次骰子。第一次掷出 x 点得到 2x 元；第二次掷出 y 点时，若 y=x 则失去这笔钱，否则保留。x、y∈{1,2,3,4,5,6}，每一点出现的概率相同。连续掷两次后，所有可能情形下收益的平均值是（ ）。',options:{A:'7 元',B:'35/6 元',C:'16/3 元',D:'19/3 元'}},
+  '2023-10':{options:{A:'快速排序对于此类输入的表现最好，因为数组已经排序。',B:'快速排序对于此类输入的时间复杂度是 Θ(n log n)。',C:'快速排序对于此类输入的时间复杂度是 Θ(n²)。',D:'快速排序无法对此类数组进行排序，因为数组已经排序。'}},
+  '2023-13':{question:'如图是一张包含 6 个顶点的有向图，但顶点间不存在拓扑序。如果删除其中一条边，使这 6 个顶点能进行拓扑排序，总共有多少条边可以作为候选边？（ ）',options:{A:'1',B:'2',C:'3',D:'4'}},
+  '2023-14':{question:'若 n=∑ᵢ₌₀ᵏ16ⁱ·xᵢ，定义 f(n)=∑ᵢ₌₀ᵏxᵢ，其中 xᵢ∈{0,1,⋯,15}。对于给定的 n₀，反复令 nᵢ=f(nᵢ₋₁)，直到得到不动点。问在 100₁₆ 到 1A0₁₆ 中，不动点为 9 的自然数个数为（ ）。',options:{A:'10',B:'11',C:'12',D:'13'}},
+  '2023-15':{question:'现在用如下代码来计算 xⁿ，其时间复杂度为（ ）。',options:{A:'O(n)',B:'O(1)',C:'O(log n)',D:'O(n log n)'}}
+};
+const cspS2024ChoiceCorrections={
+  '2024-choice-1':{question:'在 Linux 系统中，如果你想显示当前工作目录的路径，应该使用哪个命令？（ ）',options:{A:'pwd',B:'cd',C:'ls',D:'echo'}},
+  '2024-choice-2':{question:'假设一个长度为 n 的整数数组中每个元素值互不相同，且这个数组是无序的。要找到这个数组中最大元素的时间复杂度是多少？（ ）',options:{A:'O(n)',B:'O(log n)',C:'O(n log n)',D:'O(1)'}},
+  '2024-choice-3':{question:'在 C++ 中，以下哪个函数调用会造成栈溢出？（ ）',options:{A:'int foo() { return 0; }',B:'int bar() { int x = 1; return x; }',C:'void baz() { int a[1000]; baz(); }',D:'void qux() { return; }'}},
+  '2024-choice-4':{question:'在一场比赛中，有 10 名选手参加，前三名将获得金、银、铜牌。若不允许并列，且每名选手只能获得一枚奖牌，则不同的颁奖方式共有多少种？（ ）',options:{A:'120',B:'720',C:'504',D:'1000'}},
+  '2024-choice-5':{question:'下面哪个数据结构最适合实现先进先出（FIFO）的功能？（ ）',options:{A:'栈',B:'队列',C:'线性表',D:'二叉搜索树'}},
+  '2024-choice-6':{question:'已知 f(1)=1，且对于 n≥2 有 f(n)=f(n−1)+f(⌊n/2⌋)，则 f(4) 的值为：（ ）',options:{A:'4',B:'5',C:'6',D:'7'}},
+  '2024-choice-7':{question:'假设有一个包含 n 个顶点的无向图，且该图是欧拉图。以下关于该图的描述中哪一项不一定正确？（ ）',options:{A:'所有顶点的度数均为偶数',B:'该图连通',C:'该图存在一个欧拉回路',D:'该图的边数是奇数'}},
+  '2024-choice-8':{question:'对数组进行二分查找的过程中，以下哪个条件必须满足？（ ）',options:{A:'数组必须是有序的',B:'数组必须是无序的',C:'数组长度必须是 2 的幂',D:'数组中的元素必须是整数'}},
+  '2024-choice-9':{question:'考虑一个自然数 n 以及一个模数 m，你需要计算 n 的逆元（即 n 在模 m 意义下的乘法逆元）。下列哪种算法最为适合？（ ）',options:{A:'使用暴力法依次尝试',B:'使用扩展欧几里得算法',C:'使用快速幂法',D:'使用线性筛法'}},
+  '2024-choice-10':{question:'在设计一个哈希表时，为了减少冲突，需要使用适当的哈希函数和冲突解决策略。已知某哈希表中有 n 个键值对，表的装载因子为 α（0 < α ≤ 1）。在使用开放地址法解决冲突的过程中，最坏情况下查找一个元素的时间复杂度为（ ）？',options:{A:'O(1)',B:'O(log n)',C:'O(1 / (1 - α))',D:'O(n)'}},
+  '2024-choice-11':{question:'假设有一棵 h 层的完全二叉树，该树最多包含多少个结点？（ ）',options:{A:'2^h - 1',B:'2^(h+1) - 1',C:'2^h',D:'2^(h+1)'}},
+  '2024-choice-12':{question:'设有一个 10 个顶点的完全图，每两个顶点之间都有一条边。有多少个长度为 4 的环？（ ）',options:{A:'120',B:'210',C:'630',D:'5040'}},
+  '2024-choice-13':{question:'对于一个整数 n，定义 f(n)为 n 的各位数字之和。问使 f(f(x))=10 的最小自然数 x 是多少？（ ）',options:{A:'29',B:'199',C:'299',D:'399'}},
+  '2024-choice-14':{question:'设有一个长度为 n 的 01 字符串，其中有 k 个 1，每次操作可以交换相邻两个字符。在最坏情况下将这 k 个 1 移到字符串最右边所需要的交换次数是多少？（ ）',options:{A:'k',B:'k*(k-1)/2',C:'(n-k)*k',D:'(2n-k-1)*k/2'}},
+  '2024-choice-15':{question:'如图是一张包含 7 个顶点的有向图。如果要删除其中一些边，使得从节点 1 到节点 7 没有可行路径，且删除的边数最少，请问总共有多少种可行的删除边的集合？（ ）',options:{A:'1',B:'2',C:'3',D:'4'}}
+};
+const displayPaper=computed(()=>paper.value.map(item=>{if(level.value!=='S')return item;const correction=(year.value==='2024'?cspS2024ChoiceCorrections:item.year==='2023'?cspSChoiceCorrections[`${year.value}-${item.number}`]:null);return correction?{...item,...correction}:item}));
+const problem=computed(()=>{const value=problems.value[index.value];if(!value)return value;if(level.value==='S'&&year.value==='2023'&&type.value==='reading'){const code=value.number===1?corrected2023Reading1:value.number===2?corrected2023Reading2:null;if(code)return {...value,description:'```cpp\n'+code+'\n```',statement:'```cpp\n'+code+'\n```'}}return value});
 const typeLabel=computed(()=>type.value==='reading'?'阅读程序题':'完善程序题');
 const choiceSetKey=computed(()=>`choice-${year.value}`),choiceSetSubmitted=computed(()=>Boolean(submittedSets.value[choiceSetKey.value]));
 const programSetSubmitted=computed(()=>Boolean(problem.value&&submittedSets.value[problem.value.id]));
@@ -86,13 +183,95 @@ const programAnswered=computed(()=>problem.value?problem.value.questions.filter(
 const programReady=computed(()=>Boolean(problem.value&&programAnswered.value===problem.value.questions.length));
 const programTotal=computed(()=>problem.value?problem.value.questions.reduce((sum,q)=>sum+Number(q.score||0),0):0);
 const programScore=computed(()=>problem.value?problem.value.questions.reduce((sum,q)=>sum+(isCorrect(q)?Number(q.score||0):0),0):0);
-function setType(value){type.value=value;year.value='2025';index.value=0} function selectYear(value){year.value=value;index.value=0}
-function cleanText(value){return cleanMathText(String(value||'').replace(/CCF\s+CSP-J\s+\d{4}\s+第一轮\s+C\+\+语言试题\s+第\s*\d+页[，,]\s*共\s*\d+页/g,'')).trim()}
-function cleanMathText(value){return String(value||'').replace(/\\texttt\s*\{([^{}]*)\}/g,'`$1`').replace(/\\mathrm\s*\{([^{}]*)\}/g,'$1').replace(/\\leq/g,'≤').replace(/\\geq/g,'≥').replace(/\\times/g,'×').replace(/\\dots/g,'…').replace(/\\\{/g,'{').replace(/\\\}/g,'}').replace(/\$/g,'').replace(/（\s*[)）]/g,'（ ）').replace(/\(\s*[)）]/g,'（ ）')}
+function switchLevel(value){level.value=value;type.value='choice';year.value=value==='S'?'2025':'2025';index.value=0;choiceAnswers.value={};programAnswers.value={};submittedSets.value={}}
+function setType(value){type.value=value;year.value=level.value==='S'?(value==='choice'?'2025':'2025'):'2025';index.value=0} function selectYear(value){year.value=value;index.value=0}
+function cleanText(value){return cleanMathText(stripPdfNoise(String(value||''))).trim()}
+function stripPdfNoise(text){
+  return String(text||'')
+    .replace(/CCF\s+CSP-[JS]\s*\d{4}[^\n]*第\s*\d+\s*页[，,]\s*共\s*\d+\s*页/gi,'')
+    .replace(/CCF\s+CSP-[JS]\s*\d{4}[^\n]*/gi,'')
+    .replace(/第\s*\d+\s*页[，,]\s*共\s*\d+\s*页/g,'')
+}
+function cleanMathText(value){
+  let text=String(value||'')
+    .replace(/\\texttt\s*\{([^{}]*)\}/g,'`$1`')
+    .replace(/\\text\s*\{([^{}]*)\}/g,'$1')
+    .replace(/\\mathrm\s*\{([^{}]*)\}/g,'$1')
+    .replace(/\\leqslant/g,'≤').replace(/\\geqslant/g,'≥')
+    .replace(/\\leq/g,'≤').replace(/\\geq/g,'≥')
+    .replace(/\\times/g,'×').replace(/\\cdot/g,'·').replace(/\\sum/g,'∑')
+    .replace(/\\in/g,'∈').replace(/\\cdots/g,'⋯').replace(/\\dots/g,'…')
+    .replace(/\\sim/g,'∼').replace(/\\to/g,'→').replace(/\\rightarrow/g,'→').replace(/⁡/g,'')
+    .replace(/\\\{/g,'{').replace(/\\\}/g,'}')
+  const code=[]
+  text=text.replace(/`([^`\n]*)`/g,(_,content)=>{const token=`@@CSPCODE${code.length}@@`;code.push(content);return token})
+  text=normalizeExtractedText(text).replace(/\$/g,'').replace(/（\s*[)）]/g,'（ ）').replace(/\(\s*[)）]/g,'（ ）')
+    .replace(/\\frac\s*\{([^{}]+)\}\s*\{([^{}]+)\}/g,'<span class="math-fraction"><span>$1</span><span>$2</span></span>')
+    .replace(/\\sqrt\s*\{([^{}]+)\}/g,'<span class="math-radical">√<span>$1</span></span>')
+    .replace(/\\sqrt\s+([A-Za-z0-9]+)/g,'<span class="math-radical">√<span>$1</span></span>')
+    .replace(/\\log/g,'log').replace(/\\Theta/g,'Θ').replace(/\\alpha/g,'α').replace(/\\left\\lfloor/g,'⌊').replace(/\\lfloor/g,'⌊').replace(/\\left\\rfloor/g,'⌋').replace(/\\rfloor/g,'⌋').replace(/\\cdot/g,'·').replace(/\\times/g,'×').replace(/\\neq/g,'≠')
+    .replace(/([A-Za-z0-9)\]])_\{([^{}]+)\}/g,'$1<sub>$2</sub>')
+    .replace(/([0-9A-Z])_([0-9]+)/g,'$1<sub>$2</sub>')
+    .replace(/([A-Za-z0-9)\]])\^\{([^{}]+)\}/g,'$1<sup>$2</sup>')
+    .replace(/([A-Za-z0-9)\]])\^\(([^()]+)\)/g,'$1<sup>$2</sup>')
+    .replace(/([A-Za-z0-9)\]])\^([A-Za-z0-9]+)/g,'$1<sup>$2</sup>')
+  return text.replace(/@@CSPCODE(\d+)@@/g,(_,index)=>`\`${code[Number(index)]}\``)
+}
+function normalizeRepeatedExtractedUnit(value){
+  const text=String(value||'');
+  if(text.length%3===0){const unit=text.slice(0,text.length/3);if(unit.repeat(3)===text)return unit}
+  return text
+}
+function collapseRepeatedChunkRuns(text){
+  let result='';
+  for(let i=0;i<text.length;){
+    let collapsed=false;
+    const maxSize=Math.min(48,Math.floor((text.length-i)/3));
+    for(let size=1;size<=maxSize;size++){
+      const unit=text.slice(i,i+size);
+      if(/^[A-Za-z]+$/.test(unit))continue;
+      if(/^\d+$/.test(unit)&&new Set(unit).size===1)continue;
+      let count=1;
+      while(text.slice(i+count*size,i+(count+1)*size)===unit)count++;
+      if(count>=3){result+=unit;i+=size*count;collapsed=true;break}
+    }
+    if(!collapsed){result+=text[i];i++}
+  }
+  return result
+}
+function normalizeDelimitedRun(value,delimiter=','){
+  const parts=String(value||'').split(delimiter).map(item=>item.trim());
+  for(let size=1;size<=Math.floor(parts.length/3);size++){
+    if(parts.length%size===0){
+      const unit=parts.slice(0,size);
+      if(unit.join(delimiter).repeat(parts.length/size)===parts.join(delimiter))return unit.join(', ')
+    }
+  }
+  return value
+}
+function normalizeExtractedText(value){
+  let text=String(value||'');
+  text=text.replace(/(?:\d+\s*,\s*){4,}\d+/g,token=>normalizeDelimitedRun(token));
+  text=collapseRepeatedChunkRuns(text);
+  text=text.replace(/\b([A-Za-z0-9]{1,12})\1{2,}\b/g,token=>normalizeRepeatedExtractedUnit(token));
+  text=text.replace(/\b\d{3,}\b/g,token=>normalizeRepeatedExtractedUnit(token));
+  text=text.replace(/\b[A-Za-z]{3,}\b/g,token=>normalizeRepeatedExtractedUnit(token));
+  text=text.replace(/\b([A-Za-z]\([^()\n]{1,16}\))\1{2,}\b/g,'$1');
+  text=text.replace(/\bf\(f\(x\)\)=10f\(f\(x\)\)=10f\(f\(x\)\)=10/g,'f(f(x))=10');
+  text=text.replace(/\\d?frac\s*\{([^{}]+)\}\s*\{([^{}]+)\}/g,'<span class="math-fraction"><span>$1</span><span>$2</span></span>');
+  const complexityRepeat=/(?:O|Θ|\\Theta)\([^()\n]*\)(?:\s*)(?:O|Θ|\\Theta)\([^()\n]*\)(?:\s*)(?:O|Θ|\\Theta)\([^()\n]*\)/g;
+  text=text.replace(complexityRepeat,token=>{
+    const parts=token.match(/(?:O|Θ|\\Theta)\([^()\n]*\)/g)||[];
+    return parts.sort((x,y)=>(y.includes('\\')?1:0)-(x.includes('\\')?1:0)||y.length-x.length)[0]||token;
+  });
+  text=text.replace(/([A-Za-z]\s*=\s*(?:Θ|\\Theta)\([^()\n]*\))(?:\s*)\1(?:\s*)\1/g,'$1');
+  return text;
+}
+function cleanPlainText(value){return cleanMathText(value).replace(/<\/?(?:sub|sup)>/g,'')}
 function cleanMarkdown(value){return String(value||'').split('```').map((part,i)=>i%2?part:cleanMathText(part)).join('```')}
 function renderMd(value){return marked.parse(cleanMarkdown(value))} function renderInline(value){return marked.parseInline(cleanMathText(value))}
 function choiceClass(q,key){const answer=choiceAnswers.value[q.id];if(!choiceSetSubmitted.value)return{selected:answer===key};return{correct:key===q.answer,wrong:answer===key&&key!==q.answer}}
-function choiceExplanation(q){return `参考答案为 ${q.answer}（${cleanText(q.options[q.answer])}）。请按题干的定义、计算顺序或程序执行过程逐项核对。`}
+function choiceExplanation(q){return `参考答案为 ${q.answer}（${cleanPlainText(q.options[q.answer])}）。请按题干的定义、计算顺序或程序执行过程逐项核对。`}
 function selectProgram(q,key){const current=programAnswers.value[q.id]||[];if(q.multiple)programAnswers.value[q.id]=current.includes(key)?current.filter(x=>x!==key):[...current,key];else programAnswers.value[q.id]=[key]}
 function isCorrect(q){return [...(programAnswers.value[q.id]||[])].sort().join('')===[...q.answers].sort().join('')}
 function programClass(q,key){const picked=(programAnswers.value[q.id]||[]).includes(key);if(!programSetSubmitted.value)return{selected:picked};return{correct:q.answers.includes(key),wrong:picked&&!q.answers.includes(key)}}
@@ -113,6 +292,8 @@ function resetProgramSet(){const next={...programAnswers.value};problem.value.qu
 .csp-page :deep(.filters button.on){border-color:#4f46e5;background:#4f46e5;color:#fff;box-shadow:0 3px 8px rgba(79,70,229,.2)}
 .csp-page :deep(.filters button small){display:block;margin-top:3px;font-size:10px;font-weight:500;opacity:.8}
 .choice-question{min-width:0;flex:1}.choice-question :deep(p){margin:0 0 8px}.choice-question :deep(pre){margin:10px 0 0;padding:14px 16px;border-radius:6px;background:#0d1117;overflow:auto}.choice-question :deep(code){font-size:14px;line-height:1.55}
+.choice-question :deep(sub),.choice-question :deep(sup),.options :deep(sub),.options :deep(sup),.sub-question :deep(sub),.sub-question :deep(sup){font-size:.72em;line-height:0;position:relative;vertical-align:baseline}.choice-question :deep(sub),.options :deep(sub),.sub-question :deep(sub){bottom:-.25em}.choice-question :deep(sup),.options :deep(sup),.sub-question :deep(sup){top:-.45em}
+.choice-question :deep(.math-fraction),.options :deep(.math-fraction),.sub-question :deep(.math-fraction){display:inline-flex;flex-direction:column;vertical-align:middle;line-height:1.05;text-align:center;margin:0 .12em}.choice-question :deep(.math-fraction)>span:first-child,.options :deep(.math-fraction)>span:first-child,.sub-question :deep(.math-fraction)>span:first-child{border-bottom:1px solid currentColor;padding:0 .18em}.choice-question :deep(.math-fraction)>span:last-child,.options :deep(.math-fraction)>span:last-child,.sub-question :deep(.math-fraction)>span:last-child{padding:0 .18em}.choice-question :deep(.math-radical),.options :deep(.math-radical),.sub-question :deep(.math-radical){display:inline-flex;align-items:flex-start;vertical-align:middle}.choice-question :deep(.math-radical)>span,.options :deep(.math-radical)>span,.sub-question :deep(.math-radical)>span{border-top:1px solid currentColor;padding:0 .12em}
 .set-submit{position:static;display:flex;align-items:center;justify-content:space-between;gap:18px;margin-top:28px;padding:16px 20px;border:1px solid #c7d2fe;border-radius:8px;background:#fff;box-shadow:0 5px 18px rgba(15,23,42,.08)}
 .set-submit>div{display:grid;gap:4px}.set-submit>div b{color:#312e81;font-size:18px}.set-submit>div span{color:#64748b}.set-submit button{border:0;border-radius:6px;padding:11px 22px;background:#4f46e5;color:#fff;font-weight:700;cursor:pointer}.set-submit button:disabled{background:#cbd5e1;cursor:not-allowed}.set-submit button.secondary{background:#fff;color:#4f46e5;border:1px solid #6366f1}.compact-submit{position:static;margin-top:18px;box-shadow:none;background:#eef2ff}
 @media(max-width:760px){.set-submit{align-items:stretch;flex-direction:column}.set-submit button{width:100%}}

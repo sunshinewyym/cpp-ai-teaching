@@ -4,8 +4,11 @@
   "type": "object",
   "required": [
     "stage",
-    "coach_message",
+    "mode",
     "focus",
+    "key_hint",
+    "coach_message",
+    "question",
     "choices",
     "hint_level",
     "progress",
@@ -14,21 +17,27 @@
   "properties": {
     "stage": {
       "type": "string",
-      "enum": ["INGEST", "DIAGNOSE", "UNDERSTAND", "EXPLORE", "MODEL", "VALIDATE", "PLAN", "REFLECT", "COMPLETE"]
+      "enum": ["INGEST", "EXPLORE", "MODEL", "VALIDATE", "PLAN", "COMPLETE"]
     },
-    "coach_message": {"type": "string", "minLength": 1, "maxLength": 600},
+    "mode": {
+      "type": "string",
+      "enum": ["GUIDE", "CHECKPOINT", "SUMMARY"]
+    },
     "focus": {"type": "string", "minLength": 1, "maxLength": 100},
+    "key_hint": {"type": "string", "minLength": 1, "maxLength": 520},
+    "coach_message": {"type": "string", "minLength": 1, "maxLength": 1400},
+    "question": {"type": "string", "maxLength": 180},
     "choices": {
       "type": "array",
-      "minItems": 3,
-      "maxItems": 5,
+      "minItems": 0,
+      "maxItems": 3,
       "uniqueItems": true,
       "items": {
         "type": "object",
         "required": ["id", "text", "intent"],
         "properties": {
-          "id": {"type": "string", "pattern": "^[A-E]$"},
-          "text": {"type": "string", "minLength": 1, "maxLength": 60},
+          "id": {"type": "string", "pattern": "^[A-C]$"},
+          "text": {"type": "string", "minLength": 1, "maxLength": 70},
           "intent": {"type": "string", "minLength": 1, "maxLength": 80}
         },
         "additionalProperties": false
@@ -45,18 +54,18 @@
         "method_validated": {"type": "boolean"},
         "ready_for_reflection": {"type": "boolean"}
       },
-      "additionalProperties": true
+      "additionalProperties": false
     },
     "state_patch": {
       "type": "object",
-      "required": ["primary_blocker", "last_strategy", "student_evidence"],
+      "required": ["primary_blocker", "last_strategy", "student_evidence", "revealed_insights"],
       "properties": {
         "primary_blocker": {"type": "string"},
         "last_strategy": {"type": "string"},
         "student_evidence": {"type": "array", "items": {"type": "string"}},
         "revealed_insights": {"type": "array", "items": {"type": "string"}}
       },
-      "additionalProperties": true
+      "additionalProperties": false
     }
   },
   "additionalProperties": false
