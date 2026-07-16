@@ -4770,74 +4770,6 @@ export const cspSProgramProblems = [
     "questions": [
       {
         "number": 1,
-        "text": "②处应填（ ）",
-        "options": {
-          "A": "a[mid] > ai",
-          "B": "a[mid] >= ai",
-          "C": "a[mid] < ai",
-          "D": "a[mid] <= ai"
-        },
-        "answers": [
-          "A"
-        ],
-        "multiple": false,
-        "score": 3,
-        "id": "2024-completion-1-1",
-        "explanation": "参考答案为 A（a[mid] > ai）。请回到题目条件，按定义、执行顺序或复杂度逐项核对。"
-      },
-      {
-        "number": 2,
-        "text": "③处应填（ ）",
-        "options": {
-          "A": "a+l",
-          "B": "a+l+1",
-          "C": "a+l-1",
-          "D": "an-l"
-        },
-        "answers": [
-          "D"
-        ],
-        "multiple": false,
-        "score": 3,
-        "id": "2024-completion-1-2",
-        "explanation": "参考答案为 D（an-l）。请回到题目条件，按定义、执行顺序或复杂度逐项核对。"
-      },
-      {
-        "number": 3,
-        "text": "④处应填（ ）",
-        "options": {
-          "A": "a[n-1]+b[n-1]",
-          "B": "a[n]+b[n]",
-          "C": "2 * maxn",
-          "D": "maxn"
-        },
-        "answers": [
-          "B"
-        ],
-        "multiple": false,
-        "score": 3,
-        "id": "2024-completion-1-3",
-        "explanation": "参考答案为 B（a[n]+b[n]）。请回到题目条件，按定义、执行顺序或复杂度逐项核对。"
-      },
-      {
-        "number": 4,
-        "text": "⑤处应填（ ）",
-        "options": {
-          "A": "get_rank(mid) < k",
-          "B": "get_rank(mid) <= k",
-          "C": "get_rank(mid) > k",
-          "D": "get_rank(mid) >= k"
-        },
-        "answers": [
-          "A"
-        ],
-        "multiple": false,
-        "score": 3,
-        "id": "2024-completion-1-4",
-        "explanation": "参考答案为 A（get_rank(mid) < k）。请回到题目条件，按定义、执行顺序或复杂度逐项核对。"
-      },
-      {
-        "number": 5,
         "text": "①处应填（ ）",
         "options": {
           "A": "an-a",
@@ -4850,8 +4782,76 @@ export const cspSProgramProblems = [
         ],
         "multiple": false,
         "score": 3,
-        "id": "2024-completion-1-5",
+        "id": "2024-completion-1-1",
         "explanation": "参考答案为 D（ai+1）。请回到题目条件，按定义、执行顺序或复杂度逐项核对。"
+      },
+      {
+        "number": 2,
+        "text": "②处应填（ ）",
+        "options": {
+          "A": "a[mid] > ai",
+          "B": "a[mid] >= ai",
+          "C": "a[mid] < ai",
+          "D": "a[mid] <= ai"
+        },
+        "answers": [
+          "A"
+        ],
+        "multiple": false,
+        "score": 3,
+        "id": "2024-completion-1-2",
+        "explanation": "参考答案为 A（a[mid] > ai）。请回到题目条件，按定义、执行顺序或复杂度逐项核对。"
+      },
+      {
+        "number": 3,
+        "text": "③处应填（ ）",
+        "options": {
+          "A": "a+l",
+          "B": "a+l+1",
+          "C": "a+l-1",
+          "D": "an-l"
+        },
+        "answers": [
+          "D"
+        ],
+        "multiple": false,
+        "score": 3,
+        "id": "2024-completion-1-3",
+        "explanation": "参考答案为 D（an-l）。请回到题目条件，按定义、执行顺序或复杂度逐项核对。"
+      },
+      {
+        "number": 4,
+        "text": "④处应填（ ）",
+        "options": {
+          "A": "a[n-1]+b[n-1]",
+          "B": "a[n]+b[n]",
+          "C": "2 * maxn",
+          "D": "maxn"
+        },
+        "answers": [
+          "B"
+        ],
+        "multiple": false,
+        "score": 3,
+        "id": "2024-completion-1-4",
+        "explanation": "参考答案为 B（a[n]+b[n]）。请回到题目条件，按定义、执行顺序或复杂度逐项核对。"
+      },
+      {
+        "number": 5,
+        "text": "⑤处应填（ ）",
+        "options": {
+          "A": "get_rank(mid) < k",
+          "B": "get_rank(mid) <= k",
+          "C": "get_rank(mid) > k",
+          "D": "get_rank(mid) >= k"
+        },
+        "answers": [
+          "A"
+        ],
+        "multiple": false,
+        "score": 3,
+        "id": "2024-completion-1-5",
+        "explanation": "参考答案为 A（get_rank(mid) < k）。请回到题目条件，按定义、执行顺序或复杂度逐项核对。"
       }
     ],
     "sourceUrl": "https://oj.33dai.cn/p/CSP24S1"
