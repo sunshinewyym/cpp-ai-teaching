@@ -4463,7 +4463,7 @@ export const cspSProgramProblems = [
     "questions": [
       {
         "number": 1,
-        "text": "当 1000≥d≥b1000 \\geq d \\geq b1000≥d≥b 时，输出的序列是有序的。（ ）",
+        "text": "当 1000≥d≥b 时，输出的序列是有序的。（ ）",
         "options": {
           "A": "正确",
           "B": "错误"
@@ -4493,7 +4493,7 @@ export const cspSProgramProblems = [
       },
       {
         "number": 3,
-        "text": "假设数组 ccc 长度无限制，该程序所实现的算法的时间复杂度是 O(b)O(b)O(b) 的。（ ）",
+        "text": "假设数组 c 长度无限制，该程序所实现的算法的时间复杂度是 O(b)O(b)O(b) 的。（ ）",
         "options": {
           "A": "正确",
           "B": "错误"
@@ -4525,7 +4525,7 @@ export const cspSProgramProblems = [
       },
       {
         "number": 5,
-        "text": "当输入为 10 100 100 时，输出的第 100100100 个数是？（ ）",
+        "text": "当输入为 10 100 100 时，输出的第 100 个数是？（ ）",
         "options": {
           "A": "91",
           "B": "94",
@@ -4549,7 +4549,7 @@ export const cspSProgramProblems = [
     "type": "reading",
     "number": 2,
     "title": "阅读程序第 2 题",
-    "description": "```cpp\n#include <iostream>\n#include <string>\nusing namespace std;\n\nconst int P = 998244353, N = 1e4 + 10, M = 20;\nint n, m;\nstring s;\nint dp[1 << M];\n\nint solve() {\n    dp[0] = 1;\n    for (int i = 0; i < n; ++i) {\n        for (int j = (1 << (m - 1)) - 1; j >= 0; --j) {\n            int k = (j << 1) | (s[i] - '0');\n            if (j != 0 || s[i] == '1')\n                dp[k] = (dp[k] + dp[j]) % P;\n        }\n    }\n    int ans = 0;\n    for (int i = 0; i < (1 << m); ++i) {\n        ans = (ans + 1ll * i * dp[i]) % P;\n    }\n    return ans;\n}\n\nint solve2() {\n    int ans = 0;\n    for (int i = 0; i < (1 << n); ++i) {\n        int cnt = 0;\n        int num = 0;\n        for (int j = 0; j < n; ++j) {\n            if (i & (1 << j)) {\n                num = num * 2 + (s[j] - '0');\n                cnt++;\n            }\n        }\n        if (cnt <= m) (ans += num) %= P;\n    }\n    return ans;\n}\n\nint main() {\n    cin >> n >> m;\n    cin >> s;\n    if (n <= 20) {\n        cout << solve2() << endl;\n    }\n    cout << solve() << endl;\n    return 0;\n}\n\n```",
+    "description": "假设输入的 s 是包含 n 个字符的 01 串，完成下面的判断题和单选题：\n\n```cpp\n#include <iostream>\n#include <string>\nusing namespace std;\n\nconst int P = 998244353, N = 1e4 + 10, M = 20;\nint n, m;\nstring s;\nint dp[1 << M];\n\nint solve() {\n    dp[0] = 1;\n    for (int i = 0; i < n; ++i) {\n        for (int j = (1 << (m - 1)) - 1; j >= 0; --j) {\n            int k = (j << 1) | (s[i] - '0');\n            if (j != 0 || s[i] == '1')\n                dp[k] = (dp[k] + dp[j]) % P;\n        }\n    }\n    int ans = 0;\n    for (int i = 0; i < (1 << m); ++i) {\n        ans = (ans + 1ll * i * dp[i]) % P;\n    }\n    return ans;\n}\n\nint solve2() {\n    int ans = 0;\n    for (int i = 0; i < (1 << n); ++i) {\n        int cnt = 0;\n        int num = 0;\n        for (int j = 0; j < n; ++j) {\n            if (i & (1 << j)) {\n                num = num * 2 + (s[j] - '0');\n                cnt++;\n            }\n        }\n        if (cnt <= m) (ans += num) %= P;\n    }\n    return ans;\n}\n\nint main() {\n    cin >> n >> m;\n    cin >> s;\n    if (n <= 20) {\n        cout << solve2() << endl;\n    }\n    cout << solve() << endl;\n    return 0;\n}\n\n```",
     "statement": "```cpp\n#include <iostream>\n#include <string>\nusing namespace std;\n\nconst int P = 998244353, N = 1e4 + 10, M = 20;\nint n, m;\nstring s;\nint dp[1 << M];\n\nint solve() {\n    dp[0] = 1;\n    for (int i = 0; i < n; ++i) {\n        for (int j = (1 << (m - 1)) - 1; j >= 0; --j) {\n            int k = (j << 1) | (s[i] - '0');\n            if (j != 0 || s[i] == '1')\n                dp[k] = (dp[k] + dp[j]) % P;\n        }\n    }\n    int ans = 0;\n    for (int i = 0; i < (1 << m); ++i) {\n        ans = (ans + 1ll * i * dp[i]) % P;\n    }\n    return ans;\n}\n\nint solve2() {\n    int ans = 0;\n    for (int i = 0; i < (1 << n); ++i) {\n        int cnt = 0;\n        int num = 0;\n        for (int j = 0; j < n; ++j) {\n            if (i & (1 << j)) {\n                num = num * 2 + (s[j] - '0');\n                cnt++;\n            }\n        }\n        if (cnt <= m) (ans += num) %= P;\n    }\n    return ans;\n}\n\nint main() {\n    cin >> n >> m;\n    cin >> s;\n    if (n <= 20) {\n        cout << solve2() << endl;\n    }\n    cout << solve() << endl;\n    return 0;\n}\n\n```",
     "questions": [
       {
@@ -4743,20 +4743,20 @@ export const cspSProgramProblems = [
       },
       {
         "number": 6,
-        "text": "①处应填（ ）",
+        "text": "输入 16，输出的第二行是？（ ）",
         "options": {
-          "A": "an-a",
-          "B": "an-a-1",
-          "C": "ai",
-          "D": "ai+1"
+          "A": "7",
+          "B": "9",
+          "C": "10",
+          "D": "12"
         },
         "answers": [
-          "D"
+          "B"
         ],
         "multiple": false,
         "score": 3,
         "id": "2024-reading-3-6",
-        "explanation": "参考答案为 D（ai+1）。请回到题目条件，按定义、执行顺序或复杂度逐项核对。"
+        "explanation": "参考答案为 B（9）。请回到题目条件，按定义、执行顺序或复杂度逐项核对。"
       }
     ],
     "sourceUrl": "https://oj.33dai.cn/p/CSP24S1"
@@ -4842,18 +4842,18 @@ export const cspSProgramProblems = [
         "number": 5,
         "text": "①处应填（ ）",
         "options": {
-          "A": "upd(pre[b], n+b, dis[b], q)",
-          "B": "upd(a, n+b, d, q)",
-          "C": "upd(pre[b], b, dis[b], q)",
-          "D": "upd(a, b, d, q)"
+          "A": "an-a",
+          "B": "an-a-1",
+          "C": "ai",
+          "D": "ai+1"
         },
         "answers": [
-          "C"
+          "D"
         ],
         "multiple": false,
         "score": 3,
         "id": "2024-completion-1-5",
-        "explanation": "参考答案为 C（upd(pre[b], b, dis[b], q)）。请回到题目条件，按定义、执行顺序或复杂度逐项核对。"
+        "explanation": "参考答案为 D（ai+1）。请回到题目条件，按定义、执行顺序或复杂度逐项核对。"
       }
     ],
     "sourceUrl": "https://oj.33dai.cn/p/CSP24S1"
@@ -4869,6 +4869,23 @@ export const cspSProgramProblems = [
     "questions": [
       {
         "number": 1,
+        "text": "①处应填（ ）",
+        "options": {
+          "A": "upd(pre[b], n+b, dis[b], q)",
+          "B": "upd(a, n+b, d, q)",
+          "C": "upd(pre[b], b, dis[b], q)",
+          "D": "upd(a, b, d, q)"
+        },
+        "answers": [
+          "C"
+        ],
+        "multiple": false,
+        "score": 3,
+        "id": "2024-completion-2-1",
+        "explanation": "参考答案为 C（upd(pre[b], b, dis[b], q)）。请回到题目条件，按定义、执行顺序或复杂度逐项核对。"
+      },
+      {
+        "number": 2,
         "text": "②处应填（ ）",
         "options": {
           "A": "make_pair(-d, b)",
@@ -4881,11 +4898,11 @@ export const cspSProgramProblems = [
         ],
         "multiple": false,
         "score": 3,
-        "id": "2024-completion-2-1",
+        "id": "2024-completion-2-2",
         "explanation": "参考答案为 D（make_pair(-b, d)）。请回到题目条件，按定义、执行顺序或复杂度逐项核对。"
       },
       {
-        "number": 2,
+        "number": 3,
         "text": "③处应填（ ）",
         "options": {
           "A": "0xff",
@@ -4898,11 +4915,11 @@ export const cspSProgramProblems = [
         ],
         "multiple": false,
         "score": 3,
-        "id": "2024-completion-2-2",
+        "id": "2024-completion-2-3",
         "explanation": "参考答案为 A（0xff）。请回到题目条件，按定义、执行顺序或复杂度逐项核对。"
       },
       {
-        "number": 3,
+        "number": 4,
         "text": "④处应填（ ）",
         "options": {
           "A": "upd(a, n+b, dis[a]+c, q)",
@@ -4915,11 +4932,11 @@ export const cspSProgramProblems = [
         ],
         "multiple": false,
         "score": 3,
-        "id": "2024-completion-2-3",
+        "id": "2024-completion-2-4",
         "explanation": "参考答案为 B（upd(n+a, n+b, dis2[a]+c, q)）。请回到题目条件，按定义、执行顺序或复杂度逐项核对。"
       },
       {
-        "number": 4,
+        "number": 5,
         "text": "⑤处应填（ ）",
         "options": {
           "A": "pre2[a%n]",
@@ -4932,7 +4949,7 @@ export const cspSProgramProblems = [
         ],
         "multiple": false,
         "score": 3,
-        "id": "2024-completion-2-4",
+        "id": "2024-completion-2-5",
         "explanation": "参考答案为 C（pre2[a]）。请回到题目条件，按定义、执行顺序或复杂度逐项核对。"
       }
     ],
