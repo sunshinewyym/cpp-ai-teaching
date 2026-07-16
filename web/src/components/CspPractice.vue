@@ -249,21 +249,7 @@ function normalizeRepeatedExtractedUnit(value){
   return text
 }
 function collapseRepeatedChunkRuns(text){
-  let result='';
-  for(let i=0;i<text.length;){
-    let collapsed=false;
-    const maxSize=Math.min(48,Math.floor((text.length-i)/3));
-    for(let size=1;size<=maxSize;size++){
-      const unit=text.slice(i,i+size);
-      if(/^[A-Za-z]+$/.test(unit))continue;
-      if(/^\d+$/.test(unit)&&new Set(unit).size===1)continue;
-      let count=1;
-      while(text.slice(i+count*size,i+(count+1)*size)===unit)count++;
-      if(count>=3){result+=unit;i+=size*count;collapsed=true;break}
-    }
-    if(!collapsed){result+=text[i];i++}
-  }
-  return result
+  return text;
 }
 function normalizeDelimitedRun(value,delimiter=','){
   const parts=String(value||'').split(delimiter).map(item=>item.trim());
