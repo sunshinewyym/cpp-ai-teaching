@@ -174,8 +174,34 @@ const cspS2024ChoiceCorrections={
   '2024-choice-14':{question:'设有一个长度为 n 的 01 字符串，其中有 k 个 1，每次操作可以交换相邻两个字符。在最坏情况下将这 k 个 1 移到字符串最右边所需要的交换次数是多少？（ ）',options:{A:'k',B:'k*(k-1)/2',C:'(n-k)*k',D:'(2n-k-1)*k/2'}},
   '2024-choice-15':{question:'如图是一张包含 7 个顶点的有向图。如果要删除其中一些边，使得从节点 1 到节点 7 没有可行路径，且删除的边数最少，请问总共有多少种可行的删除边的集合？（ ）',options:{A:'1',B:'2',C:'3',D:'4'}}
 };
+const cspS2025CompletionReplacements={
+  '2025-completion-1':[
+    ['pq.push({0, s, 0});', 'pq.push({0, s, ①});'],
+    ['if (dist > d[u][used])', 'if (dist > ②)'],
+    ['if (d[u][used] + w < d[v][used])', 'if (d[u][used] + w < ③)'],
+    ['d[v][used] = d[u][used] + w;', '③ = d[u][used] + w;'],
+    ['pq.push({d[v][used], v, used});', 'pq.push({③, v, used});'],
+    ['if (d[u][used] < d[v][1])', 'if (d[u][used] < ④)'],
+    ['d[v][1] = d[u][used];', '④ = d[u][used];'],
+    ['pq.push({d[v][1], v, 1});', 'pq.push({④, v, 1});'],
+    ['cout << min(d[t][0], d[t][1]) << endl;', 'cout << ⑤ << endl;']
+  ],
+  '2025-completion-2':[
+    ['while (count_patterns(w, k) < n)', 'while (①)'],
+    ['std::prev_permutation(bits.begin(), bits.end())', 'std::②'],
+    ['if (code[j][i] == 1)', 'if (③)'],
+    ['if (signature >> i & 1)', 'if (④)'],
+    ['if (is_permutation(code[j].begin(), code[j].end(), sig_bits.begin()))', 'if (⑤)']
+  ]
+};
+function applyCspS2025CompletionMarkers(value){
+  const replacements=cspS2025CompletionReplacements[value.id];
+  if(!replacements)return value;
+  const statement=replacements.reduce((text,[from,to])=>text.replace(from,to),value.statement);
+  return {...value,statement};
+}
 const displayPaper=computed(()=>paper.value.map(item=>{if(level.value!=='S')return item;const correction=(year.value==='2024'?cspS2024ChoiceCorrections:item.year==='2023'?cspSChoiceCorrections[`${year.value}-${item.number}`]:null);return correction?{...item,...correction}:item}));
-const problem=computed(()=>{const value=problems.value[index.value];if(!value)return value;if(level.value==='S'&&year.value==='2023'&&type.value==='reading'){const code=value.number===1?corrected2023Reading1:value.number===2?corrected2023Reading2:null;if(code)return {...value,description:'```cpp\n'+code+'\n```',statement:'```cpp\n'+code+'\n```'}}return value});
+const problem=computed(()=>{const value=problems.value[index.value];if(!value)return value;if(level.value==='S'&&year.value==='2023'&&type.value==='reading'){const code=value.number===1?corrected2023Reading1:value.number===2?corrected2023Reading2:null;if(code)return {...value,description:'```cpp\n'+code+'\n```',statement:'```cpp\n'+code+'\n```'}}return level.value==='S'&&year.value==='2025'&&type.value==='completion'?applyCspS2025CompletionMarkers(value):value});
 const typeLabel=computed(()=>type.value==='reading'?'阅读程序题':'完善程序题');
 const choiceSetKey=computed(()=>`choice-${year.value}`),choiceSetSubmitted=computed(()=>Boolean(submittedSets.value[choiceSetKey.value]));
 const programSetSubmitted=computed(()=>Boolean(problem.value&&submittedSets.value[problem.value.id]));
