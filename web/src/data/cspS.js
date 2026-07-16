@@ -4662,6 +4662,21 @@ export const cspSProgramProblems = [
     "questions": [
       {
         "number": 1,
+        "text": "假设程序运行前能自动将 maxn 改为 n+1，所实现的算法的时间复杂度是 O(n log n)。（ ）",
+        "options": {
+          "A": "正确",
+          "B": "错误"
+        },
+        "answers": [
+          "A"
+        ],
+        "multiple": false,
+        "score": 3,
+        "id": "2024-reading-3-1",
+        "explanation": "参考答案为 A（正确）。请回到题目条件，按定义、执行顺序或复杂度逐项核对。"
+      },
+      {
+        "number": 2,
         "text": "时间开销的瓶颈是 init() 函数。（ ）",
         "options": {
           "A": "正确",
@@ -4672,11 +4687,11 @@ export const cspSProgramProblems = [
         ],
         "multiple": false,
         "score": 3,
-        "id": "2024-reading-3-1",
+        "id": "2024-reading-3-2",
         "explanation": "参考答案为 B（错误）。请回到题目条件，按定义、执行顺序或复杂度逐项核对。"
       },
       {
-        "number": 2,
+        "number": 3,
         "text": "若修改常数 B1 或 K1 的值，该程序可能会输出不同的结果。（ ）",
         "options": {
           "A": "正确",
@@ -4687,12 +4702,12 @@ export const cspSProgramProblems = [
         ],
         "multiple": false,
         "score": 3,
-        "id": "2024-reading-3-2",
+        "id": "2024-reading-3-3",
         "explanation": "参考答案为 A（正确）。请回到题目条件，按定义、执行顺序或复杂度逐项核对。"
       },
       {
-        "number": 3,
-        "text": "在 solve() 函数中，h[] 的合并顺序可以看作是（ ）？",
+        "number": 4,
+        "text": "在 solve() 函数中，h[] 的合并顺序可以看作是：（ ）",
         "options": {
           "A": "二叉树的 BFS 序",
           "B": "二叉树的先序遍历",
@@ -4704,34 +4719,17 @@ export const cspSProgramProblems = [
         ],
         "multiple": false,
         "score": 3,
-        "id": "2024-reading-3-3",
+        "id": "2024-reading-3-4",
         "explanation": "参考答案为 A（二叉树的 BFS 序）。请回到题目条件，按定义、执行顺序或复杂度逐项核对。"
       },
       {
-        "number": 4,
-        "text": "输入 101010，输出的第一行是？（ ）",
-        "options": {
-          "A": "838383",
-          "B": "424424424",
-          "C": "小545454",
-          "D": "110101000110101000110101000"
-        },
-        "answers": [
-          "B"
-        ],
-        "multiple": false,
-        "score": 3,
-        "id": "2024-reading-3-4",
-        "explanation": "参考答案为 B（424424424）。请回到题目条件，按定义、执行顺序或复杂度逐项核对。"
-      },
-      {
         "number": 5,
-        "text": "输入 161616，输出的第二行是？（ ）",
+        "text": "输入 \"10\"，输出的第一行是？（ ）",
         "options": {
-          "A": "777",
-          "B": "999",
-          "C": "101010",
-          "D": "121212"
+          "A": "83",
+          "B": "424",
+          "C": "54",
+          "D": "110101000"
         },
         "answers": [
           "B"
@@ -4739,11 +4737,11 @@ export const cspSProgramProblems = [
         "multiple": false,
         "score": 3,
         "id": "2024-reading-3-5",
-        "explanation": "参考答案为 B（999）。请回到题目条件，按定义、执行顺序或复杂度逐项核对。"
+        "explanation": "参考答案为 B（424）。请回到题目条件，按定义、执行顺序或复杂度逐项核对。"
       },
       {
         "number": 6,
-        "text": "输入 16，输出的第二行是？（ ）",
+        "text": "（4 分）输入 \"16\"，输出的第二行是？（ ）",
         "options": {
           "A": "7",
           "B": "9",
