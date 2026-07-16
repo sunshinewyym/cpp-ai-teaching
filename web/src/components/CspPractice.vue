@@ -279,9 +279,6 @@ function normalizeExtractedText(value){
   let text=String(value||'');
   text=text.replace(/(?:\d+\s*,\s*){4,}\d+/g,token=>normalizeDelimitedRun(token));
   text=collapseRepeatedChunkRuns(text);
-  text=text.replace(/\b([A-Za-z0-9]{1,12})\1{2,}\b/g,token=>normalizeRepeatedExtractedUnit(token));
-  text=text.replace(/\b\d{3,}\b/g,token=>normalizeRepeatedExtractedUnit(token));
-  text=text.replace(/\b[A-Za-z]{3,}\b/g,token=>normalizeRepeatedExtractedUnit(token));
   text=text.replace(/\b([A-Za-z]\([^()\n]{1,16}\))\1{2,}\b/g,'$1');
   text=text.replace(/\bf\(f\(x\)\)=10f\(f\(x\)\)=10f\(f\(x\)\)=10/g,'f(f(x))=10');
   text=text.replace(/\\d?frac\s*\{([^{}]+)\}\s*\{([^{}]+)\}/g,'<span class="math-fraction"><span>$1</span><span>$2</span></span>');
