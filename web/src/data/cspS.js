@@ -4554,7 +4554,7 @@ export const cspSProgramProblems = [
     "questions": [
       {
         "number": 1,
-        "text": "输入 11 2 10000000001 时，程序输出两个数 32 和 23。（ ）",
+        "text": "假设数组 dp 长度无限制，函数 solve() 所实现的算法的时间复杂度是 O(n×2^m)。（ ）",
         "options": {
           "A": "正确",
           "B": "错误"
@@ -4569,7 +4569,22 @@ export const cspSProgramProblems = [
       },
       {
         "number": 2,
-        "text": "（2 分）在 n≤10n \\leq 10n≤10 时，solve() 的返回值始终小于 4104^{10}410。（ ）",
+        "text": "输入 \"11 2 10000000001\" 时，程序输出两个数 32 和 23。（ ）",
+        "options": {
+          "A": "正确",
+          "B": "错误"
+        },
+        "answers": [
+          "A"
+        ],
+        "multiple": false,
+        "score": 3,
+        "id": "2024-reading-2-2",
+        "explanation": "参考答案为 A（正确）。请回到题目条件，按定义、执行顺序或复杂度逐项核对。"
+      },
+      {
+        "number": 3,
+        "text": "（2 分）在 n≤10 时，solve() 的返回值始终小于 4^10。（ ）",
         "options": {
           "A": "正确",
           "B": "错误"
@@ -4579,11 +4594,11 @@ export const cspSProgramProblems = [
         ],
         "multiple": false,
         "score": 3,
-        "id": "2024-reading-2-2",
+        "id": "2024-reading-2-3",
         "explanation": "参考答案为 B（错误）。请回到题目条件，按定义、执行顺序或复杂度逐项核对。"
       },
       {
-        "number": 3,
+        "number": 4,
         "text": "当 n=10 且 m=10 时，有多少种输入使得两行的结果完全一致？（ ）",
         "options": {
           "A": "1024",
@@ -4596,11 +4611,11 @@ export const cspSProgramProblems = [
         ],
         "multiple": false,
         "score": 3,
-        "id": "2024-reading-2-3",
+        "id": "2024-reading-2-4",
         "explanation": "参考答案为 B（11）。请回到题目条件，按定义、执行顺序或复杂度逐项核对。"
       },
       {
-        "number": 4,
+        "number": 5,
         "text": "当 n≤6 时，solve() 的最大可能返回值为（ ）？",
         "options": {
           "A": "65",
@@ -4613,11 +4628,11 @@ export const cspSProgramProblems = [
         ],
         "multiple": false,
         "score": 3,
-        "id": "2024-reading-2-4",
+        "id": "2024-reading-2-5",
         "explanation": "参考答案为 B（211）。请回到题目条件，按定义、执行顺序或复杂度逐项核对。"
       },
       {
-        "number": 5,
+        "number": 6,
         "text": "若 n=8, m=8，solve 和 solve2 的返回值的最大可能的差值为（ ）？",
         "options": {
           "A": "1477",
@@ -4630,23 +4645,8 @@ export const cspSProgramProblems = [
         ],
         "multiple": false,
         "score": 3,
-        "id": "2024-reading-2-5",
-        "explanation": "参考答案为 C（2059）。请回到题目条件，按定义、执行顺序或复杂度逐项核对。"
-      },
-      {
-        "number": 6,
-        "text": "假设程序运行前能自动将 maxn 改为 n+1，所实现的算法的时间复杂度是 O(nlog⁡n)O(n \\log n)O(nlogn)。（ ）",
-        "options": {
-          "A": "正确",
-          "B": "错误"
-        },
-        "answers": [
-          "A"
-        ],
-        "multiple": false,
-        "score": 3,
         "id": "2024-reading-2-6",
-        "explanation": "参考答案为 A（正确）。请回到题目条件，按定义、执行顺序或复杂度逐项核对。"
+        "explanation": "参考答案为 C（2059）。请回到题目条件，按定义、执行顺序或复杂度逐项核对。"
       }
     ],
     "sourceUrl": "https://oj.33dai.cn/p/CSP24S1"
