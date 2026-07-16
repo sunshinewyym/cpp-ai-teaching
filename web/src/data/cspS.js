@@ -2877,7 +2877,7 @@ export const cspSProgramProblems = [
           "A": "(j>>i) & 1",
           "B": "(i>>j) & 1",
           "C": "code[i][j] == 1",
-          "D": "③"
+          "D": "code[j][i] == 1"
         },
         "answers": [
           "D"
@@ -2908,7 +2908,7 @@ export const cspSProgramProblems = [
         "number": 5,
         "text": "⑤处应填( )",
         "options": {
-          "A": "⑤",
+          "A": "is_permutation(code[j].begin(), code[j].end(), sig_bits.begin())",
           "B": "code[j] == sig_bits",
           "C": "plan[j] == sig_bits",
           "D": "code[j][i] == sig_bits[i]"
