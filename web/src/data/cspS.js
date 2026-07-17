@@ -12,7 +12,7 @@ export const cspSChoicePapers = {
         "D": "3.500000"
       },
       "answer": "D",
-      "explanation": "参考答案为 D（3.500000）。请回到题目条件，按定义、执行顺序或复杂度逐项核对。"
+      "explanation": "参考答案为 D（3.500000）。\n\n**解析：**\n\n表达式：`x + a % 3 * (int)(x + y) % 2`\n\n逐步计算：\n1. `a % 3 = 7 % 3 = 1`\n2. `(x + y) = 2.5 + 4.7 = 7.2`\n3. `(int)(x + y) = (int)7.2 = 7`\n4. `a % 3 * (int)(x + y) = 1 * 7 = 7`\n5. `7 % 2 = 1`\n6. `x + 1 = 2.5 + 1 = 3.5`\n\n所以结果为 3.500000。"
     },
     {
       "id": "2019-choice-2",
@@ -25,7 +25,7 @@ export const cspSChoicePapers = {
         "D": "AVI"
       },
       "answer": "C",
-      "explanation": "参考答案为 C（JPEG）。请回到题目条件，按定义、执行顺序或复杂度逐项核对。"
+      "explanation": "参考答案为 C（JPEG）。\n\n**解析：**\n\n- **JPEG**（Joint Photographic Experts Group）：图像文件格式，用于存储照片等静态图像。\n- **WMV**（Windows Media Video）：视频文件格式。\n- **MPEG**（Moving Picture Experts Group）：视频/音频压缩标准，属于视频格式。\n- **AVI**（Audio Video Interleave）：微软开发的视频文件格式。\n\n因此只有 JPEG 是图像文件格式。"
     },
     {
       "id": "2019-choice-3",
@@ -38,7 +38,7 @@ export const cspSChoicePapers = {
         "D": "$\\text{11 1111 1111 1111}$"
       },
       "answer": "D",
-      "explanation": "参考答案为 D（$\\text{11 1111 1111 1111}$）。请回到题目条件，按定义、执行顺序或复杂度逐项核对。"
+      "explanation": "参考答案为 D（11 1111 1111 1111）。\n\n**解析：**\n\n按位或运算规则：有 1 则 1。\n\n`11 1011 1001 0111 | 01 0110 1110 1011 = 11 1111 1111 1111`\n\n每一位进行或运算，只要有一个为 1，结果就为 1。最终结果为 11 1111 1111 1111。"
     },
     {
       "id": "2019-choice-4",
@@ -51,20 +51,20 @@ export const cspSChoicePapers = {
         "D": "将一种编程语言翻译成自然语言"
       },
       "answer": "B",
-      "explanation": "参考答案为 B（将一种语言（通常是高级语言）翻译成另一种语言（通常是低级语言））。请回到题目条件，按定义、执行顺序或复杂度逐项核对。"
+      "explanation": "参考答案为 B。\n\n**解析：**\n\n编译器（Compiler）的功能是将源代码（高级语言，如 C/C++）翻译成目标代码（低级语言，如汇编语言或机器语言）。\n\n- A 错误：将源程序重新组合是预处理器的功能。\n- C 错误：将低级语言翻译成高级语言是反编译器的功能。\n- D 错误：编译器不翻译成自然语言。"
     },
     {
       "id": "2019-choice-5",
       "number": 5,
       "question": "设变量 $x$ 为 float 型且已赋值，则以下语句中能将 $x$ 中的数值保留到小数点后两位，并将第三位四舍五入的是（）",
       "options": {
-        "A": "`x= (x*100+0. 5)/100.0;`",
-        "B": "`x=(int) (x*100+0. 5)/100.0;`",
-        "C": "`x=(x/100+0. 5）*100.0;`",
-        "D": "`x=x*100+0. 5/100. 0;`"
+        "A": "`x= (x*100+0.5)/100.0;`",
+        "B": "`x=(int) (x*100+0.5)/100.0;`",
+        "C": "`x=(x/100+0.5）*100.0;`",
+        "D": "`x=x*100+0.5/100. 0;`"
       },
       "answer": "B",
-      "explanation": "参考答案为 B（`x=(int) (x*100+0. 5)/100.0;`）。请回到题目条件，按定义、执行顺序或复杂度逐项核对。"
+      "explanation": "参考答案为 B。\n\n**解析：**\n\n`x = (int)(x * 100 + 0.5) / 100.0`\n\n假设 x = 3.14159：\n1. `x * 100 = 314.159`\n2. `+ 0.5 = 314.659`\n3. `(int)314.659 = 314`（强制转换为整数，截断小数）\n4. `314 / 100.0 = 3.14`\n\n关键在于 `(int)` 强制转换会截断小数部分，实现四舍五入效果。其他选项没有这种截断操作，无法正确保留两位小数。"
     },
     {
       "id": "2019-choice-6",
@@ -77,7 +77,7 @@ export const cspSChoicePapers = {
         "D": "100"
       },
       "answer": "B",
-      "explanation": "参考答案为 B（102）。请回到题目条件，按定义、执行顺序或复杂度逐项核对。"
+      "explanation": "参考答案为 B（102）。\n\n**解析：**\n\n数字集合：{1, 1, 2, 4, 8, 8}，组成 4 位数。\n\n分类讨论：\n1. **不含重复数字**：从 {1, 2, 4, 8} 中选 4 个排列 = 4! = 24 个\n2. **含一个重复 1**：选 1,1 再从 {2,4,8} 中选 2 个 = C(3,2) × 4!/(2!) = 3 × 12 = 36 个\n3. **含一个重复 8**：选 8,8 再从 {1,2,4} 中选 2 个 = C(3,2) × 4!/(2!) = 3 × 12 = 36 个\n4. **含 1,1 和 8,8**：4!/(2!×2!) = 6 个\n\n总计：24 + 36 + 36 + 6 = 102 个"
     },
     {
       "id": "2019-choice-7",
@@ -90,7 +90,7 @@ export const cspSChoicePapers = {
         "D": "归并排序"
       },
       "answer": "C",
-      "explanation": "参考答案为 C（快速排序）。请回到题目条件，按定义、执行顺序或复杂度逐项核对。"
+      "explanation": "参考答案为 C（快速排序）。\n\n**解析：**\n\n排序算法的稳定性是指：相等元素在排序后的相对顺序是否改变。\n\n- **稳定排序**：冒泡排序、直接插入排序、归并排序\n- **不稳定排序**：快速排序、选择排序、希尔排序\n\n快速排序在分区过程中会交换元素，可能导致相等元素的相对顺序改变，因此是不稳定的。"
     },
     {
       "id": "2019-choice-8",
@@ -103,7 +103,7 @@ export const cspSChoicePapers = {
         "D": "8"
       },
       "answer": "B",
-      "explanation": "参考答案为 B（9）。请回到题目条件，按定义、执行顺序或复杂度逐项核对。"
+      "explanation": "参考答案为 B（9）。\n\n**解析：**\n\n非连通无向图最少由两个连通分量组成。要使边数最多（28条）且顶点数最少，应让一个连通分量是完全图。\n\n当 k=8 时，C(8,2) = 28，刚好是 28 条边，但这样整个图就连通了。所以必须分成两个连通分量：一个有 8 个顶点（28 条边），另一个至少 1 个顶点。总共至少 8 + 1 = 9 个顶点。"
     },
     {
       "id": "2019-choice-9",
@@ -116,7 +116,7 @@ export const cspSChoicePapers = {
         "D": "20"
       },
       "answer": "B",
-      "explanation": "参考答案为 B（25）。请回到题目条件，按定义、执行顺序或复杂度逐项核对。"
+      "explanation": "参考答案为 B（25）。\n\n**解析：**\n\n颠倒后不变的数字：0→0, 1→1, 8→8, 6→9, 9→6\n\n5 位车牌 abcde 颠倒后变为 f(e)d(c)f(b)f(a)，其中 f 是颠倒映射。\n\n要使颠倒后还是原来车牌，需要：a=f(e), b=f(c), c=f(b), d=f(d), e=f(a)。\n\n- d 必须是 0, 1, 8 之一（3 种选择）\n- (a,e) 必须是 (0,0), (1,1), (8,8), (6,9), (9,6) 之一（5 种选择）\n- (b,c) 必须是 (0,0), (1,1), (8,8), (6,9), (9,6) 之一（5 种选择）\n\n共 3 × 5 × 5 = 75 个回文车牌。\n\n其中能被 3 整除的：各位数字之和能被 3 整除。经筛选，满足条件的有 25 个。"
     },
     {
       "id": "2019-choice-10",
@@ -129,7 +129,7 @@ export const cspSChoicePapers = {
         "D": "22"
       },
       "answer": "A",
-      "explanation": "参考答案为 A（23）。请回到题目条件，按定义、执行顺序或复杂度逐项核对。"
+      "explanation": "参考答案为 A（23）。\n\n**解析：**\n\n使用容斥原理：\n\n|A ∪ B| = |A| + |B| - |A ∩ B|\n\n其中：\n- |A| = 15（数学满分）\n- |B| = 12（语文满分）\n- |A ∩ B| = 4（两门都满分）\n\n|A ∪ B| = 15 + 12 - 4 = 23\n\n所以至少有一门得满分的同学有 23 人。"
     },
     {
       "id": "2019-choice-11",
@@ -142,7 +142,7 @@ export const cspSChoicePapers = {
         "D": "$2n - 1$"
       },
       "answer": "D",
-      "explanation": "参考答案为 D（$2n - 1$）。请回到题目条件，按定义、执行顺序或复杂度逐项核对。"
+      "explanation": "参考答案为 D（2n - 1）。\n\n**解析：**\n\n两个长度为 n 的有序数组归并时，最坏情况下需要比较 2n-1 次。\n\n例如：A = [1, 3, 5], B = [2, 4, 6]\n\n归并过程：\n- 比较 A[0] 和 B[0]：选 A[0]=1（第 1 次）\n- 比较 A[1] 和 B[0]：选 B[0]=2（第 2 次）\n- 比较 A[1] 和 B[1]：选 A[1]=3（第 3 次）\n- 比较 A[2] 和 B[1]：选 B[1]=4（第 4 次）\n- 比较 A[2] 和 B[2]：选 A[2]=5（第 5 次）\n- 剩余 B[2]=6（无需比较）\n\n共 5 次 = 2×3 - 1。一般地，最坏情况为 2n-1 次。"
     },
     {
       "id": "2019-choice-12",
@@ -155,7 +155,7 @@ export const cspSChoicePapers = {
         "D": "邻接矩阵"
       },
       "answer": "D",
-      "explanation": "参考答案为 D（邻接矩阵）。请回到题目条件，按定义、执行顺序或复杂度逐项核对。"
+      "explanation": "参考答案为 D（邻接矩阵）。\n\n**解析：**\n\n图的常用存储结构：\n- **邻接矩阵**：用二维数组表示顶点间的边关系\n- **邻接表**：用链表表示每个顶点的邻接点\n\n栈、队列、二叉树都是数据结构，不是图的存储方式。邻接矩阵是专门用来存储图的结构。"
     },
     {
       "id": "2019-choice-13",
@@ -168,7 +168,7 @@ export const cspSChoicePapers = {
         "D": "Kruskal 算法"
       },
       "answer": "B",
-      "explanation": "参考答案为 B（Floyd 算法）。请回到题目条件，按定义、执行顺序或复杂度逐项核对。"
+      "explanation": "参考答案为 B（Floyd 算法）。\n\n**解析：**\n\n- **Dijkstra 算法**：贪心算法，每次选择距离源点最近的未访问顶点\n- **Prim 算法**：贪心算法，每次选择连接已选顶点集和未选顶点集的最小权边\n- **Kruskal 算法**：贪心算法，每次选择权值最小且不形成环的边\n- **Floyd 算法**：动态规划算法，通过三重循环计算所有顶点对间的最短路径\n\nFloyd 算法使用动态规划思想，不属于贪心算法。"
     },
     {
       "id": "2019-choice-14",
@@ -181,20 +181,20 @@ export const cspSChoicePapers = {
         "D": "2"
       },
       "answer": "B",
-      "explanation": "参考答案为 B（3）。请回到题目条件，按定义、执行顺序或复杂度逐项核对。"
+      "explanation": "参考答案为 B（3）。\n\n**解析：**\n\n等比数列：首项 a₁ = 2，末项 aₙ = 118098，中间项 aₘ = 486。\n\n设公比为 q，项数为 2k+1（奇数项）。\n\n中间项是第 k+1 项：aₘ = a₁ × qᵏ = 2 × qᵏ = 486\n所以 qᵏ = 243 = 3⁵，即 k = 5，q = 3。\n\n验证：末项 aₙ = a₁ × q²ᵏ = 2 × 3¹⁰ = 2 × 59049 = 118098 ✓\n\n所以公比为 3。"
     },
     {
       "id": "2019-choice-15",
       "number": 15,
-      "question": "正实数构成的数字三角形排列形式如图所示。第一行的数为 $a_{1,1}$；第二行的数从左到右依次为 $a_{2,1},a_{2,2}$，第 $n$ 行的数为$a_{n,1},a_{n,2},\\dots,a_{n,n}$ 从 $a_{1,1}$ 开始，每一行的数 $a_{i,j}$ 只有两条边可以分别通向下一行的两个数 $a_{i+1,j}$ 和 $a_{i+1,j+1}$。用动态规划算法找出一条从 $a_{1,1}$ 向下通到 $a_{n,1},a_{n,2},\\dots,a_{n,n}$ 中某个数的路径，使得该路径上的数之和最大。\n\n![](https://cdn.luogu.com.cn/upload/image_hosting/3fp7zcmr.png)\n\n令 $C[i][j]$ 是从 $a_{1,1}$ 到 $a_{i,j}$ 的路径上的数的最大和，并且 $C[i][0]=C[0][j]=0$，则 $C[i][j]=$ ( )。",
+      "question": "正实数构成的数字三角形排列形式如图所示。第一行的数为 $a_{1,1}$；第二行的数从左到右依次为 $a_{2,1},a_{2,2}$，第 $n$ 行的数为$a_{n,1},a_{n,2},\\dots,a_{n,n}$ 从 $a_{1,1}$ 开始，每一行的数 $a_{i,j}$ 只有两条边可以分别通向下一行的两个数 $a_{i+1,j}$ 和 $a_{i+1,j+1}$。用动态规划算法找出一条从 $a_{1,1}$ 向下通到 $a_{n,1},a_{n,2},\\dots,a_{n,n}$ 中某个数的路径，使得该路径上的数之和最大。\n\n![数字三角形](/csp-assets/2019-choice-15.jpg)\n\n令 $C[i][j]$ 是从 $a_{1,1}$ 到 $a_{i,j}$ 的路径上的数的最大和，并且 $C[i][0]=C[0][j]=0$，则 $C[i][j]=$ ( )。",
       "options": {
-        "A": "$\\max\\{C[i-1][j-1],C[i-1][j]\\}+a_{i,j}$",
+        "A": "$max{C[i-1][j-1],C[i-1][j]\\}+a_{i,j}$",
         "B": "$C[i-1][j-1]+C[i-1][j]$",
-        "C": "$\\max\\{C[i-1][j-1],C[i-1][j]\\}+1$",
-        "D": "$\\max\\{C[i][j-1],C[i-1][j]\\}+a_{i,j}$"
+        "C": "$max{C[i-1][j-1],C[i-1][j]\\}+1$",
+        "D": "$max{C[i][j-1],C[i-1][j]\\}+a_{i,j}$"
       },
       "answer": "A",
-      "explanation": "参考答案为 A（$\\max\\{C[i-1][j-1],C[i-1][j]\\}+a_{i,j}$）。请回到题目条件，按定义、执行顺序或复杂度逐项核对。"
+      "explanation": "参考答案为 A。\n\n**解析：**\n\n数字三角形问题，用动态规划求解。\n\nC[i][j] 表示从 a₁,₁ 到 aᵢ,ⱼ 的路径最大和。\n\n要到达 aᵢ,ⱼ，上一步只能来自：\n- aᵢ₋₁,ⱼ₋₁（左上方）\n- aᵢ₋₁,ⱼ（正上方）\n\n所以状态转移方程为：\nC[i][j] = max{C[i-1][j-1], C[i-1][j]} + aᵢ,ⱼ\n\n边界条件：C[i][0] = C[0][j] = 0\n\n选项 A 正确表达了这个递推关系。"
     }
   ],
   "2020": [
@@ -1388,13 +1388,13 @@ export const cspSProgramProblems = [
     "type": "reading",
     "number": 1,
     "title": "阅读程序第 1 题",
-    "description": "二、阅读程序（程序输入不超过数组或字符串定义的范围；判断题正确填√错误填X；除特殊说明外，判断题 $1.5$ 分，选择题 $4$分，共计 $40$ 分）\n\n1.\n```\n#include <cstdio>\nusing namespace std;\nint n;\nint a[100];\n\nint main() {\n    scanf(\"%d\", &n);\n    for (int i = 1; i <= n; ++i)\n        scanf(\"%d\", &a[i]);\n    int ans = 1;\n    for (int i = 1; i <= n; ++i) {\n        if (i > 1 && a[i] < a[i - 1])\n            ans = i;\n        while (ans < n && a[i] >= a[ans + 1])\n            ++ans;\n        printf(\"%d\\n\", ans);\n    }\n    return 0;\n}\n```\n- 判断题\n1) \t（1 分）第 16 行输出 $ans$ 时，$ans$ 的值一定大于 $i$。（）\n2) \t（1 分）程序输出的 $ans$ 小于等于 $n$。（）\n3) \t若将第 12 行的 `<` 改为 `!=`，程序输出的结果不会改变。（）\n4) \t当程序执行到第 16 行时，若 $ans - i> 2$，则 $a[i + 1] \\leq a[i]$。 （）\n\n- 选择题\n\n5) （3 分）若输入的 $a$ 数组是一个严格单调递增的数列, 此程序的时间复杂度（）\n6) 最坏情况下，此程序的时间复杂度是（）。",
-    "statement": "二、阅读程序（程序输入不超过数组或字符串定义的范围；判断题正确填√错误填X；除特殊说明外，判断题 $1.5$ 分，选择题 $4$分，共计 $40$ 分）\n\n1.\n```\n#include <cstdio>\nusing namespace std;\nint n;\nint a[100];\n\nint main() {\n    scanf(\"%d\", &n);\n    for (int i = 1; i <= n; ++i)\n        scanf(\"%d\", &a[i]);\n    int ans = 1;\n    for (int i = 1; i <= n; ++i) {\n        if (i > 1 && a[i] < a[i - 1])\n            ans = i;\n        while (ans < n && a[i] >= a[ans + 1])\n            ++ans;\n        printf(\"%d\\n\", ans);\n    }\n    return 0;\n}\n```\n- 判断题\n1) \t（1 分）第 16 行输出 $ans$ 时，$ans$ 的值一定大于 $i$。（）\n2) \t（1 分）程序输出的 $ans$ 小于等于 $n$。（）\n3) \t若将第 12 行的 `<` 改为 `!=`，程序输出的结果不会改变。（）\n4) \t当程序执行到第 16 行时，若 $ans - i> 2$，则 $a[i + 1] \\leq a[i]$。 （）\n\n- 选择题\n\n5) （3 分）若输入的 $a$ 数组是一个严格单调递增的数列, 此程序的时间复杂度（）\n6) 最坏情况下，此程序的时间复杂度是（）。",
+    "description": "二、阅读程序（程序输入不超过数组或字符串定义的范围；判断题正确填√错误填X；除特殊说明外，判断题1.5分，选择题3分，共计40分）\n\n1.\n```cpp\n01 #include <cstdio>\n02 using namespace std;\n03 int n;\n04 int a[100];\n05 \n06 int main() {\n07     scanf(\"%d\", &n);\n08     for (int i = 1; i <= n; ++i)\n09         scanf(\"%d\", &a[i]);\n10     int ans = 1;\n11     for (int i = 1; i <= n; ++i) {\n12         if (i > 1 && a[i] < a[i - 1])\n13             ans = i;\n14         while (ans < n && a[i] >= a[ans + 1])\n15             ++ans;\n16         printf(\"%d\\n\", ans);\n17     }\n18     return 0;\n19 }\n```",
+    "statement": "二、阅读程序（程序输入不超过数组或字符串定义的范围；判断题正确填√错误填X；除特殊说明外，判断题1.5分，选择题3分，共计40分）\n\n1.\n```cpp\n01 #include <cstdio>\n02 using namespace std;\n03 int n;\n04 int a[100];\n05 \n06 int main() {\n07     scanf(\"%d\", &n);\n08     for (int i = 1; i <= n; ++i)\n09         scanf(\"%d\", &a[i]);\n10     int ans = 1;\n11     for (int i = 1; i <= n; ++i) {\n12         if (i > 1 && a[i] < a[i - 1])\n13             ans = i;\n14         while (ans < n && a[i] >= a[ans + 1])\n15             ++ans;\n16         printf(\"%d\\n\", ans);\n17     }\n18     return 0;\n19 }\n```",
     "questions": [
       {
         "id": "2019-reading-1-1",
         "number": 1,
-        "text": "第 1 小题",
+        "text": "第 16 行输出 ans 时，ans 的值一定大于 i。（）",
         "options": {
           "A": "正确",
           "B": "错误"
@@ -1404,12 +1404,12 @@ export const cspSProgramProblems = [
         ],
         "multiple": false,
         "score": 1,
-        "explanation": "参考答案为 B（错误）。请回到题目条件，按定义、执行顺序或复杂度逐项核对。"
+        "explanation": "参考答案为 B（错误）。\n\n**解析：**\n\n当 i=1 时，ans 初始值为 1，所以 ans=i，不一定大于 i。\n\n例如输入 n=1, a[1]=5，输出 ans=1，此时 ans=i=1。"
       },
       {
         "id": "2019-reading-1-2",
         "number": 2,
-        "text": "第 2 小题",
+        "text": "程序输出的 ans 小于等于 n。（）",
         "options": {
           "A": "正确",
           "B": "错误"
@@ -1419,12 +1419,12 @@ export const cspSProgramProblems = [
         ],
         "multiple": false,
         "score": 1,
-        "explanation": "参考答案为 A（正确）。请回到题目条件，按定义、执行顺序或复杂度逐项核对。"
+        "explanation": "参考答案为 A（正确）。\n\n**解析：**\n\n第 14 行 while 循环条件是 `ans < n`，所以 ans 最大只能到 n，不会超过 n。"
       },
       {
         "id": "2019-reading-1-3",
         "number": 3,
-        "text": "第 3 小题",
+        "text": "若将第 12 行的 `<` 改为 `!=`，程序输出的结果不会改变。（）",
         "options": {
           "A": "正确",
           "B": "错误"
@@ -1434,12 +1434,12 @@ export const cspSProgramProblems = [
         ],
         "multiple": false,
         "score": 1.5,
-        "explanation": "参考答案为 A（正确）。请回到题目条件，按定义、执行顺序或复杂度逐项核对。"
+        "explanation": "参考答案为 A（正确）。\n\n**解析：**\n\n原条件 `a[i] < a[i-1]` 判断是否严格小于。改为 `a[i] != a[i-1]` 后，当 a[i] > a[i-1] 时也会执行 ans=i，但此时 while 循环会继续推进 ans，最终结果相同。"
       },
       {
         "id": "2019-reading-1-4",
         "number": 4,
-        "text": "第 4 小题",
+        "text": "当程序执行到第 16 行时，若 ans - i > 2，则 a[i+1] ≤ a[i]。（）",
         "options": {
           "A": "正确",
           "B": "错误"
@@ -1449,41 +1449,41 @@ export const cspSProgramProblems = [
         ],
         "multiple": false,
         "score": 1.5,
-        "explanation": "参考答案为 A（正确）。请回到题目条件，按定义、执行顺序或复杂度逐项核对。"
+        "explanation": "参考答案为 A（正确）。\n\n**解析：**\n\nans - i > 2 意味着 while 循环至少执行了 3 次（从 ans=i 开始推进）。要让 ans 能从 i 推进到 i+3，必须满足 a[i] >= a[i+1] >= a[i+2] >= a[i+3]，所以 a[i+1] ≤ a[i]。"
       },
       {
         "id": "2019-reading-1-5",
         "number": 5,
-        "text": "第 5 小题",
+        "text": "若输入的 a 数组是一个严格单调递增的数列，此程序的时间复杂度是（）。",
         "options": {
-          "A": "$O(\\log n)$",
-          "B": "$O(n^2)$",
-          "C": "$O(n\\log n)$",
-          "D": "$O(n)$"
+          "A": "O(log n)",
+          "B": "O(n²)",
+          "C": "O(n log n)",
+          "D": "O(n)"
         },
         "answers": [
           "D"
         ],
         "multiple": false,
         "score": 3,
-        "explanation": "参考答案为 D（$O(n)$）。请回到题目条件，按定义、执行顺序或复杂度逐项核对。"
+        "explanation": "参考答案为 D（O(n)）。\n\n**解析：**\n\n严格单调递增时，a[i] < a[i-1] 永远不成立，所以 ans=i。while 循环条件 `a[i] >= a[ans+1]` 即 `a[i] >= a[i+1]` 也不成立，所以 while 循环不执行。总时间复杂度为 O(n)。"
       },
       {
         "id": "2019-reading-1-6",
         "number": 6,
-        "text": "第 6 小题",
+        "text": "最坏情况下，此程序的时间复杂度是（）。",
         "options": {
-          "A": "$O(n^2)$",
-          "B": "$O(\\log n)$",
-          "C": "$O(n)$",
-          "D": "$O(n\\log n)$"
+          "A": "O(n²)",
+          "B": "O(log n)",
+          "C": "O(n)",
+          "D": "O(n log n)"
         },
         "answers": [
           "A"
         ],
         "multiple": false,
         "score": 4,
-        "explanation": "参考答案为 A（$O(n^2)$）。请回到题目条件，按定义、执行顺序或复杂度逐项核对。"
+        "explanation": "参考答案为 A（O(n²)）。\n\n**解析：**\n\n最坏情况是数组严格单调递减，如 a = [n, n-1, ..., 2, 1]。\n\n此时每次循环 ans 都会从 i 推进到 n，while 循环执行 n-i 次。\n\n总时间 = Σ(i=1 to n) (n-i) = n(n-1)/2 = O(n²)。"
       }
     ],
     "sourceUrl": "https://ti.luogu.com.cn/problemset/1031?submission=1544650"
@@ -1494,13 +1494,13 @@ export const cspSProgramProblems = [
     "type": "reading",
     "number": 2,
     "title": "阅读程序第 2 题",
-    "description": "2.\n```\n#include <iostream>\nusing namespace std;\n\nconst int maxn = 1000;\nint n;\nint fa[maxn], cnt[maxn];\n\nint getRoot(int v) {\n    if (fa[v] == v) return v;\n    return getRoot(fa[v]);\n}\n\nint main() {\n    cin >> n;\n    for (int i = 0; i < n; ++i) {\n        fa[i] = i;\n        cnt[i] = 1;\n    }\n    int ans = 0;\n    for (int i = 0; i < n - 1; ++i) {\n        int a, b, x, y;\n        cin >> a >> b;\n        x = getRoot(a);\n        y = getRoot(b);\n        ans += cnt[x] * cnt[y];\n        fa[x] = y;\n        cnt[y] += cnt[x];\n    }\n    cout << ans << endl;\n    return 0;\n}\n```\n- 判断题\n1)\t（1 分）输入的 $a$ 和 $b$ 值应在 $[0, n-1]$的范围内。（）\n2)\t（1 分）第 16 行改成 `fa[i] = 0;`，不影响程序运行结果。（）\n3)\t若输入的 $a$ 和 $b$ 值均在 $[0, n-1]$ 的范围内，则对于任意 $0\\leq i<n$ 都有 $0 \\leq fa[i] <n$ （）\n4)\t若输入的 $a$ 和 $b$ 值均在 $[0, n-1]$ 的范围内，则对于任意 $0\\leq i<n$ 都有 $1 \\leq cnt[i]\\leq n$ （）\n\n- 选择题\n5)\t当 $n$ 等于50时，若 $a,b$ 的值都在 $[0,49]$ 的范围内，且在第 $25$ 行时 $x$ 总是不等于 $y$，那么输出为（）。\n6)\t此程序的时间复杂度是（）。",
-    "statement": "2.\n```\n#include <iostream>\nusing namespace std;\n\nconst int maxn = 1000;\nint n;\nint fa[maxn], cnt[maxn];\n\nint getRoot(int v) {\n    if (fa[v] == v) return v;\n    return getRoot(fa[v]);\n}\n\nint main() {\n    cin >> n;\n    for (int i = 0; i < n; ++i) {\n        fa[i] = i;\n        cnt[i] = 1;\n    }\n    int ans = 0;\n    for (int i = 0; i < n - 1; ++i) {\n        int a, b, x, y;\n        cin >> a >> b;\n        x = getRoot(a);\n        y = getRoot(b);\n        ans += cnt[x] * cnt[y];\n        fa[x] = y;\n        cnt[y] += cnt[x];\n    }\n    cout << ans << endl;\n    return 0;\n}\n```\n- 判断题\n1)\t（1 分）输入的 $a$ 和 $b$ 值应在 $[0, n-1]$的范围内。（）\n2)\t（1 分）第 16 行改成 `fa[i] = 0;`，不影响程序运行结果。（）\n3)\t若输入的 $a$ 和 $b$ 值均在 $[0, n-1]$ 的范围内，则对于任意 $0\\leq i<n$ 都有 $0 \\leq fa[i] <n$ （）\n4)\t若输入的 $a$ 和 $b$ 值均在 $[0, n-1]$ 的范围内，则对于任意 $0\\leq i<n$ 都有 $1 \\leq cnt[i]\\leq n$ （）\n\n- 选择题\n5)\t当 $n$ 等于50时，若 $a,b$ 的值都在 $[0,49]$ 的范围内，且在第 $25$ 行时 $x$ 总是不等于 $y$，那么输出为（）。\n6)\t此程序的时间复杂度是（）。",
+    "description": "2.\n```cpp\n01 #include <iostream>\n02 using namespace std;\n03 \n04 const int maxn = 1000;\n05 int n;\n06 int fa[maxn], cnt[maxn];\n07 \n08 int getRoot(int v) {\n09     if (fa[v] == v) return v;\n10     return getRoot(fa[v]);\n11 }\n12 \n13 int main() {\n14     cin >> n;\n15     for (int i = 0; i < n; ++i) {\n16         fa[i] = i;\n17         cnt[i] = 1;\n18     }\n19     int ans = 0;\n20     for (int i = 0; i < n - 1; ++i) {\n21         int a, b, x, y;\n22         cin >> a >> b;\n23         x = getRoot(a);\n24         y = getRoot(b);\n25         ans += cnt[x] * cnt[y];\n26         fa[x] = y;\n27         cnt[y] += cnt[x];\n28     }\n29     cout << ans << endl;\n30     return 0;\n31 }\n```",
+    "statement": "2.\n```cpp\n01 #include <iostream>\n02 using namespace std;\n03 \n04 const int maxn = 1000;\n05 int n;\n06 int fa[maxn], cnt[maxn];\n07 \n08 int getRoot(int v) {\n09     if (fa[v] == v) return v;\n10     return getRoot(fa[v]);\n11 }\n12 \n13 int main() {\n14     cin >> n;\n15     for (int i = 0; i < n; ++i) {\n16         fa[i] = i;\n17         cnt[i] = 1;\n18     }\n19     int ans = 0;\n20     for (int i = 0; i < n - 1; ++i) {\n21         int a, b, x, y;\n22         cin >> a >> b;\n23         x = getRoot(a);\n24         y = getRoot(b);\n25         ans += cnt[x] * cnt[y];\n26         fa[x] = y;\n27         cnt[y] += cnt[x];\n28     }\n29     cout << ans << endl;\n30     return 0;\n31 }\n```",
     "questions": [
       {
         "id": "2019-reading-2-1",
         "number": 1,
-        "text": "第 1 小题",
+        "text": "输入的 a 和 b 值应在 [0, n-1] 的范围内。（）",
         "options": {
           "A": "正确",
           "B": "错误"
@@ -1510,12 +1510,12 @@ export const cspSProgramProblems = [
         ],
         "multiple": false,
         "score": 1,
-        "explanation": "参考答案为 A（正确）。请回到题目条件，按定义、执行顺序或复杂度逐项核对。"
+        "explanation": "参考答案为 A（正确）。\n\n**解析：**\n\n程序中 fa[i] 的范围是 [0, n-1]，getRoot() 函数递归查找根节点。如果 a 或 b 超出 [0, n-1] 范围，会导致数组越界访问，程序行为未定义。"
       },
       {
         "id": "2019-reading-2-2",
         "number": 2,
-        "text": "第 2 小题",
+        "text": "第 16 行改成 `fa[i] = 0;`，不影响程序运行结果。（）",
         "options": {
           "A": "正确",
           "B": "错误"
@@ -1525,12 +1525,12 @@ export const cspSProgramProblems = [
         ],
         "multiple": false,
         "score": 1,
-        "explanation": "参考答案为 B（错误）。请回到题目条件，按定义、执行顺序或复杂度逐项核对。"
+        "explanation": "参考答案为 B（错误）。\n\n**解析：**\n\n原代码 fa[i] = i 表示每个节点的父节点是自己（独立的连通分量）。如果改成 fa[i] = 0，所有节点的父节点都是 0，getRoot() 函数会直接返回 0，无法正确维护并查集的合并操作，程序结果会改变。"
       },
       {
         "id": "2019-reading-2-3",
         "number": 3,
-        "text": "第 3 小题",
+        "text": "若输入的 a 和 b 值均在 [0, n-1] 的范围内，则对于任意 0 ≤ i < n 都有 0 ≤ fa[i] < n。（）",
         "options": {
           "A": "正确",
           "B": "错误"
@@ -1540,12 +1540,12 @@ export const cspSProgramProblems = [
         ],
         "multiple": false,
         "score": 1.5,
-        "explanation": "参考答案为 A（正确）。请回到题目条件，按定义、执行顺序或复杂度逐项核对。"
+        "explanation": "参考答案为 A（正确）。\n\n**解析：**\n\n初始时 fa[i] = i，满足 0 ≤ fa[i] < n。合并操作 fa[x] = y 中，x 和 y 都是 [0, n-1] 范围内的值，所以 fa[i] 始终保持在 [0, n-1] 范围内。"
       },
       {
         "id": "2019-reading-2-4",
         "number": 4,
-        "text": "第 4 小题",
+        "text": "若输入的 a 和 b 值均在 [0, n-1] 的范围内，则对于任意 0 ≤ i < n 都有 1 ≤ cnt[i] ≤ n。（）",
         "options": {
           "A": "正确",
           "B": "错误"
@@ -1555,41 +1555,41 @@ export const cspSProgramProblems = [
         ],
         "multiple": false,
         "score": 1.5,
-        "explanation": "参考答案为 B（错误）。请回到题目条件，按定义、执行顺序或复杂度逐项核对。"
+        "explanation": "参考答案为 B（错误）。\n\n**解析：**\n\ncnt[i] 记录的是以 i 为根的连通分量的大小。初始时 cnt[i] = 1。合并操作 cnt[y] += cnt[x] 后，只有根节点的 cnt 值会增大，非根节点的 cnt 值不会更新。所以非根节点的 cnt 值可能仍然是 1，而根节点的 cnt 值可能达到 n。题目说「对于任意 i」，这是错误的，因为非根节点的 cnt 值不一定是当前连通分量的大小。"
       },
       {
         "id": "2019-reading-2-5",
         "number": 5,
-        "text": "第 5 小题",
+        "text": "当 n 等于 50 时，若 a, b 的值都在 [0, 49] 的范围内，且在第 25 行时 x 总是不等于 y，那么输出为（）。",
         "options": {
-          "A": "$1276$",
-          "B": "$1176$",
-          "C": "$1225$",
-          "D": "$1250$"
+          "A": "1276",
+          "B": "1176",
+          "C": "1225",
+          "D": "1250"
         },
         "answers": [
           "C"
         ],
         "multiple": false,
         "score": 4,
-        "explanation": "参考答案为 C（$1225$）。请回到题目条件，按定义、执行顺序或复杂度逐项核对。"
+        "explanation": "参考答案为 C（1225）。\n\n**解析：**\n\nx ≠ y 意味着每次合并两个不同的连通分量。\n\nans = Σ cnt[x] * cnt[y]，其中 cnt[x] 和 cnt[y] 是两个连通分量的大小。\n\n当 n=50 时，无论合并顺序如何，最终 ans = C(50,2) = 50×49/2 = 1225。\n\n这是因为每对节点 (i,j) 恰好在某次合并时被计入 ans 一次。"
       },
       {
         "id": "2019-reading-2-6",
         "number": 6,
-        "text": "第 6 小题",
+        "text": "此程序的时间复杂度是（）。",
         "options": {
-          "A": "$O(n)$",
-          "B": "$O(\\log n)$",
-          "C": "$O(n^2)$",
-          "D": "$O(n\\log n)$"
+          "A": "O(n)",
+          "B": "O(log n)",
+          "C": "O(n²)",
+          "D": "O(n log n)"
         },
         "answers": [
           "C"
         ],
         "multiple": false,
         "score": 4,
-        "explanation": "参考答案为 C（$O(n^2)$）。请回到题目条件，按定义、执行顺序或复杂度逐项核对。"
+        "explanation": "参考答案为 C（O(n²)）。\n\n**解析：**\n\ngetRoot() 函数在最坏情况下（链状结构）需要 O(n) 时间。\n\n主循环执行 n-1 次，每次调用两次 getRoot()，所以最坏时间复杂度为 O(n²)。\n\n注意：如果使用路径压缩优化，时间复杂度可以降低到 O(n α(n))，其中 α 是反阿克曼函数。但本题代码没有路径压缩。"
       }
     ],
     "sourceUrl": "https://ti.luogu.com.cn/problemset/1031?submission=1544650"
@@ -1600,102 +1600,68 @@ export const cspSProgramProblems = [
     "type": "reading",
     "number": 3,
     "title": "阅读程序第 3 题",
-    "description": "3.\n\n$t$ 是 $s$ 的子序列的意思是：从 $s$ 中删去若干个字符，可以得到 $t$；特别的，如果 $s=t$，那么 $t$ 也是 $s$ 的子序列；空串是任何串的子序列。例如：$\\texttt{acd}$ 是 $\\texttt{abcde}$ 的子序列，$\\texttt{acd}$ 是 $\\texttt{acd}$ 的子序列，但 $\\texttt{adc}$ 不是 $\\texttt{abcde}$ 的子序列。\n\n$s[x..y]$ 表示 $s[x] \\cdots s[y]$ 共 $y-x+l$ 个字符构成的字符串，若 $x>y$ 则 $s[x..y]$ 是空串。$t[x..y]$ 同理。\n```\n#include <iostream>\n#include <string>\nusing namespace std;\nconst int max1 = 202;\nstring s, t;\nint pre[max1], suf[max1];\n\nint main() {\n    cin >> s >> t;\n    int slen = s.length(), tlen = t.length();\n\n    for (int i = 0, j = 0; i < slen; ++i) {\n        if (j < tlen && s[i] == t[j]) ++j;\n        pre[i] = j; // t[0..j-1] 是 s[0..i] 的子序列\n    }\n\n    for (int  i = slen - 1 , j = tlen - 1; i >= 0; --i) {\n        if(j >= 0 && s[i] == t [j]) --j;\n        suf[i]= j; // t[j+1..tlen-1] 是 s[i..slen-1] 的子序列\n    }\n\n    suf[slen] = tlen -1;\n    int ans = 0;\n    for (int i = 0, j = 0, tmp = 0; i <= slen; ++i){\n        while(j <= slen && tmp >= suf[j] + 1) ++j;\n        ans = max(ans, j - i - 1);\n        tmp = pre[i];\n    }\n    cout << ans << endl;\n    return 0;\n}\n```\n提示：\n\n- $t[0\\dots pre[i]-1]$ 是 $s[0\\dots i]$ 的子序列；\n- $t[suf[i]+1\\dots tlen-1]$ 是 $ s[i\\dots slen-1]$ 的子序列。\n\n- 判断题\n1)\t（1分）程序输出时，`suf` 数组满足：对任意 $0 \\leq i < slen, suf[i] \\leq suf[i + 1]$。 （）\n2)\t（2分）当 $t$ 是 $s$ 的子序列时，输出一定不为 $0$。（）\n3)\t（2分）程序运行到第 $23$ 行时，$j - i - 1$ 一定不小于 $0$。（）\n4)\t（2分）当 $t$ 是 $s$ 的子序列时，`pre` 数组和 `suf` 数组满足：对任意 $0 \\leq i < slen, pre[i] > suf[i + 1] + 1$。\t（）\n\n- 选择题\n5)\t若 `tlen=10`，输出为 $0$，则 $slen$ 最小为（）。\n6)\t若 `tlen=10`，输出为 $2$，则 $slen$ 最小为（）。",
-    "statement": "3.\n\n$t$ 是 $s$ 的子序列的意思是：从 $s$ 中删去若干个字符，可以得到 $t$；特别的，如果 $s=t$，那么 $t$ 也是 $s$ 的子序列；空串是任何串的子序列。例如：$\\texttt{acd}$ 是 $\\texttt{abcde}$ 的子序列，$\\texttt{acd}$ 是 $\\texttt{acd}$ 的子序列，但 $\\texttt{adc}$ 不是 $\\texttt{abcde}$ 的子序列。\n\n$s[x..y]$ 表示 $s[x] \\cdots s[y]$ 共 $y-x+l$ 个字符构成的字符串，若 $x>y$ 则 $s[x..y]$ 是空串。$t[x..y]$ 同理。\n```\n#include <iostream>\n#include <string>\nusing namespace std;\nconst int max1 = 202;\nstring s, t;\nint pre[max1], suf[max1];\n\nint main() {\n    cin >> s >> t;\n    int slen = s.length(), tlen = t.length();\n\n    for (int i = 0, j = 0; i < slen; ++i) {\n        if (j < tlen && s[i] == t[j]) ++j;\n        pre[i] = j; // t[0..j-1] 是 s[0..i] 的子序列\n    }\n\n    for (int  i = slen - 1 , j = tlen - 1; i >= 0; --i) {\n        if(j >= 0 && s[i] == t [j]) --j;\n        suf[i]= j; // t[j+1..tlen-1] 是 s[i..slen-1] 的子序列\n    }\n\n    suf[slen] = tlen -1;\n    int ans = 0;\n    for (int i = 0, j = 0, tmp = 0; i <= slen; ++i){\n        while(j <= slen && tmp >= suf[j] + 1) ++j;\n        ans = max(ans, j - i - 1);\n        tmp = pre[i];\n    }\n    cout << ans << endl;\n    return 0;\n}\n```\n提示：\n\n- $t[0\\dots pre[i]-1]$ 是 $s[0\\dots i]$ 的子序列；\n- $t[suf[i]+1\\dots tlen-1]$ 是 $ s[i\\dots slen-1]$ 的子序列。\n\n- 判断题\n1)\t（1分）程序输出时，`suf` 数组满足：对任意 $0 \\leq i < slen, suf[i] \\leq suf[i + 1]$。 （）\n2)\t（2分）当 $t$ 是 $s$ 的子序列时，输出一定不为 $0$。（）\n3)\t（2分）程序运行到第 $23$ 行时，$j - i - 1$ 一定不小于 $0$。（）\n4)\t（2分）当 $t$ 是 $s$ 的子序列时，`pre` 数组和 `suf` 数组满足：对任意 $0 \\leq i < slen, pre[i] > suf[i + 1] + 1$。\t（）\n\n- 选择题\n5)\t若 `tlen=10`，输出为 $0$，则 $slen$ 最小为（）。\n6)\t若 `tlen=10`，输出为 $2$，则 $slen$ 最小为（）。",
+    "description": "3.\n\nt 是 s 的子序列的意思是：从 s 中删去若干个字符，可以得到 t；特别的，如果 s=t，那么 t 也是 s 的子序列；空串是任何串的子序列。例如：acd 是 abcde 的子序列，acd 是 acd 的子序列，但 adc 不是 abcde 的子序列。\n\ns[x..y] 表示 s[x]…s[y] 共 y-x+1 个字符构成的字符串，若 x>y 则 s[x..y] 是空串。t[x..y] 同理。\n\n```cpp\n01 #include <iostream>\n02 #include <string>\n03 using namespace std;\n04 const int max1 = 202;\n05 string s, t;\n06 int pre[max1], suf[max1];\n\n07 \n08 int main() {\n09     cin >> s >> t;\n10     int slen = s.length(), tlen = t.length();\n11 \n12     for (int i = 0, j = 0; i < slen; ++i) {\n13         if (j < tlen && s[i] == t[j]) ++j;\n14         pre[i] = j;\n15     }\n16 \n17     for (int i = slen - 1, j = tlen - 1; i >= 0; --i) {\n18         if (j >= 0 && s[i] == t[j]) --j;\n19         suf[i] = j;\n20     }\n21 \n22     suf[slen] = tlen - 1;\n23     int ans = 0;\n24     for (int i = 0, j = 0, tmp = 0; i <= slen; ++i) {\n25         while (j <= slen && tmp >= suf[j] + 1) ++j;\n26         ans = max(ans, j - i - 1);\n27         tmp = pre[i];\n28     }\n29     cout << ans << endl;\n30     return 0;\n31 }\n```\n\n提示：\n- t[0…pre[i]-1] 是 s[0…i] 的子序列；\n- t[suf[i]+1…tlen-1] 是 s[i…slen-1] 的子序列。",
+    "statement": "3.\n\nt 是 s 的子序列的意思是：从 s 中删去若干个字符，可以得到 t；特别的，如果 s=t，那么 t 也是 s 的子序列；空串是任何串的子序列。例如：acd 是 abcde 的子序列，acd 是 acd 的子序列，但 adc 不是 abcde 的子序列。\n\ns[x..y] 表示 s[x]…s[y] 共 y-x+1 个字符构成的字符串，若 x>y 则 s[x..y] 是空串。t[x..y] 同理。\n\n```cpp\n01 #include <iostream>\n02 #include <string>\n03 using namespace std;\n04 const int max1 = 202;\n05 string s, t;\n06 int pre[max1], suf[max1];\n07 \n08 int main() {\n09     cin >> s >> t;\n10     int slen = s.length(), tlen = t.length();\n11 \n12     for (int i = 0, j = 0; i < slen; ++i) {\n13         if (j < tlen && s[i] == t[j]) ++j;\n14         pre[i] = j;\n15     }\n16 \n17     for (int i = slen - 1, j = tlen - 1; i >= 0; --i) {\n18         if (j >= 0 && s[i] == t[j]) --j;\n19         suf[i] = j;\n20     }\n21 \n22     suf[slen] = tlen - 1;\n23     int ans = 0;\n24     for (int i = 0, j = 0, tmp = 0; i <= slen; ++i) {\n25         while (j <= slen && tmp >= suf[j] + 1) ++j;\n26         ans = max(ans, j - i - 1);\n27         tmp = pre[i];\n28     }\n29     cout << ans << endl;\n30     return 0;\n31 }\n```\n\n提示：\n- t[0…pre[i]-1] 是 s[0…i] 的子序列；\n- t[suf[i]+1…tlen-1] 是 s[i…slen-1] 的子序列。",
     "questions": [
       {
         "id": "2019-reading-3-1",
         "number": 1,
-        "text": "第 1 小题",
-        "options": {
-          "A": "正确",
-          "B": "错误"
-        },
-        "answers": [
-          "A"
-        ],
+        "text": "程序输出时，suf 数组满足：对任意 0 ≤ i < slen，suf[i] ≤ suf[i+1]。（）",
+        "options": { "A": "正确", "B": "错误" },
+        "answers": ["A"],
         "multiple": false,
         "score": 1,
-        "explanation": "参考答案为 A（正确）。请回到题目条件，按定义、执行顺序或复杂度逐项核对。"
+        "explanation": "参考答案为 A（正确）。\\n\\n**解析：**\\n\\n第 17-19 行从右向左遍历 s，当 s[i]==t[j] 时 j--。由于 j 只会减小，suf[i] = j 的值也是非递增的。但题目说的是 suf[i] ≤ suf[i+1]，即从左到右非递减，这是正确的。"
       },
       {
         "id": "2019-reading-3-2",
         "number": 2,
-        "text": "第 2 小题",
-        "options": {
-          "A": "正确",
-          "B": "错误"
-        },
-        "answers": [
-          "B"
-        ],
+        "text": "当 t 是 s 的子序列时，输出一定不为 0。（）",
+        "options": { "A": "正确", "B": "错误" },
+        "answers": ["B"],
         "multiple": false,
         "score": 2,
-        "explanation": "参考答案为 B（错误）。请回到题目条件，按定义、执行顺序或复杂度逐项核对。"
+        "explanation": "参考答案为 B（错误）。\\n\\n**解析：**\\n\\n当 tlen=1 时，t 只有一个字符。如果 t 是 s 的子序列，那么删除 s 中一个字符后 t 仍是 s 的子序列，输出为 0。"
       },
       {
         "id": "2019-reading-3-3",
         "number": 3,
-        "text": "第 3 小题",
-        "options": {
-          "A": "正确",
-          "B": "错误"
-        },
-        "answers": [
-          "B"
-        ],
+        "text": "程序运行到第 26 行时，j - i - 1 一定不小于 0。（）",
+        "options": { "A": "正确", "B": "错误" },
+        "answers": ["B"],
         "multiple": false,
         "score": 2,
-        "explanation": "参考答案为 B（错误）。请回到题目条件，按定义、执行顺序或复杂度逐项核对。"
+        "explanation": "参考答案为 B（错误）。\\n\\n**解析：**\\n\\n当 i=0, j=0 时，j-i-1 = -1 < 0。所以 j-i-1 不一定不小于 0。"
       },
       {
         "id": "2019-reading-3-4",
         "number": 4,
-        "text": "第 4 小题",
-        "options": {
-          "A": "正确",
-          "B": "错误"
-        },
-        "answers": [
-          "B"
-        ],
+        "text": "当 t 是 s 的子序列时，pre 数组和 suf 数组满足：对任意 0 ≤ i < slen，pre[i] > suf[i+1] + 1。（）",
+        "options": { "A": "正确", "B": "错误" },
+        "answers": ["B"],
         "multiple": false,
         "score": 2,
-        "explanation": "参考答案为 B（错误）。请回到题目条件，按定义、执行顺序或复杂度逐项核对。"
+        "explanation": "参考答案为 B（错误）。\\n\\n**解析：**\\n\\n当 t 是 s 的子序列时，pre[i] + (tlen - suf[i+1] - 1) = tlen，即 pre[i] = suf[i+1] + 1，不是大于关系。"
       },
       {
         "id": "2019-reading-3-5",
         "number": 5,
-        "text": "第 5 小题",
-        "options": {
-          "A": "10",
-          "B": "12",
-          "C": "0",
-          "D": "1"
-        },
-        "answers": [
-          "D"
-        ],
+        "text": "若 tlen=10，输出为 0，则 slen 最小为（）。",
+        "options": { "A": "10", "B": "12", "C": "0", "D": "1" },
+        "answers": ["D"],
         "multiple": false,
         "score": 4,
-        "explanation": "参考答案为 D（1）。请回到题目条件，按定义、执行顺序或复杂度逐项核对。"
+        "explanation": "参考答案为 D（1）。\\n\\n**解析：**\\n\\n输出为 0 意味着删除任意一个字符后，t 都不是 s 的子序列。当 slen=1 时，s 只有一个字符，删除后为空串，t（长度为10）不是空串的子序列，输出为 0。"
       },
       {
         "id": "2019-reading-3-6",
         "number": 6,
-        "text": "第 6 小题",
-        "options": {
-          "A": "0",
-          "B": "10",
-          "C": "12",
-          "D": "1"
-        },
-        "answers": [
-          "C"
-        ],
+        "text": "若 tlen=10，输出为 2，则 slen 最小为（）。",
+        "options": { "A": "0", "B": "10", "C": "12", "D": "1" },
+        "answers": ["C"],
         "multiple": false,
         "score": 4,
-        "explanation": "参考答案为 C（12）。请回到题目条件，按定义、执行顺序或复杂度逐项核对。"
+        "explanation": "参考答案为 C（12）。\\n\\n**解析：**\\n\\n输出为 2 意味着最多可以删除 2 个字符使得 t 仍是 s 的子序列。要让删除 2 个字符后 t 仍是子序列，s 至少需要比 t 多 2 个字符，即 slen ≥ tlen + 2 = 12。"
       }
     ],
     "sourceUrl": "https://ti.luogu.com.cn/problemset/1031?submission=1544650"
@@ -1706,13 +1672,13 @@ export const cspSProgramProblems = [
     "type": "completion",
     "number": 1,
     "title": "完善程序第 1 题",
-    "description": "三、完善程序（单选题，每小题 $3$ 分，共计 $30$ 分）\n\n1. （匠人的自我修养）\n\n一个匠人决定要学习 $n$ 个新技术。要想成功学习一个新技术，他不仅要拥有一定的经验值，而且还必须要先学会若干个相关的技术。学会一个新技术之后，他的经验值会增加一个对应的值。给定每个技术的学习条件和习得后获得的经验值，给定他已有的经验值，请问他最多能学会多少个新技术。\n\n输入第一行有两个数，分别为新技术个数 $n(l\\leq n\\leq 10^3)$，以及己有经验值（$\\le10^7$）。\n\n接下来 $n$ 行。第 $i$ 行的两个正整数，分别表示学习第 $i$ 个技术所需的最低经验值（$\\le10^7$），以及学会第 $i$ 个技术后可获得的经验值（$\\leq 10^7$）。\n\n接下来 $n$ 行。第 $i$ 行的第一个数 $m_i$（$0\\le m_i<n$），表示第 $i$ 个技术的相关技术数量。紧跟着 $m$ 个两两不同的数，表示第 $i$ 个技术的相关技术编号。\n\n输出最多能学会的新技术个数。\n\n下面的程序以 $O(n^2)$ 的时间复杂度完成这个问题，试补全程序。\n\n```\n#include<cstdio>\nusing namespace std;\nconst int maxn = 1001;\n\nint n;\nint cnt[maxn];\nint child [maxn][maxn];\nint unlock[maxn];\nint threshold[maxn], bonus[maxn];\nint points;\nbool find(){\n    int target = -1;\n    for (int i = 1; i <= n; ++i)\n        if(① && ②){\n            target = i;\n            break;\n    }\n    if(target == -1)\n        return false;\n    unlock[target] = -1;\n    ③\n    for (int i = 0; i < cnt[target]; ++i)\n        ④\n    return true;\n}\n\nint main(){\n    scanf(\"%d%d\", &n, &points);\n    for (int i = 1; i <= n; ++i){\n        cnt[i] = 0;\n        scanf(\"%d%d\", &threshold[i], &bonus[i]);\n    }\n    for (int i = 1; i <= n; ++i){\n        int m;\n        scanf(\"%d\", &m);\n        ⑤\n        for (int j = 0; j < m; ++j){\n            int fa;\n            scanf(\"%d\", &fa);\n            child[fa][cnt[fa]] = i;\n            ++cnt[fa];\n        }\n    }\n\n    int ans = 0;\n    while(find())\n        ++ans;\n\n    printf(\"%d\\n\", ans);\n    return 0;\n}\n```\n\n1)\t①处应填（）\n\n2)\t②处应填（）\n\n3)\t③处应填（）\n\n4)\t④处应填（）\n\n5)\t⑤处应填（）",
-    "statement": "三、完善程序（单选题，每小题 $3$ 分，共计 $30$ 分）\n\n1. （匠人的自我修养）\n\n一个匠人决定要学习 $n$ 个新技术。要想成功学习一个新技术，他不仅要拥有一定的经验值，而且还必须要先学会若干个相关的技术。学会一个新技术之后，他的经验值会增加一个对应的值。给定每个技术的学习条件和习得后获得的经验值，给定他已有的经验值，请问他最多能学会多少个新技术。\n\n输入第一行有两个数，分别为新技术个数 $n(l\\leq n\\leq 10^3)$，以及己有经验值（$\\le10^7$）。\n\n接下来 $n$ 行。第 $i$ 行的两个正整数，分别表示学习第 $i$ 个技术所需的最低经验值（$\\le10^7$），以及学会第 $i$ 个技术后可获得的经验值（$\\leq 10^7$）。\n\n接下来 $n$ 行。第 $i$ 行的第一个数 $m_i$（$0\\le m_i<n$），表示第 $i$ 个技术的相关技术数量。紧跟着 $m$ 个两两不同的数，表示第 $i$ 个技术的相关技术编号。\n\n输出最多能学会的新技术个数。\n\n下面的程序以 $O(n^2)$ 的时间复杂度完成这个问题，试补全程序。\n\n```\n#include<cstdio>\nusing namespace std;\nconst int maxn = 1001;\n\nint n;\nint cnt[maxn];\nint child [maxn][maxn];\nint unlock[maxn];\nint threshold[maxn], bonus[maxn];\nint points;\nbool find(){\n    int target = -1;\n    for (int i = 1; i <= n; ++i)\n        if(① && ②){\n            target = i;\n            break;\n    }\n    if(target == -1)\n        return false;\n    unlock[target] = -1;\n    ③\n    for (int i = 0; i < cnt[target]; ++i)\n        ④\n    return true;\n}\n\nint main(){\n    scanf(\"%d%d\", &n, &points);\n    for (int i = 1; i <= n; ++i){\n        cnt[i] = 0;\n        scanf(\"%d%d\", &threshold[i], &bonus[i]);\n    }\n    for (int i = 1; i <= n; ++i){\n        int m;\n        scanf(\"%d\", &m);\n        ⑤\n        for (int j = 0; j < m; ++j){\n            int fa;\n            scanf(\"%d\", &fa);\n            child[fa][cnt[fa]] = i;\n            ++cnt[fa];\n        }\n    }\n\n    int ans = 0;\n    while(find())\n        ++ans;\n\n    printf(\"%d\\n\", ans);\n    return 0;\n}\n```\n\n1)\t①处应填（）\n\n2)\t②处应填（）\n\n3)\t③处应填（）\n\n4)\t④处应填（）\n\n5)\t⑤处应填（）",
+    "description": "三、完善程序（单选题，每小题 3 分，共计 30 分）\n\n1.（匠人的自我修养）\n\n一个匠人决定要学习 n 个新技术。要想成功学习一个新技术，他不仅要拥有一定的经验值，而且还必须要先学会若干个相关的技术。学会一个新技术之后，他的经验值会增加一个对应的值。给定每个技术的学习条件和习得后获得的经验值，给定他已有的经验值，请问他最多能学会多少个新技术。\n\n输入第一行有两个数，分别为新技术个数 n（1 ≤ n ≤ 10³），以及已有经验值（≤ 10⁷）。\n\n接下来 n 行，第 i 行的两个正整数，分别表示学习第 i 个技术所需的最低经验值（≤ 10⁷），以及学会第 i 个技术后可获得的经验值（≤ 10⁴）。\n\n接下来 n 行，第 i 行的第一个数 mᵢ（0 ≤ mᵢ < n），表示第 i 个技术的相关技术数量。紧跟着 m 个两两不同的数，表示第 i 个技术的相关技术编号。\n\n输出最多能学会的新技术个数。\n\n下面的程序以 O(n²) 的时间复杂度完成这个问题，试补全程序。\n\n```cpp\n01 #include<cstdio>\n02 using namespace std;\n03 const int maxn = 1001;\n04 \n05 int n;\n06 int cnt[maxn];\n07 int child[maxn][maxn];\n08 int unlock[maxn];\n09 int threshold[maxn], bonus[maxn];\n10 int points;\n11 bool find(){\n12     int target = -1;\n13     for (int i = 1; i <= n; ++i)\n14         if(① && ②){\n15             target = i;\n16             break;\n17     }\n18     if(target == -1)\n19         return false;\n20     unlock[target] = -1;\n21     ③\n22     for (int i = 0; i < cnt[target]; ++i)\n23         ④\n24     return true;\n25 }\n26 \n27 int main(){\n28     scanf(\"%d%d\", &n, &points);\n29     for (int i = 1; i <= n; ++i){\n30         cnt[i] = 0;\n31         scanf(\"%d%d\", &threshold[i], &bonus[i]);\n32     }\n33     for (int i = 1; i <= n; ++i){\n34         int m;\n35         scanf(\"%d\", &m);\n36         ⑤\n37         for (int j = 0; j < m; ++j){\n38             int fa;\n39             scanf(\"%d\", &fa);\n40             child[fa][cnt[fa]] = i;\n41             ++cnt[fa];\n42         }\n43     }\n44 \n45     int ans = 0;\n46     while(find())\n47         ++ans;\n48 \n49     printf(\"%d\\n\", ans);\n50     return 0;\n51 }\n```",
+    "statement": "三、完善程序（单选题，每小题 3 分，共计 30 分）\n\n1.（匠人的自我修养）\n\n一个匠人决定要学习 n 个新技术。要想成功学习一个新技术，他不仅要拥有一定的经验值，而且还必须要先学会若干个相关的技术。学会一个新技术之后，他的经验值会增加一个对应的值。给定每个技术的学习条件和习得后获得的经验值，给定他已有的经验值，请问他最多能学会多少个新技术。\n\n输入第一行有两个数，分别为新技术个数 n（1 ≤ n ≤ 10³），以及已有经验值（≤ 10⁷）。\n\n接下来 n 行，第 i 行的两个正整数，分别表示学习第 i 个技术所需的最低经验值（≤ 10⁷），以及学会第 i 个技术后可获得的经验值（≤ 10⁴）。\n\n接下来 n 行，第 i 行的第一个数 mᵢ（0 ≤ mᵢ < n），表示第 i 个技术的相关技术数量。紧跟着 m 个两两不同的数，表示第 i 个技术的相关技术编号。\n\n输出最多能学会的新技术个数。\n\n下面的程序以 O(n²) 的时间复杂度完成这个问题，试补全程序。\n\n```cpp\n01 #include<cstdio>\n02 using namespace std;\n03 const int maxn = 1001;\n04 \n05 int n;\n06 int cnt[maxn];\n07 int child[maxn][maxn];\n08 int unlock[maxn];\n09 int threshold[maxn], bonus[maxn];\n10 int points;\n11 bool find(){\n12     int target = -1;\n13     for (int i = 1; i <= n; ++i)\n14         if(① && ②){\n15             target = i;\n16             break;\n17     }\n18     if(target == -1)\n19         return false;\n20     unlock[target] = -1;\n21     ③\n22     for (int i = 0; i < cnt[target]; ++i)\n23         ④\n24     return true;\n25 }\n26 \n27 int main(){\n28     scanf(\"%d%d\", &n, &points);\n29     for (int i = 1; i <= n; ++i){\n30         cnt[i] = 0;\n31         scanf(\"%d%d\", &threshold[i], &bonus[i]);\n32     }\n33     for (int i = 1; i <= n; ++i){\n34         int m;\n35         scanf(\"%d\", &m);\n36         ⑤\n37         for (int j = 0; j < m; ++j){\n38             int fa;\n39             scanf(\"%d\", &fa);\n40             child[fa][cnt[fa]] = i;\n41             ++cnt[fa];\n42         }\n43     }\n44 \n45     int ans = 0;\n46     while(find())\n47         ++ans;\n48 \n49     printf(\"%d\\n\", ans);\n50     return 0;\n51 }\n```",
     "questions": [
       {
         "id": "2019-completion-1-1",
         "number": 1,
-        "text": "第 1 小题",
+        "text": "①处应填（）",
         "options": {
           "A": "`unlock[i] <= 0`",
           "B": "`unlock[i] >= 0`",
@@ -1724,12 +1690,12 @@ export const cspSProgramProblems = [
         ],
         "multiple": false,
         "score": 3,
-        "explanation": "参考答案为 C（`unlock[i] == 0`）。请回到题目条件，按定义、执行顺序或复杂度逐项核对。"
+        "explanation": "参考答案为 C（`unlock[i] == 0`）。\n\n**解析：**\n\nunlock[i] 表示学习技术 i 还需要先学会多少个前置技术。初始时 unlock[i] = mᵢ（前置技术数量）。当 unlock[i] == 0 时，表示所有前置技术都已学会，可以学习该技术。"
       },
       {
         "id": "2019-completion-1-2",
         "number": 2,
-        "text": "第 2 小题",
+        "text": "②处应填（）",
         "options": {
           "A": "`threshold[i] > points`",
           "B": "`threshold[i] >= points`",
@@ -1741,12 +1707,12 @@ export const cspSProgramProblems = [
         ],
         "multiple": false,
         "score": 3,
-        "explanation": "参考答案为 D（`points >= threshold[i]`）。请回到题目条件，按定义、执行顺序或复杂度逐项核对。"
+        "explanation": "参考答案为 D（`points >= threshold[i]`）。\n\n**解析：**\n\nthreshold[i] 表示学习技术 i 所需的最低经验值，points 是当前经验值。只有当 points >= threshold[i] 时，才能学习该技术。"
       },
       {
         "id": "2019-completion-1-3",
         "number": 3,
-        "text": "第 3 小题",
+        "text": "③处应填（）",
         "options": {
           "A": "`target = -1`",
           "B": "`--cnt[target]`",
@@ -1758,12 +1724,12 @@ export const cspSProgramProblems = [
         ],
         "multiple": false,
         "score": 3,
-        "explanation": "参考答案为 D（`points += bonus[target]`）。请回到题目条件，按定义、执行顺序或复杂度逐项核对。"
+        "explanation": "参考答案为 D（`points += bonus[target]`）。\n\n**解析：**\n\n学习技术 target 后，经验值增加 bonus[target]。所以需要执行 points += bonus[target] 来更新经验值。"
       },
       {
         "id": "2019-completion-1-4",
         "number": 4,
-        "text": "第 4 小题",
+        "text": "④处应填（）",
         "options": {
           "A": "`cnt[child[target][i]] -= 1`",
           "B": "`cnt[child[target][i]] = 0`",
@@ -1775,12 +1741,12 @@ export const cspSProgramProblems = [
         ],
         "multiple": false,
         "score": 3,
-        "explanation": "参考答案为 C（`unlock[child[target][i]] -= 1`）。请回到题目条件，按定义、执行顺序或复杂度逐项核对。"
+        "explanation": "参考答案为 C（`unlock[child[target][i]] -= 1`）。\n\n**解析：**\n\nchild[target][i] 是 target 的后继技术。学习 target 后，其后继技术的前置条件减少 1，所以 unlock[child[target][i]] -= 1。"
       },
       {
         "id": "2019-completion-1-5",
         "number": 5,
-        "text": "第 5 小题",
+        "text": "⑤处应填（）",
         "options": {
           "A": "`unlock[i] = cnt[i]`",
           "B": "`unlock[i] = m`",
@@ -1792,7 +1758,7 @@ export const cspSProgramProblems = [
         ],
         "multiple": false,
         "score": 3,
-        "explanation": "参考答案为 B（`unlock[i] = m`）。请回到题目条件，按定义、执行顺序或复杂度逐项核对。"
+        "explanation": "参考答案为 B（`unlock[i] = m`）。\n\n**解析：**\n\n在读取技术 i 的相关技术数量 m 后，需要设置 unlock[i] = m，表示技术 i 需要先学会 m 个前置技术才能学习。"
       }
     ],
     "sourceUrl": "https://ti.luogu.com.cn/problemset/1031?submission=1544650"
@@ -1803,17 +1769,17 @@ export const cspSProgramProblems = [
     "type": "completion",
     "number": 2,
     "title": "完善程序第 2 题",
-    "description": "2. （取石子）\n\nAlice 和 Bob 两个人在玩取石子游戏。他们制定了 $n$ 条取石子的规则，第 $i$ 条规则为：如果剩余石子的个数大于等于 $a[i]$ 且大于等于 $b[i]$，那么他们可以取走 $b[i]$ 个石子。他们轮流取石子。如果轮到某个人取石子，而他无法按照任何规则取走石子，那么他就输了。一开始石子有 $m$ 个。请问先取石子的人是否有必胜的方法？\n\n输入第一行有两个正整数，分别为规则个数 $n(1<n<64)$, 以及石子个数 $m( \\le 10^7)$。\n\n接下来 $n$ 行。第 $i$ 行有两个正整数 $a[i]$ 和 $b[i]$。$(1 \\le a[i] \\le 10^7,1 \\le b[i] \\le 64)$。\n\n如果先取石子的人必胜，那么输出 $\\texttt{Win}$，否则输出 $\\texttt{Loss}$。\n\n提示：\n\n可以使用动态规划解决这个问题。由于 $b[i]$ 不超过 $64$ ,所以可以使用 $64$ 位无符号整数去压缩必要的状态。\n\nstatus 是胜负状态的二进制压缩，trans 是状态转移的二进制压缩。\n\n试补全程序。\n\n代码说明：\n\n`~` 表示二进制补码运算符，它将每个二进制位的 $0$ 变为 $1$、$1$ 变为 $0$;\n\n而 `^` 表示二进制异或运算符，它将两个参与运算的数中的每个对应的二进制位一一进行比较，若两个二进制位相同，则运算结果的对应二进制位为 $0$ ,反之为 $1$。\n\null 标识符表示它前面的数字是 unsigned long long 类型。\n\n```\n#include <cstdio>\n#include<algorithm>\nusing namespace std;\nconst int maxn = 64;\nint n, m;\nint a[maxn], b[maxn];\nunsigned long long status, trans;\nbool win;\nint main(){\n    scanf(\"%d%d\", &n, &m);\n    for (int i = 0; i < n; ++i)\n        scanf(\"%d%d\", &a[i], &b[i]);\n    for(int i = 0; i < n; ++i)\n        for(int j = i + 1; j < n; ++j)\n            if (a[i] > a[j]){\n                swap(a[i], a[j]);\n                swap(b[i], b[j]);\n            }\n    status = ①;\n    trans = 0;\n    for(int i = 1, j = 0; i <= m; ++i){\n        while (j < n && ②){\n            ③;\n            ++j;\n        }\n        win = ④;\n        ⑤;\n    }\n\n    puts(win ? \"Win\" : \"Loss\");\n\n    return 0;\n}\n```\n\n1)\t①处应填（\t)\n\n2)\t②处应填（\t)\n\n3)\t③处应填（\t)\n\n4)\t④处应填（\t)\n\n5)\t⑤处应填（\t)",
-    "statement": "2. （取石子）\n\nAlice 和 Bob 两个人在玩取石子游戏。他们制定了 $n$ 条取石子的规则，第 $i$ 条规则为：如果剩余石子的个数大于等于 $a[i]$ 且大于等于 $b[i]$，那么他们可以取走 $b[i]$ 个石子。他们轮流取石子。如果轮到某个人取石子，而他无法按照任何规则取走石子，那么他就输了。一开始石子有 $m$ 个。请问先取石子的人是否有必胜的方法？\n\n输入第一行有两个正整数，分别为规则个数 $n(1<n<64)$, 以及石子个数 $m( \\le 10^7)$。\n\n接下来 $n$ 行。第 $i$ 行有两个正整数 $a[i]$ 和 $b[i]$。$(1 \\le a[i] \\le 10^7,1 \\le b[i] \\le 64)$。\n\n如果先取石子的人必胜，那么输出 $\\texttt{Win}$，否则输出 $\\texttt{Loss}$。\n\n提示：\n\n可以使用动态规划解决这个问题。由于 $b[i]$ 不超过 $64$ ,所以可以使用 $64$ 位无符号整数去压缩必要的状态。\n\nstatus 是胜负状态的二进制压缩，trans 是状态转移的二进制压缩。\n\n试补全程序。\n\n代码说明：\n\n`~` 表示二进制补码运算符，它将每个二进制位的 $0$ 变为 $1$、$1$ 变为 $0$;\n\n而 `^` 表示二进制异或运算符，它将两个参与运算的数中的每个对应的二进制位一一进行比较，若两个二进制位相同，则运算结果的对应二进制位为 $0$ ,反之为 $1$。\n\null 标识符表示它前面的数字是 unsigned long long 类型。\n\n```\n#include <cstdio>\n#include<algorithm>\nusing namespace std;\nconst int maxn = 64;\nint n, m;\nint a[maxn], b[maxn];\nunsigned long long status, trans;\nbool win;\nint main(){\n    scanf(\"%d%d\", &n, &m);\n    for (int i = 0; i < n; ++i)\n        scanf(\"%d%d\", &a[i], &b[i]);\n    for(int i = 0; i < n; ++i)\n        for(int j = i + 1; j < n; ++j)\n            if (a[i] > a[j]){\n                swap(a[i], a[j]);\n                swap(b[i], b[j]);\n            }\n    status = ①;\n    trans = 0;\n    for(int i = 1, j = 0; i <= m; ++i){\n        while (j < n && ②){\n            ③;\n            ++j;\n        }\n        win = ④;\n        ⑤;\n    }\n\n    puts(win ? \"Win\" : \"Loss\");\n\n    return 0;\n}\n```\n\n1)\t①处应填（\t)\n\n2)\t②处应填（\t)\n\n3)\t③处应填（\t)\n\n4)\t④处应填（\t)\n\n5)\t⑤处应填（\t)",
+    "description": "2.（取石子）\n\nAlice 和 Bob 两个人在玩取石子游戏。他们制定了 n 条取石子的规则，第 i 条规则为：如果剩余石子的个数大于等于 a[i] 且大于等于 b[i]，那么他们可以取走 b[i] 个石子。他们轮流取石子。如果轮到某个人取石子，而他无法按照任何规则取走石子，那么他就输了。一开始石子有 m 个。请问先取石子的人是否有必胜的方法？\n\n输入第一行有两个正整数，分别为规则个数 n（1 < n < 64），以及石子个数 m（≤ 10⁷）。\n\n接下来 n 行，第 i 行有两个正整数 a[i] 和 b[i]（1 ≤ a[i] ≤ 10⁷，1 ≤ b[i] ≤ 64）。\n\n如果先取石子的人必胜，那么输出 Win，否则输出 Loss。\n\n提示：可以使用动态规划解决这个问题。由于 b[i] 不超过 64，所以可以使用 64 位无符号整数去压缩必要的状态。status 是胜负状态的二进制压缩，trans 是状态转移的二进制压缩。\n\n试补全程序。\n\n代码说明：~ 表示二进制补码运算符，它将每个二进制位的 0 变为 1、1 变为 0；而 ^ 表示二进制异或运算符，它将两个参与运算的数中的每个对应的二进制位一一进行比较，若两个二进制位相同，则运算结果的对应二进制位为 0，反之为 1。ull 标识符表示它前面的数字是 unsigned long long 类型。\n\n```cpp\n01 #include <cstdio>\n02 #include<algorithm>\n03 using namespace std;\n04 const int maxn = 64;\n05 int n, m;\n06 int a[maxn], b[maxn];\n07 unsigned long long status, trans;\n08 bool win;\n09 int main(){\n10     scanf(\"%d%d\", &n, &m);\n11     for (int i = 0; i < n; ++i)\n12         scanf(\"%d%d\", &a[i], &b[i]);\n13     for(int i = 0; i < n; ++i)\n14         for(int j = i + 1; j < n; ++j)\n15             if (a[i] > a[j]){\n16                 swap(a[i], a[j]);\n17                 swap(b[i], b[j]);\n18             }\n19     status = ①;\n20     trans = 0;\n21     for(int i = 1, j = 0; i <= m; ++i){\n22         while (j < n && ②){\n23             ③;\n24             ++j;\n25         }\n26         win = ④;\n27         ⑤;\n28     }\n29 \n30     puts(win ? \"Win\" : \"Loss\");\n31 \n32     return 0;\n33 }\n```",
+    "statement": "2.（取石子）\n\nAlice 和 Bob 两个人在玩取石子游戏。他们制定了 n 条取石子的规则，第 i 条规则为：如果剩余石子的个数大于等于 a[i] 且大于等于 b[i]，那么他们可以取走 b[i] 个石子。他们轮流取石子。如果轮到某个人取石子，而他无法按照任何规则取走石子，那么他就输了。一开始石子有 m 个。请问先取石子的人是否有必胜的方法？\n\n输入第一行有两个正整数，分别为规则个数 n（1 < n < 64），以及石子个数 m（≤ 10⁷）。\n\n接下来 n 行，第 i 行有两个正整数 a[i] 和 b[i]（1 ≤ a[i] ≤ 10⁷，1 ≤ b[i] ≤ 64）。\n\n如果先取石子的人必胜，那么输出 Win，否则输出 Loss。\n\n提示：可以使用动态规划解决这个问题。由于 b[i] 不超过 64，所以可以使用 64 位无符号整数去压缩必要的状态。status 是胜负状态的二进制压缩，trans 是状态转移的二进制压缩。\n\n试补全程序。\n\n代码说明：~ 表示二进制补码运算符，它将每个二进制位的 0 变为 1、1 变为 0；而 ^ 表示二进制异或运算符，它将两个参与运算的数中的每个对应的二进制位一一进行比较，若两个二进制位相同，则运算结果的对应二进制位为 0，反之为 1。ull 标识符表示它前面的数字是 unsigned long long 类型。\n\n```cpp\n01 #include <cstdio>\n02 #include<algorithm>\n03 using namespace std;\n04 const int maxn = 64;\n05 int n, m;\n06 int a[maxn], b[maxn];\n07 unsigned long long status, trans;\n08 bool win;\n09 int main(){\n10     scanf(\"%d%d\", &n, &m);\n11     for (int i = 0; i < n; ++i)\n12         scanf(\"%d%d\", &a[i], &b[i]);\n13     for(int i = 0; i < n; ++i)\n14         for(int j = i + 1; j < n; ++j)\n15             if (a[i] > a[j]){\n16                 swap(a[i], a[j]);\n17                 swap(b[i], b[j]);\n18             }\n19     status = ①;\n20     trans = 0;\n21     for(int i = 1, j = 0; i <= m; ++i){\n22         while (j < n && ②){\n23             ③;\n24             ++j;\n25         }\n26         win = ④;\n27         ⑤;\n28     }\n29 \n30     puts(win ? \"Win\" : \"Loss\");\n31 \n32     return 0;\n33 }\n```",
     "questions": [
       {
         "id": "2019-completion-2-1",
         "number": 1,
-        "text": "第 1 小题",
+        "text": "①处应填（）",
         "options": {
           "A": "`0`",
           "B": "`~0ull`",
-          "C": "`~0ull^1`",
+          "C": "`~0ull ^ 1`",
           "D": "`1`"
         },
         "answers": [
@@ -1821,48 +1787,48 @@ export const cspSProgramProblems = [
         ],
         "multiple": false,
         "score": 3,
-        "explanation": "参考答案为 C（`~0ull^1`）。请回到题目条件，按定义、执行顺序或复杂度逐项核对。"
+        "explanation": "参考答案为 C（`~0ull ^ 1`）。\n\n**解析：**\n\n~0ull 是所有位都为 1 的 64 位无符号整数。~0ull^1 表示最低位为 0，其余位为 1。初始时 status = ~0ull^1，表示 0 个石子时为必败状态（第 0 位为 0），其余状态待定。"
       },
       {
         "id": "2019-completion-2-2",
         "number": 2,
-        "text": "第 2 小题",
+        "text": "②处应填（）",
         "options": {
           "A": "`a[j] < i`",
           "B": "`a[j] == i`",
-          "C": "`a[j] !=i`",
-          "D": "`a[j]>1`"
+          "C": "`a[j] != i`",
+          "D": "`a[j] > 1`"
         },
         "answers": [
           "B"
         ],
         "multiple": false,
         "score": 3,
-        "explanation": "参考答案为 B（`a[j] == i`）。请回到题目条件，按定义、执行顺序或复杂度逐项核对。"
+        "explanation": "参考答案为 B（`a[j] == i`）。\n\n**解析：**\n\na[j] 是规则 j 的最低石子数要求。当 a[j] == i 时，表示当前石子数 i 刚好满足规则 j 的条件，需要将规则 j 的取石子数量 b[j] 加入 trans 状态转移表。"
       },
       {
         "id": "2019-completion-2-3",
         "number": 3,
-        "text": "第 3 小题",
+        "text": "③处应填（）",
         "options": {
-          "A": "`trans |=1ull << (b[j] - 1)`",
-          "B": "`status |=1ull << (b[j] - 1)`",
-          "C": "`status +=1ull << (b[j] - 1)`",
-          "D": "`trans +=1ull << (b[j] - 1)`"
+          "A": "`trans |= 1ull << (b[j] - 1)`",
+          "B": "`status |= 1ull << (b[j] - 1)`",
+          "C": "`status += 1ull << (b[j] - 1)`",
+          "D": "`trans += 1ull << (b[j] - 1)`"
         },
         "answers": [
           "A"
         ],
         "multiple": false,
         "score": 3,
-        "explanation": "参考答案为 A（`trans |=1ull << (b[j] - 1)`）。请回到题目条件，按定义、执行顺序或复杂度逐项核对。"
+        "explanation": "参考答案为 A（`trans |= 1ull << (b[j] - 1)`）。\n\n**解析：**\n\ntrans 的第 k 位表示是否可以取 k+1 个石子。当规则 j 的 b[j] 满足条件时，将 trans 的第 b[j]-1 位置为 1，表示可以取 b[j] 个石子。"
       },
       {
         "id": "2019-completion-2-4",
         "number": 4,
-        "text": "第 4 小题",
+        "text": "④处应填（）",
         "options": {
-          "A": "`~status| trans`",
+          "A": "`~status | trans`",
           "B": "`status & trans`",
           "C": "`status | trans`",
           "D": "`~status & trans`"
@@ -1872,16 +1838,16 @@ export const cspSProgramProblems = [
         ],
         "multiple": false,
         "score": 3,
-        "explanation": "参考答案为 D（`~status & trans`）。请回到题目条件，按定义、执行顺序或复杂度逐项核对。"
+        "explanation": "参考答案为 D（`~status & trans`）。\n\n**解析：**\n\n~status 表示所有必败状态的补集（即可以到达的状态）。~status & trans 表示通过当前可用的取石子规则，能否到达一个必败状态。如果结果非 0，则当前状态为必胜。"
       },
       {
         "id": "2019-completion-2-5",
         "number": 5,
-        "text": "第 5 小题",
+        "text": "⑤处应填（）",
         "options": {
-          "A": "`trans =status | trans ^ win`",
+          "A": "`trans = status | trans ^ win`",
           "B": "`status = trans >> 1 ^ win`",
-          "C": "`trans =status ^ trans | win`",
+          "C": "`trans = status ^ trans | win`",
           "D": "`status = status << 1 ^ win`"
         },
         "answers": [
@@ -1889,7 +1855,7 @@ export const cspSProgramProblems = [
         ],
         "multiple": false,
         "score": 3,
-        "explanation": "参考答案为 D（`status = status << 1 ^ win`）。请回到题目条件，按定义、执行顺序或复杂度逐项核对。"
+        "explanation": "参考答案为 D（`status = status << 1 ^ win`）。\n\n**解析：**\n\nstatus << 1 将状态左移一位（相当于石子数加 1）。^ win 表示如果当前状态是必胜，则新状态为必败（异或取反）。这实现了状态转移：将当前胜负状态推移到下一个石子数。"
       }
     ],
     "sourceUrl": "https://ti.luogu.com.cn/problemset/1031?submission=1544650"
@@ -2117,7 +2083,7 @@ export const cspSProgramProblems = [
     "number": 3,
     "title": "阅读程序第 3 题",
     "description": "```cpp\n01 #include <iostream>\n02 #include <queue>\n03 using namespace std;\n04 \n05 const int maxl = 20000000;\n06 \n07 class Map {\n08     struct item {\n09         string key; int value;\n10     } d[maxl];\n11     int cnt;\n12   public:\n13     int find(string x) {\n14         for (int i = 0; i < cnt; ++i)\n15             if (d[i].key == x)\n16                 return d[i].value;\n17         return -1;\n18     }\n19     static int end() { return -1; }\n20     void insert(string k, int v) {\n21         d[cnt].key = k; d[cnt++].value = v;\n22     }\n23 } s[2];\n24 \n25 class Queue {\n26     string q[maxl];\n27     int head, tail;\n28   public:\n29     void pop() { ++head; }\n30     string front() { return q[head + 1]; }\n31     bool empty() { return head == tail; }\n32     void push(string x) { q[++tail] = x;  }\n33 } q[2];\n34 \n35 string st0, st1;\n36 int m;\n37 \n38 string LtoR(string s, int L, int R) {\n39     string t = s;\n40     char tmp = t[L];\n41     for (int i = L; i < R; ++i)\n42         t[i] = t[i + 1];\n43     t[R] = tmp;\n44     return t;\n45 }\n46 \n47 string RtoL(string s, int L, int R) {\n48     string t = s;\n49     char tmp = t[R];\n50     for (int i = R; i > L; --i)\n51         t[i] = t[i - 1];\n52     t[L] = tmp;\n53     return t;\n54 }\n55 \n56 bool check(string st, int p, int step) {\n57     if (s[p].find(st) != s[p].end())\n58         return false;\n59     ++step;\n60     if (s[p ^ 1].find(st) == s[p].end()) {\n61         s[p].insert(st, step);\n62         q[p].push(st);\n63         return false;\n64     }\n65     cout << s[p ^ 1].find(st) + step << endl;\n66     return true;\n67 }\n68 \n69 int main() {\n70     cin >> st0 >> st1;\n71     int len = st0.length();\n72     if (len != st1.length()) {\n73         cout << -1 << endl;\n74         return 0;\n75     }\n76     if (st0 == st1) {\n77         cout << 0 << endl;\n78         return 0;\n79     }\n80     cin >> m;\n81     s[0].insert(st0, 0); s[1].insert(st1, 0);\n82     q[0].push(st0); q[1].push(st1);\n83     for (int p = 0;\n84             !(q[0].empty() && q[1].empty());\n85             p ^= 1) {\n86         string st = q[p].front(); q[p].pop();\n87         int step = s[p].find(st);\n88         if ((p == 0 &&\n89                 (check(LtoR(st, m, len - 1), p, step) ||\n90                  check(RtoL(st, 0, m), p, step)))\n91                 ||\n92                 (p == 1 &&\n93                  (check(LtoR(st, 0, m), p, step) ||\n94                   check(RtoL(st, m, len - 1), p, step))))\n95             return 0;\n96     }\n97     cout << -1 << endl;\n98     return 0;\n99 }\n\n```\n\n完成下面的判断题和单选题：",
-    "statement": "```cpp\n01 #include <iostream>\n02 #include <queue>\n03 using namespace std;\n04 \n05 const int maxl = 20000000;\n06 \n07 class Map {\n08     struct item {\n09         string key; int value;\n10     } d[maxl];\n11     int cnt;\n12   public:\n13     int find(string x) {\n14         for (int i = 0; i < cnt; ++i)\n15             if (d[i].key == x)\n16                 return d[i].value;\n17         return -1;\n18     }\n19     static int end() { return -1; }\n20     void insert(string k, int v) {\n21         d[cnt].key = k; d[cnt++].value = v;\n22     }\n23 } s[2];\n24 \n25 class Queue {\n26     string q[maxl];\n27     int head, tail;\n28   public:\n28     void pop() { ++head; }\n29     string front() { return q[head + 1]; }\n30     bool empty() { return head == tail; }\n31     void push(string x) { q[++tail] = x;  }\n32 } q[2];\n33 \n34 string st0, st1;\n35 int m;\n36 \n37 string LtoR(string s, int L, int R) {\n38     string t = s;\n39     char tmp = t[L];\n40     for (int i = L; i < R; ++i)\n41         t[i] = t[i + 1];\n42     t[R] = tmp;\n43     return t;\n44 }\n45 \n46 string RtoL(string s, int L, int R) {\n47     string t = s;\n48     char tmp = t[R];\n49     for (int i = R; i > L; --i)\n49         t[i] = t[i - 1];\n50     t[L] = tmp;\n51     return t;\n52 }\n53 \n54 bool check(string st, int p, int step) {\n55     if (s[p].find(st) != s[p].end())\n56         return false;\n57     ++step;\n58     if (s[p ^ 1].find(st) == s[p].end()) {\n59         s[p].insert(st, step);\n60         q[p].push(st);\n61         return false;\n62     }\n62     cout << s[p ^ 1].find(st) + step << endl;\n63     return true;\n64 }\n65 \n66 int main() {\n67     cin >> st0 >> st1;\n68     int len = st0.length();\n69     if (len != st1.length()) {\n70         cout << -1 << endl;\n71         return 0;\n72     }\n73     if (st0 == st1) {\n74         cout << 0 << endl;\n75         return 0;\n76     }\n77     cin >> m;\n78     s[0].insert(st0, 0); s[1].insert(st1, 0);\n79     q[0].push(st0); q[1].push(st1);\n80     for (int p = 0;\n81             !(q[0].empty() && q[1].empty());\n82             p ^= 1) {\n83         string st = q[p].front(); q[p].pop();\n84         int step = s[p].find(st);\n85         if ((p == 0 &&\n86                 (check(LtoR(st, m, len - 1), p, step) ||\n87                  check(RtoL(st, 0, m), p, step)))\n88                 ||\n89                 (p == 1 &&\n90                  (check(LtoR(st, 0, m), p, step) ||\n91                   check(RtoL(st, m, len - 1), p, step))))\n92             return 0;\n93     }\n94     cout << -1 << endl;\n95     return 0;\n96 }\n\n```\n\n完成下面的判断题和单选题：",
+    "statement": "```cpp\n01 #include <iostream>\n02 #include <queue>\n03 using namespace std;\n04 \n05 const int maxl = 20000000;\n06 \n07 class Map {\n08     struct item {\n09         string key; int value;\n10     } d[maxl];\n11     int cnt;\n12   public:\n13     int find(string x) {\n14         for (int i = 0; i < cnt; ++i)\n15             if (d[i].key == x)\n16                 return d[i].value;\n17         return -1;\n18     }\n19     static int end() { return -1; }\n20     void insert(string k, int v) {\n21         d[cnt].key = k; d[cnt++].value = v;\n22     }\n23 } s[2];\n24 \n25 class Queue {\n26     string q[maxl];\n27     int head, tail;\n28   public:\n29     void pop() { ++head; }\n30     string front() { return q[head + 1]; }\n31     bool empty() { return head == tail; }\n32     void push(string x) { q[++tail] = x;  }\n33 } q[2];\n34 \n35 string st0, st1;\n36 int m;\n37 \n38 string LtoR(string s, int L, int R) {\n39     string t = s;\n40     char tmp = t[L];\n41     for (int i = L; i < R; ++i)\n42         t[i] = t[i + 1];\n43     t[R] = tmp;\n44     return t;\n45 }\n46 \n47 string RtoL(string s, int L, int R) {\n48     string t = s;\n49     char tmp = t[R];\n50     for (int i = R; i > L; --i)\n51         t[i] = t[i - 1];\n52     t[L] = tmp;\n53     return t;\n54 }\n55 \n56 bool check(string st, int p, int step) {\n57     if (s[p].find(st) != s[p].end())\n58         return false;\n59     ++step;\n60     if (s[p ^ 1].find(st) == s[p].end()) {\n61         s[p].insert(st, step);\n62         q[p].push(st);\n63         return false;\n64     }\n65     cout << s[p ^ 1].find(st) + step << endl;\n66     return true;\n67 }\n68 \n69 int main() {\n70     cin >> st0 >> st1;\n71     int len = st0.length();\n72     if (len != st1.length()) {\n73         cout << -1 << endl;\n74         return 0;\n75     }\n76     if (st0 == st1) {\n77         cout << 0 << endl;\n78         return 0;\n79     }\n80     cin >> m;\n81     s[0].insert(st0, 0); s[1].insert(st1, 0);\n82     q[0].push(st0); q[1].push(st1);\n83     for (int p = 0;\n84             !(q[0].empty() && q[1].empty());\n85             p ^= 1) {\n86         string st = q[p].front(); q[p].pop();\n87         int step = s[p].find(st);\n88         if ((p == 0 &&\n89                 (check(LtoR(st, m, len - 1), p, step) ||\n90                  check(RtoL(st, 0, m), p, step)))\n91                 ||\n92                 (p == 1 &&\n93                  (check(LtoR(st, 0, m), p, step) ||\n94                   check(RtoL(st, m, len - 1), p, step))))\n95             return 0;\n96     }\n97     cout << -1 << endl;\n98     return 0;\n99 }\n\n```\n\n完成下面的判断题和单选题：",
     "questions": [
       {
         "id": "2020-reading-3-1",
@@ -2224,18 +2190,18 @@ export const cspSProgramProblems = [
     "type": "completion",
     "number": 1,
     "title": "完善程序第 1 题",
-    "description": "三、完善程序（单选题，每小题 $3$ 分，共计 $30$ 分）\n\n1.（分数背包）小 S 有 $n$ 块蛋糕，编号从 $1$ 到 $n$。第 $i$ 块蛋糕的价值是 $w_i$，体积是 $v_i$。他有一个大小为 $B$ 的盒子来装这些蛋糕，也就是说装入盒子的蛋糕的体积总和不能超过 $B$。他打算选择一些蛋糕装入盒子，他希望盒子里装的蛋糕的价值之和尽量大。\n\n  为了使盒子里的蛋糕价值之和更大，他可以任意切割蛋糕。具体来说，他可以选择一个 $a(0<a<1)$，并将一块价值是 $w$，体积为 $v$ 的蛋糕切割成两 块，其中一块的价值是 $a\\times w$，体积是 $a\\times v$，另一块的价值是$(1-a)\\times w$，体积是 $(1-a)\\times v$。他可以重复无限次切割操作。\n\n  现要求编程输出最大可能的价值，以分数的形式输出。\n\n  比如 $n=3,B=8$，三块蛋糕的价值分别是 $4,4,2$，体积分别是 $5,3,2$。那么最优的方案就是将体积为 $5$ 的蛋糕切成两份，一份体积是 $3$，价值是 $2.4$，另一份体积是 $2$，价值是 $1.6$，然后把体积是 $3$ 的那部分和后两块蛋糕打包进盒子。最优的价值之和是 $8.4$，故程序输出 $\\dfrac{42}{5}$。\n\n输入的数据范围为：$1\\leq n\\leq 1000$，$1\\leq B\\leq 10^5$，$1\\leq w_i,v_i\\leq 100$。\n\n  提示：将所有的蛋糕按照性价比 $\\dfrac{w_i}{v_i}$ 可从大到小排序后进行贪心选择。\n\n  试补全程序。\n\n```\n#include <cstdio>\nusing namespace std;\n\nconst int maxn = 1005;\n\nint n, B, w[maxn], v[maxn];\n\nint gcd(int u, int v) {\n    if (v == 0)\n        return u;\n    return gcd(v, u % v);\n}\n\nvoid print(int w, int v) {\n    int d = gcd(w, v);\n    w = w / d;\n    v = v / d;\n    if (v == 1)\n        printf(\"%d\\n\", w);\n    else\n        printf(\"%d/%d\\n\" w, v);\n}\nvoid swap(int &x, int &y) {\n    int t = x; x = y; y = t;\n}\n\nint main() {\n    scanf(\"%d %d\" &n, &B);\n    for (int i = 1; i <= n; i ++) {\n        scanf(\"%d %d\", &w[i], &v[i]);\n    }\n    for (int i = 1; i < n; i ++)\n        for (int j = 1; j < n; j ++)\n            if (①) {\n                swap(w[j], w[j + 1]);\n                swap(v[j], v[j + 1]);\n            }\n    int curV, curW;\n    if  (②) {\n        ③\n    } else {\n        print(B * w[1] , v[1]);\n        return 0;\n    }\n    for (int i = 2; i <= n; i ++)\n        if (curV + v[i] <= B) {\n            curV += v[i];\n            curW += w[i];\n        } else {\n            print (④);\n            return 0;\n        }\n    print(⑤);\n    return 0;\n}\n```\n\n1) ①处应填（ ）\n\n3) ②处应填（ ）\n\n\n3) ③处应填（ ）\n\n4) ④处应填（ ）\n\n5) ⑤处应填（ ）",
-    "statement": "三、完善程序（单选题，每小题 $3$ 分，共计 $30$ 分）\n\n1.（分数背包）小 S 有 $n$ 块蛋糕，编号从 $1$ 到 $n$。第 $i$ 块蛋糕的价值是 $w_i$，体积是 $v_i$。他有一个大小为 $B$ 的盒子来装这些蛋糕，也就是说装入盒子的蛋糕的体积总和不能超过 $B$。他打算选择一些蛋糕装入盒子，他希望盒子里装的蛋糕的价值之和尽量大。\n\n  为了使盒子里的蛋糕价值之和更大，他可以任意切割蛋糕。具体来说，他可以选择一个 $a(0<a<1)$，并将一块价值是 $w$，体积为 $v$ 的蛋糕切割成两 块，其中一块的价值是 $a\\times w$，体积是 $a\\times v$，另一块的价值是$(1-a)\\times w$，体积是 $(1-a)\\times v$。他可以重复无限次切割操作。\n\n  现要求编程输出最大可能的价值，以分数的形式输出。\n\n  比如 $n=3,B=8$，三块蛋糕的价值分别是 $4,4,2$，体积分别是 $5,3,2$。那么最优的方案就是将体积为 $5$ 的蛋糕切成两份，一份体积是 $3$，价值是 $2.4$，另一份体积是 $2$，价值是 $1.6$，然后把体积是 $3$ 的那部分和后两块蛋糕打包进盒子。最优的价值之和是 $8.4$，故程序输出 $\\dfrac{42}{5}$。\n\n输入的数据范围为：$1\\leq n\\leq 1000$，$1\\leq B\\leq 10^5$，$1\\leq w_i,v_i\\leq 100$。\n\n  提示：将所有的蛋糕按照性价比 $\\dfrac{w_i}{v_i}$ 可从大到小排序后进行贪心选择。\n\n  试补全程序。\n\n```\n#include <cstdio>\nusing namespace std;\n\nconst int maxn = 1005;\n\nint n, B, w[maxn], v[maxn];\n\nint gcd(int u, int v) {\n    if (v == 0)\n        return u;\n    return gcd(v, u % v);\n}\n\nvoid print(int w, int v) {\n    int d = gcd(w, v);\n    w = w / d;\n    v = v / d;\n    if (v == 1)\n        printf(\"%d\\n\", w);\n    else\n        printf(\"%d/%d\\n\" w, v);\n}\nvoid swap(int &x, int &y) {\n    int t = x; x = y; y = t;\n}\n\nint main() {\n    scanf(\"%d %d\" &n, &B);\n    for (int i = 1; i <= n; i ++) {\n        scanf(\"%d %d\", &w[i], &v[i]);\n    }\n    for (int i = 1; i < n; i ++)\n        for (int j = 1; j < n; j ++)\n            if (①) {\n                swap(w[j], w[j + 1]);\n                swap(v[j], v[j + 1]);\n            }\n    int curV, curW;\n    if  (②) {\n        ③\n    } else {\n        print(B * w[1] , v[1]);\n        return 0;\n    }\n    for (int i = 2; i <= n; i ++)\n        if (curV + v[i] <= B) {\n            curV += v[i];\n            curW += w[i];\n        } else {\n            print (④);\n            return 0;\n        }\n    print(⑤);\n    return 0;\n}\n```\n\n1) ①处应填（ ）\n\n3) ②处应填（ ）\n\n\n3) ③处应填（ ）\n\n4) ④处应填（ ）\n\n5) ⑤处应填（ ）",
+    "description": "三、完善程序（单选题，每小题 $3$ 分，共计 $30$ 分）\n\n1.（分数背包）小 S 有 $n$ 块蛋糕，编号从 $1$ 到 $n$。第 $i$ 块蛋糕的价值是 $w_i$，体积是 $v_i$。他有一个大小为 $B$ 的盒子来装这些蛋糕，也就是说装入盒子的蛋糕的体积总和不能超过 $B$。他打算选择一些蛋糕装入盒子，他希望盒子里装的蛋糕的价值之和尽量大。\n\n  为了使盒子里的蛋糕价值之和更大，他可以任意切割蛋糕。具体来说，他可以选择一个 $a(0<a<1)$，并将一块价值是 $w$，体积为 $v$ 的蛋糕切割成两 块，其中一块的价值是 $a\\times w$，体积是 $a\\times v$，另一块的价值是$(1-a)\\times w$，体积是 $(1-a)\\times v$。他可以重复无限次切割操作。\n\n  现要求编程输出最大可能的价值，以分数的形式输出。\n\n  比如 $n=3,B=8$，三块蛋糕的价值分别是 $4,4,2$，体积分别是 $5,3,2$。那么最优的方案就是将体积为 $5$ 的蛋糕切成两份，一份体积是 $3$，价值是 $2.4$，另一份体积是 $2$，价值是 $1.6$，然后把体积是 $3$ 的那部分和后两块蛋糕打包进盒子。最优的价值之和是 $8.4$，故程序输出 $\\dfrac{42}{5}$。\n\n输入的数据范围为：$1\\leq n\\leq 1000$，$1\\leq B\\leq 10^5$，$1\\leq w_i,v_i\\leq 100$。\n\n  提示：将所有的蛋糕按照性价比 $\\dfrac{w_i}{v_i}$ 可从大到小排序后进行贪心选择。\n\n  试补全程序。\n\n```cpp\n01 #include <cstdio>\n02 using namespace std;\n03 \n04 const int maxn = 1005;\n05 \n06 int n, B, w[maxn], v[maxn];\n07 \n08 int gcd(int u, int v) {\n09     if (v == 0)\n10         return u;\n11     return gcd(v, u % v);\n12 }\n13 \n14 void print(int w, int v) {\n15     int d = gcd(w, v);\n16     w = w / d;\n17     v = v / d;\n18     if (v == 1)\n19         printf(\"%d\\n\", w);\n20     else\n21         printf(\"%d/%d\\n\", w, v);\n22 }\n23 void swap(int &x, int &y) {\n24     int t = x; x = y; y = t;\n25 }\n26 \n27 int main() {\n28     scanf(\"%d %d\", &n, &B);\n29     for (int i = 1; i <= n; i ++) {\n30         scanf(\"%d %d\", &w[i], &v[i]);\n31     }\n32     for (int i = 1; i < n; i ++)\n33         for (int j = 1; j < n; j ++)\n34             if (①) {\n35                 swap(w[j], w[j + 1]);\n36                 swap(v[j], v[j + 1]);\n37             }\n38     int curV, curW;\n39     if  (②) {\n40         ③\n41     } else {\n42         print(B * w[1] , v[1]);\n43         return 0;\n44     }\n45     for (int i = 2; i <= n; i ++)\n46         if (curV + v[i] <= B) {\n47             curV += v[i];\n48             curW += w[i];\n49         } else {\n50             print (④);\n51             return 0;\n52         }\n53     print(⑤);\n54     return 0;\n55 }\n```",
+    "statement": "三、完善程序（单选题，每小题 $3$ 分，共计 $30$ 分）\n\n1.（分数背包）小 S 有 $n$ 块蛋糕，编号从 $1$ 到 $n$。第 $i$ 块蛋糕的价值是 $w_i$，体积是 $v_i$。他有一个大小为 $B$ 的盒子来装这些蛋糕，也就是说装入盒子的蛋糕的体积总和不能超过 $B$。他打算选择一些蛋糕装入盒子，他希望盒子里装的蛋糕的价值之和尽量大。\n\n  为了使盒子里的蛋糕价值之和更大，他可以任意切割蛋糕。具体来说，他可以选择一个 $a(0<a<1)$，并将一块价值是 $w$，体积为 $v$ 的蛋糕切割成两 块，其中一块的价值是 $a\\times w$，体积是 $a\\times v$，另一块的价值是$(1-a)\\times w$，体积是 $(1-a)\\times v$。他可以重复无限次切割操作。\n\n  现要求编程输出最大可能的价值，以分数的形式输出。\n\n  比如 $n=3,B=8$，三块蛋糕的价值分别是 $4,4,2$，体积分别是 $5,3,2$。那么最优的方案就是将体积为 $5$ 的蛋糕切成两份，一份体积是 $3$，价值是 $2.4$，另一份体积是 $2$，价值是 $1.6$，然后把体积是 $3$ 的那部分和后两块蛋糕打包进盒子。最优的价值之和是 $8.4$，故程序输出 $\\dfrac{42}{5}$。\n\n输入的数据范围为：$1\\leq n\\leq 1000$，$1\\leq B\\leq 10^5$，$1\\leq w_i,v_i\\leq 100$。\n\n  提示：将所有的蛋糕按照性价比 $\\dfrac{w_i}{v_i}$ 可从大到小排序后进行贪心选择。\n\n  试补全程序。\n\n```cpp\n01 #include <cstdio>\n02 using namespace std;\n03 \n04 const int maxn = 1005;\n05 \n06 int n, B, w[maxn], v[maxn];\n07 \n08 int gcd(int u, int v) {\n09     if (v == 0)\n10         return u;\n11     return gcd(v, u % v);\n12 }\n13 \n14 void print(int w, int v) {\n15     int d = gcd(w, v);\n16     w = w / d;\n17     v = v / d;\n18     if (v == 1)\n19         printf(\"%d\\n\", w);\n20     else\n21         printf(\"%d/%d\\n\", w, v);\n22 }\n23 void swap(int &x, int &y) {\n24     int t = x; x = y; y = t;\n25 }\n26 \n27 int main() {\n28     scanf(\"%d %d\", &n, &B);\n29     for (int i = 1; i <= n; i ++) {\n30         scanf(\"%d %d\", &w[i], &v[i]);\n31     }\n32     for (int i = 1; i < n; i ++)\n33         for (int j = 1; j < n; j ++)\n34             if (①) {\n35                 swap(w[j], w[j + 1]);\n36                 swap(v[j], v[j + 1]);\n37             }\n38     int curV, curW;\n39     if  (②) {\n40         ③\n41     } else {\n42         print(B * w[1] , v[1]);\n43         return 0;\n44     }\n45     for (int i = 2; i <= n; i ++)\n46         if (curV + v[i] <= B) {\n47             curV += v[i];\n48             curW += w[i];\n49         } else {\n50             print (④);\n51             return 0;\n52         }\n53     print(⑤);\n54     return 0;\n55 }\n```",
     "questions": [
       {
         "id": "2020-completion-1-1",
         "number": 1,
-        "text": "第 1 小题",
+        "text": "①处应填（ ）",
         "options": {
           "A": "`w[j] / v[j] < w[j+1] / v[j+1]`",
-          "B": "`w[j] / v[j] > w[j +1] / v[j+1]`",
-          "C": "`v[j] * w[j+1] <  v[j+1]  *  w[j]`",
-          "D": "`w[j] * v[j+1] <  w[j+1]  *  v[j]`"
+          "B": "`w[j] / v[j] > w[j+1] / v[j+1]`",
+          "C": "`v[j] * w[j+1] < v[j+1] * w[j]`",
+          "D": "`w[j] * v[j+1] < w[j+1] * v[j]`"
         },
         "answers": [
           "D"
@@ -2247,12 +2213,12 @@ export const cspSProgramProblems = [
       {
         "id": "2020-completion-1-2",
         "number": 2,
-        "text": "第 2 小题",
+        "text": "②处应填（ ）",
         "options": {
           "A": "`w[1] <= B`",
           "B": "`v[1] <= B`",
           "C": "`w[1] >= B`",
-          "D": "` v[1] >= B`"
+          "D": "`v[1] >= B`"
         },
         "answers": [
           "B"
@@ -2264,9 +2230,9 @@ export const cspSProgramProblems = [
       {
         "id": "2020-completion-1-3",
         "number": 3,
-        "text": "第 3 小题",
+        "text": "③处应填（ ）",
         "options": {
-          "A": "`print(v[1],w[1]); return 0;`",
+          "A": "`print(v[1], w[1]); return 0;`",
           "B": "`curV = 0; curW = 0;`",
           "C": "`print(w[1], v[1]); return 0;`",
           "D": "`curV = v[1]; curW = w[1];`"
@@ -2281,7 +2247,7 @@ export const cspSProgramProblems = [
       {
         "id": "2020-completion-1-4",
         "number": 4,
-        "text": "第 4 小题",
+        "text": "④处应填（ ）",
         "options": {
           "A": "`curW * v[i] + curV * w[i], v[i]`",
           "B": "`(curW - w[i]) * v[i] + (B - curV) * w[i], v[i]`",
@@ -2298,9 +2264,9 @@ export const cspSProgramProblems = [
       {
         "id": "2020-completion-1-5",
         "number": 5,
-        "text": "第 5 小题",
+        "text": "⑤处应填（ ）",
         "options": {
-          "A": "`curW,curV`",
+          "A": "`curW, curV`",
           "B": "`curW, 1`",
           "C": "`curV, curW`",
           "D": "`curV, 1`"
@@ -2321,18 +2287,18 @@ export const cspSProgramProblems = [
     "type": "completion",
     "number": 2,
     "title": "完善程序第 2 题",
-    "description": "2.（最优子序列）取 $m = 16$，给出长度为 $n$ 的整数序列 $a_1,a_2,\\dots,a_n(0 \\le a_i < 2^m)$。对于一个二进制数 $x$，定义其分值 $w(x)$ 为 $x + \\operatorname {popcnt}(x)$，其中 $\\operatorname{popcnt}(x)$ 表示 $x$ 二进制表示中 $1$ 的个数。对于一个子序列  $b_1,b_2,\\dots,b_k$，定义其子序列分值 $S$ 为 $w(b_1 \\oplus b_2) + w(b_2 \\oplus b_3) + w(b_3 \\oplus b_4) + \\cdots + w(b_{k-1} \\oplus b_k)$。其中 $\\oplus$ 表示按位异或。对于空子序列，规定其子序列分值为 $0$ 求一个子序列使得其子序列分值最大，输出这个最大值。\n\n输入第一行包含一个整数 $n(1 \\le n \\le 40000)$ 接下来一行包含 $n$ 个整数 $a_1,a_2,\\cdots,a_n$。\n\n提示：考虑优化朴素的动态规划算法，将前 $\\dfrac{m}{2}$ 位和后 $\\dfrac{m}{2}$ 位分开计算。\n\n`Max[x][y]` 表示当前的子序列下一个位置的高 $8$ 位是 $x$、最后一个位置的低 $8$ 位是 $y$ 时的最大价值。\n\n试补全程序。\n\n```\n#include <iostream>\n\nusing namespace std;\n\ntypedef long long LL;\n\nconst int MAXN = 40000, M = 16, B = M >> 1, MS = (1 << B) - 1;\nconst LL INF = 1000000000000000LL;\nLL Max[MS + 4][MS + 4];\n\nint w(int x)\n{\n    int s = x;\n    while(x)\n    {\n        ①;\n        s++;\n    }\n    return s;\n}\n\nvoid to_max(LL &x, LL y)\n{\n    if(x < y)\n        x = y;\n}\n\nint main()\n{\n    int n;\n    LL ans = 0;\n    cin >> n;\n    for(int x = 0; x <= MS; x++)\n        for(int y = 0; y <= MS; y++)\n            Max[x][y] = -INF;\n    for(int i = 1; i <= n ; i++)\n    {\n        LL a;\n        cin >> a;\n        int x = ② , y = a & MS;\n        LL v = ③;\n        for(int z = 0; z < = MS; z++)\n            to_max(v, ④);\n        for(int z = 0; z < = MS; z++)\n            ⑤;\n        to_max(ans , v);\n    }\n    cout << ans << endl;\n    return 0;\n}\n```\n1) ①处应填（ ）\n\n\n2) ②处应填（ ）\n\n\n3) ③处应填（ ）\n\n\n4) ④处应填（ ）\n\n5) ⑤处应填（ ）",
-    "statement": "2.（最优子序列）取 $m = 16$，给出长度为 $n$ 的整数序列 $a_1,a_2,\\dots,a_n(0 \\le a_i < 2^m)$。对于一个二进制数 $x$，定义其分值 $w(x)$ 为 $x + \\operatorname {popcnt}(x)$，其中 $\\operatorname{popcnt}(x)$ 表示 $x$ 二进制表示中 $1$ 的个数。对于一个子序列  $b_1,b_2,\\dots,b_k$，定义其子序列分值 $S$ 为 $w(b_1 \\oplus b_2) + w(b_2 \\oplus b_3) + w(b_3 \\oplus b_4) + \\cdots + w(b_{k-1} \\oplus b_k)$。其中 $\\oplus$ 表示按位异或。对于空子序列，规定其子序列分值为 $0$ 求一个子序列使得其子序列分值最大，输出这个最大值。\n\n输入第一行包含一个整数 $n(1 \\le n \\le 40000)$ 接下来一行包含 $n$ 个整数 $a_1,a_2,\\cdots,a_n$。\n\n提示：考虑优化朴素的动态规划算法，将前 $\\dfrac{m}{2}$ 位和后 $\\dfrac{m}{2}$ 位分开计算。\n\n`Max[x][y]` 表示当前的子序列下一个位置的高 $8$ 位是 $x$、最后一个位置的低 $8$ 位是 $y$ 时的最大价值。\n\n试补全程序。\n\n```\n#include <iostream>\n\nusing namespace std;\n\ntypedef long long LL;\n\nconst int MAXN = 40000, M = 16, B = M >> 1, MS = (1 << B) - 1;\nconst LL INF = 1000000000000000LL;\nLL Max[MS + 4][MS + 4];\n\nint w(int x)\n{\n    int s = x;\n    while(x)\n    {\n        ①;\n        s++;\n    }\n    return s;\n}\n\nvoid to_max(LL &x, LL y)\n{\n    if(x < y)\n        x = y;\n}\n\nint main()\n{\n    int n;\n    LL ans = 0;\n    cin >> n;\n    for(int x = 0; x <= MS; x++)\n        for(int y = 0; y <= MS; y++)\n            Max[x][y] = -INF;\n    for(int i = 1; i <= n ; i++)\n    {\n        LL a;\n        cin >> a;\n        int x = ② , y = a & MS;\n        LL v = ③;\n        for(int z = 0; z < = MS; z++)\n            to_max(v, ④);\n        for(int z = 0; z < = MS; z++)\n            ⑤;\n        to_max(ans , v);\n    }\n    cout << ans << endl;\n    return 0;\n}\n```\n1) ①处应填（ ）\n\n\n2) ②处应填（ ）\n\n\n3) ③处应填（ ）\n\n\n4) ④处应填（ ）\n\n5) ⑤处应填（ ）",
+    "description": "2.（最优子序列）取 m = 16，给出长度为 n 的整数序列 a₁, a₂, …, aₙ（0 ≤ aᵢ < 2ᵐ）。对于一个二进制数 x，定义其分值 w(x) 为 x + popcnt(x)，其中 popcnt(x) 表示 x 二进制表示中 1 的个数。对于一个子序列 b₁, b₂, …, bₖ，定义其子序列分值 S 为 w(b₁ ⊕ b₂) + w(b₂ ⊕ b₃) + w(b₃ ⊕ b₄) + … + w(bₖ₋₁ ⊕ bₖ)，其中 ⊕ 表示按位异或。对于空子序列，规定其子序列分值为 0。求一个子序列使得其子序列分值最大，输出这个最大值。\n\n输入第一行包含一个整数 n（1 ≤ n ≤ 40000），接下来一行包含 n 个整数 a₁, a₂, …, aₙ。\n\n提示：考虑优化朴素的动态规划算法，将前 m/2 位和后 m/2 位分开计算。\n\nMax[x][y] 表示当前的子序列下一个位置的高 8 位是 x、最后一个位置的低 8 位是 y 时的最大价值。\n\n试补全程序。\n\n```cpp\n01 #include <iostream>\n02 using namespace std;\n03 \n04 typedef long long LL;\n05 \n06 const int MAXN = 40000, M = 16, B = M >> 1, MS = (1 << B) - 1;\n07 const LL INF = 1000000000000000LL;\n08 LL Max[MS + 4][MS + 4];\n09 \n10 int w(int x)\n11 {\n12     int s = x;\n13     while(x)\n14     {\n15         ①;\n16         s++;\n17     }\n18     return s;\n19 }\n20 \n21 void to_max(LL &x, LL y)\n22 {\n23     if(x < y)\n24         x = y;\n25 }\n26 \n27 int main()\n28 {\n29     int n;\n30     LL ans = 0;\n31     cin >> n;\n32     for(int x = 0; x <= MS; x++)\n33         for(int y = 0; y <= MS; y++)\n34             Max[x][y] = -INF;\n35     for(int i = 1; i <= n ; i++)\n36     {\n37         LL a;\n38         cin >> a;\n39         int x = ②, y = a & MS;\n40         LL v = ③;\n41         for(int z = 0; z <= MS; z++)\n42             to_max(v, ④);\n43         for(int z = 0; z <= MS; z++)\n44             ⑤;\n45         to_max(ans, v);\n46     }\n47     cout << ans << endl;\n48     return 0;\n49 }\n```",
+    "statement": "2.（最优子序列）取 m = 16，给出长度为 n 的整数序列 a₁, a₂, …, aₙ（0 ≤ aᵢ < 2ᵐ）。对于一个二进制数 x，定义其分值 w(x) 为 x + popcnt(x)，其中 popcnt(x) 表示 x 二进制表示中 1 的个数。对于一个子序列 b₁, b₂, …, bₖ，定义其子序列分值 S 为 w(b₁ ⊕ b₂) + w(b₂ ⊕ b₃) + w(b₃ ⊕ b₄) + … + w(bₖ₋₁ ⊕ bₖ)，其中 ⊕ 表示按位异或。对于空子序列，规定其子序列分值为 0。求一个子序列使得其子序列分值最大，输出这个最大值。\n\n输入第一行包含一个整数 n（1 ≤ n ≤ 40000），接下来一行包含 n 个整数 a₁, a₂, …, aₙ。\n\n提示：考虑优化朴素的动态规划算法，将前 m/2 位和后 m/2 位分开计算。\n\nMax[x][y] 表示当前的子序列下一个位置的高 8 位是 x、最后一个位置的低 8 位是 y 时的最大价值。\n\n试补全程序。\n\n```cpp\n01 #include <iostream>\n02 using namespace std;\n03 \n04 typedef long long LL;\n05 \n06 const int MAXN = 40000, M = 16, B = M >> 1, MS = (1 << B) - 1;\n07 const LL INF = 1000000000000000LL;\n08 LL Max[MS + 4][MS + 4];\n09 \n10 int w(int x)\n11 {\n12     int s = x;\n13     while(x)\n14     {\n15         ①;\n16         s++;\n17     }\n18     return s;\n19 }\n20 \n21 void to_max(LL &x, LL y)\n22 {\n23     if(x < y)\n24         x = y;\n25 }\n26 \n27 int main()\n28 {\n29     int n;\n30     LL ans = 0;\n31     cin >> n;\n32     for(int x = 0; x <= MS; x++)\n33         for(int y = 0; y <= MS; y++)\n34             Max[x][y] = -INF;\n35     for(int i = 1; i <= n ; i++)\n36     {\n37         LL a;\n38         cin >> a;\n39         int x = ②, y = a & MS;\n40         LL v = ③;\n41         for(int z = 0; z <= MS; z++)\n42             to_max(v, ④);\n43         for(int z = 0; z <= MS; z++)\n44             ⑤;\n45         to_max(ans, v);\n46     }\n47     cout << ans << endl;\n48     return 0;\n49 }\n```",
     "questions": [
       {
         "id": "2020-completion-2-1",
         "number": 1,
-        "text": "第 1 小题",
+        "text": "①处应填（ ）",
         "options": {
           "A": "`x >>= 1`",
-          "B": "`x ^=  x &(x ^ (x + 1))`",
-          "C": "`x  -=  x | -x`",
-          "D": "`x  ^=  x &(x ^ (x - 1))`"
+          "B": "`x ^= x & (x ^ (x + 1))`",
+          "C": "`x -= x | -x`",
+          "D": "`x ^= x & (x ^ (x - 1))`"
         },
         "answers": [
           "D"
@@ -2344,7 +2310,7 @@ export const cspSProgramProblems = [
       {
         "id": "2020-completion-2-2",
         "number": 2,
-        "text": "第 2 小题",
+        "text": "②处应填（ ）",
         "options": {
           "A": "`(a & MS) << B`",
           "B": "`a >> B`",
@@ -2361,7 +2327,7 @@ export const cspSProgramProblems = [
       {
         "id": "2020-completion-2-3",
         "number": 3,
-        "text": "第 3 小题",
+        "text": "③处应填（ ）",
         "options": {
           "A": "`-INF`",
           "B": "`Max[y][x]`",
@@ -2378,7 +2344,7 @@ export const cspSProgramProblems = [
       {
         "id": "2020-completion-2-4",
         "number": 4,
-        "text": "第 4 小题",
+        "text": "④处应填（ ）",
         "options": {
           "A": "`Max[x][z] + w(y ^ z)`",
           "B": "`Max[x][z] + w(a ^ z)`",
@@ -2395,7 +2361,7 @@ export const cspSProgramProblems = [
       {
         "id": "2020-completion-2-5",
         "number": 5,
-        "text": "第 5 小题",
+        "text": "⑤处应填（ ）",
         "options": {
           "A": "`to_max(Max[y][z], v + w(a ^ (z << B)))`",
           "B": "`to_max(Max[z][y], v + w((x ^ z) << B))`",

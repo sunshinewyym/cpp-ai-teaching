@@ -38,8 +38,9 @@ app.use((err, req, res, next) => {
   res.status(500).json({ error: err.message });
 });
 
-app.listen(PORT, () => {
+app.listen(PORT, '0.0.0.0', () => {
   console.log(`Server running on http://localhost:${PORT}`);
+  console.log(`局域网访问: http://0.0.0.0:${PORT}`);
 });
 
 module.exports = app;

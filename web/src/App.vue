@@ -87,6 +87,8 @@
 
       <AlgorithmVisualizer v-else-if="activeTool === 'visualizer'" />
 
+      <SyntaxVisualizer v-else-if="activeTool === 'syntax-visualizer'" />
+
       <CspPractice v-else-if="activeTool === 'csp-practice'" />
 
       <!-- Edge case mode -->
@@ -375,6 +377,7 @@ import 'highlight.js/styles/github-dark.css';
 import Sidebar from './components/Sidebar.vue';
 import ChatPanel from './components/ChatPanel.vue';
 import AlgorithmVisualizer from './components/AlgorithmVisualizer.vue';
+import SyntaxVisualizer from './components/SyntaxVisualizer.vue';
 import CspPractice from './components/CspPractice.vue';
 import ProblemList from './components/ProblemList.vue';
 import PromptButtons from './components/PromptButtons.vue';
