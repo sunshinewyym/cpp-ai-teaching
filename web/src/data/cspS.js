@@ -2006,13 +2006,13 @@ export const cspSProgramProblems = [
     "type": "reading",
     "number": 2,
     "title": "阅读程序第 2 题",
-    "description": "2.\n```\n#include <iostream>\n#include <cstdlib>\nusing namespace std;\n\nint n;\nint d[10000];\n\nint find(int L, int R, int k) {\n    int x = rand() % (R - L + 1) + L;\n    swap(d[L], d[x]);\n    int a = L + 1, b = R;\n    while (a < b) {\n        while (a < b && d[a] < d[L])\n            ++a;\n        while (a < b && d[b] >= d[L])\n            --b;\n        swap(d[a], d[b]);\n    }\n    if (d[a] < d[L])\n        ++a;\n    if (a - L == k)\n        return d[L];\n    if (a - L < k)\n        return find(a, R, k - (a - L));\n    return find(L + 1, a - 1, k);\n}\n\nint main() {\n    int k;\n    cin >> n;\n    cin >> k;\n    for (int i = 0; i < n; ++i)\n        cin >> d[i];\n    cout << find(0, n - 1, k);\n    return 0;\n}\n```\n\n\n假设输入的 $n,k$ 和 $d[i]$ 都是不超过 $10000$ 的正整数，且 $k$ 不超过 $n$，并假设 `rand()` 函数产生的是均匀的随机数，完成下面的判断题和单选题：\n\n- 判断题\n\n  1) 第 $9$ 行的 $x$ 的数值范围是 $L+1$ 到 $R$，即 $[L+1,R]$。（ ）\n\n  2) 将第 $19$ 行的 `d[a]` 改为 `d[b]`，程序不会发生运行错误。（ ）\n\n\n- 单选题\n\n  3) （2.5 分）当输入的 $d[i]$ 是严格**单调递增**序列时，第 17 行的 `swap` 平均执行次数是( )。【编者注：本题为错题，请选择 A 获取对应的分数】\n\n\n  4) （2.5 分）当输入的 $d[i]$ 是严格**单调递减**序列时，第 17 行的 `swap` 平均执行次数是( )。\n\n\n\n  5) （2.5 分）若输入的 $d[i]$ 为 $i$，此程序①平均的时间复杂度和②最坏情况下的时间复杂度分别是( )。\n\n\n  6) （2.5 分）若输入的 $d[i]$ 都为同一个数，此程序平均的时间复杂度是( )。",
-    "statement": "2.\n```\n#include <iostream>\n#include <cstdlib>\nusing namespace std;\n\nint n;\nint d[10000];\n\nint find(int L, int R, int k) {\n    int x = rand() % (R - L + 1) + L;\n    swap(d[L], d[x]);\n    int a = L + 1, b = R;\n    while (a < b) {\n        while (a < b && d[a] < d[L])\n            ++a;\n        while (a < b && d[b] >= d[L])\n            --b;\n        swap(d[a], d[b]);\n    }\n    if (d[a] < d[L])\n        ++a;\n    if (a - L == k)\n        return d[L];\n    if (a - L < k)\n        return find(a, R, k - (a - L));\n    return find(L + 1, a - 1, k);\n}\n\nint main() {\n    int k;\n    cin >> n;\n    cin >> k;\n    for (int i = 0; i < n; ++i)\n        cin >> d[i];\n    cout << find(0, n - 1, k);\n    return 0;\n}\n```\n\n\n假设输入的 $n,k$ 和 $d[i]$ 都是不超过 $10000$ 的正整数，且 $k$ 不超过 $n$，并假设 `rand()` 函数产生的是均匀的随机数，完成下面的判断题和单选题：\n\n- 判断题\n\n  1) 第 $9$ 行的 $x$ 的数值范围是 $L+1$ 到 $R$，即 $[L+1,R]$。（ ）\n\n  2) 将第 $19$ 行的 `d[a]` 改为 `d[b]`，程序不会发生运行错误。（ ）\n\n\n- 单选题\n\n  3) （2.5 分）当输入的 $d[i]$ 是严格**单调递增**序列时，第 17 行的 `swap` 平均执行次数是( )。【编者注：本题为错题，请选择 A 获取对应的分数】\n\n\n  4) （2.5 分）当输入的 $d[i]$ 是严格**单调递减**序列时，第 17 行的 `swap` 平均执行次数是( )。\n\n\n\n  5) （2.5 分）若输入的 $d[i]$ 为 $i$，此程序①平均的时间复杂度和②最坏情况下的时间复杂度分别是( )。\n\n\n  6) （2.5 分）若输入的 $d[i]$ 都为同一个数，此程序平均的时间复杂度是( )。",
+    "description": "```cpp\n01 #include <iostream>\n02 #include <cstdlib>\n03 using namespace std;\n04 \n05 int n;\n06 int d[10000];\n07 \n08 int find(int L, int R, int k) {\n09     int x = rand() % (R - L + 1) + L;\n10     swap(d[L], d[x]);\n11     int a = L + 1, b = R;\n12     while (a < b) {\n13         while (a < b && d[a] < d[L])\n14             ++a;\n15         while (a < b && d[b] >= d[L])\n16             --b;\n17         swap(d[a], d[b]);\n18     }\n19     if (d[a] < d[L])\n20         ++a;\n21     if (a - L == k)\n22         return d[L];\n23     if (a - L < k)\n24         return find(a, R, k - (a - L));\n25     return find(L + 1, a - 1, k);\n26 }\n27 \n28 int main() {\n29     int k;\n30     cin >> n;\n31     cin >> k;\n32     for (int i = 0; i < n; ++i)\n33         cin >> d[i];\n34     cout << find(0, n - 1, k);\n35     return 0;\n36 }\n\n```\n\n假设输入的 n,k 和 d[i] 都是不超过 10000 的正整数，且 k 不超过 n，并假设 rand() 函数产生的是均匀的随机数，完成下面的判断题和单选题：",
+    "statement": "```cpp\n01 #include <iostream>\n02 #include <cstdlib>\n03 using namespace std;\n04 \n05 int n;\n06 int d[10000];\n07 \n08 int find(int L, int R, int k) {\n09     int x = rand() % (R - L + 1) + L;\n10     swap(d[L], d[x]);\n11     int a = L + 1, b = R;\n12     while (a < b) {\n13         while (a < b && d[a] < d[L])\n14             ++a;\n15         while (a < b && d[b] >= d[L])\n16             --b;\n17         swap(d[a], d[b]);\n18     }\n19     if (d[a] < d[L])\n20         ++a;\n21     if (a - L == k)\n22         return d[L];\n23     if (a - L < k)\n24         return find(a, R, k - (a - L));\n25     return find(L + 1, a - 1, k);\n26 }\n27 \n28 int main() {\n29     int k;\n30     cin >> n;\n31     cin >> k;\n32     for (int i = 0; i < n; ++i)\n33         cin >> d[i];\n34     cout << find(0, n - 1, k);\n35     return 0;\n36 }\n\n```\n\n假设输入的 n,k 和 d[i] 都是不超过 10000 的正整数，且 k 不超过 n，并假设 rand() 函数产生的是均匀的随机数，完成下面的判断题和单选题：",
     "questions": [
       {
         "id": "2020-reading-2-1",
         "number": 1,
-        "text": "第 1 小题",
+        "text": "第 9 行的 x 的数值范围是 L+1 到 R，即 [L+1,R]。（ ）",
         "options": {
           "A": "正确",
           "B": "错误"
@@ -2027,7 +2027,7 @@ export const cspSProgramProblems = [
       {
         "id": "2020-reading-2-2",
         "number": 2,
-        "text": "第 2 小题",
+        "text": "将第 19 行的 d[a] 改为 d[b]，程序不会发生运行错误。（ ）",
         "options": {
           "A": "正确",
           "B": "错误"
@@ -2042,63 +2042,63 @@ export const cspSProgramProblems = [
       {
         "id": "2020-reading-2-3",
         "number": 3,
-        "text": "第 3 小题",
+        "text": "当输入的 d[i] 是严格单调递增序列时，第 17 行的 swap 平均执行次数是（ ）。",
         "options": {
-          "A": "$O(n \\log n)$",
-          "B": "$O(n)$",
-          "C": "$O(\\log n)$",
-          "D": "$O(n^2)$"
+          "A": "O(n log n)",
+          "B": "O(n)",
+          "C": "O(log n)",
+          "D": "O(n^2)"
         },
         "answers": [
           "A"
         ],
         "multiple": false,
         "score": 2.5,
-        "explanation": "参考答案为 A（$O(n \\log n)$）。请回到题目条件，按定义、执行顺序或复杂度逐项核对。"
+        "explanation": "参考答案为 A（O(n log n)）。请回到题目条件，按定义、执行顺序或复杂度逐项核对。"
       },
       {
         "id": "2020-reading-2-4",
         "number": 4,
-        "text": "第 4 小题",
+        "text": "当输入的 d[i] 是严格单调递减序列时，第 17 行的 swap 平均执行次数是（ ）。",
         "options": {
-          "A": "$O(n^2)$",
-          "B": "$O(n)$",
-          "C": "$O(n \\log n)$",
-          "D": "$O(\\log n)$"
+          "A": "O(n^2)",
+          "B": "O(n)",
+          "C": "O(n log n)",
+          "D": "O(log n)"
         },
         "answers": [
           "B"
         ],
         "multiple": false,
         "score": 2.5,
-        "explanation": "参考答案为 B（$O(n)$）。请回到题目条件，按定义、执行顺序或复杂度逐项核对。"
+        "explanation": "参考答案为 B（O(n)）。请回到题目条件，按定义、执行顺序或复杂度逐项核对。"
       },
       {
         "id": "2020-reading-2-5",
         "number": 5,
-        "text": "第 5 小题",
+        "text": "若输入的 d[i] 为 i，此程序平均的时间复杂度和最坏情况下的时间复杂度分别是（ ）。",
         "options": {
-          "A": "$O(n), O(n^2)$",
-          "B": "$O(n),O(n \\log n)$",
-          "C": "$O(n \\log n),O(n^2)$",
-          "D": "$O(n \\log n),O(n \\log n)$"
+          "A": "O(n), O(n^2)",
+          "B": "O(n), O(n log n)",
+          "C": "O(n log n), O(n^2)",
+          "D": "O(n log n), O(n log n)"
         },
         "answers": [
           "A"
         ],
         "multiple": false,
         "score": 2.5,
-        "explanation": "参考答案为 A（$O(n), O(n^2)$）。请回到题目条件，按定义、执行顺序或复杂度逐项核对。"
+        "explanation": "参考答案为 A（O(n), O(n^2)）。请回到题目条件，按定义、执行顺序或复杂度逐项核对。"
       },
       {
         "id": "2020-reading-2-6",
         "number": 6,
-        "text": "第 6 小题",
+        "text": "若输入的 d[i] 都为同一个数，此程序平均的时间复杂度是（ ）。",
         "options": {
-          "A": "$O(n)$",
-          "B": "$O(\\log n)$",
-          "C": "$O(n \\log n)$",
-          "D": "$O(n^2)$"
+          "A": "O(n)",
+          "B": "O(log n)",
+          "C": "O(n log n)",
+          "D": "O(n^2)"
         },
         "answers": [
           "D"
@@ -2122,7 +2122,7 @@ export const cspSProgramProblems = [
       {
         "id": "2020-reading-3-1",
         "number": 1,
-        "text": "第 1 小题",
+        "text": "输出可能为 0。（ ）",
         "options": {
           "A": "正确",
           "B": "错误"
@@ -2137,7 +2137,7 @@ export const cspSProgramProblems = [
       {
         "id": "2020-reading-3-2",
         "number": 2,
-        "text": "第 2 小题",
+        "text": "若输入的两个字符串长度均为 101 时，则 m=0 时的输出与 m=100 时的输出是一样的。（ ）",
         "options": {
           "A": "正确",
           "B": "错误"
@@ -2152,7 +2152,7 @@ export const cspSProgramProblems = [
       {
         "id": "2020-reading-3-3",
         "number": 3,
-        "text": "第 3 小题",
+        "text": "若两个字符串的长度均为 n，则最坏情况下，此程序的时间复杂度为 O(n!)。（ ）",
         "options": {
           "A": "正确",
           "B": "错误"
@@ -2167,7 +2167,7 @@ export const cspSProgramProblems = [
       {
         "id": "2020-reading-3-4",
         "number": 4,
-        "text": "第 4 小题",
+        "text": "若输入的第一个字符串长度由 100 个不同的字符构成，第二个字符串是第一个字符串的倒序，输入的 m 为 0，则输出为（ ）。",
         "options": {
           "A": "49",
           "B": "50",
@@ -2184,7 +2184,7 @@ export const cspSProgramProblems = [
       {
         "id": "2020-reading-3-5",
         "number": 5,
-        "text": "第 5 小题",
+        "text": "己知当输入为 \"0123\\n3210\\n1\" 时输出为 4，当输入为 \"012345\\n543210\\n1\" 时输出为 14，当输入为 \"01234567\\n76543210\\n1\" 时输出为 28，则当输入为 \"0123456789ab\\nba9876543210\\n1\" 输出为（ ）。其中 \\n 为换行符。",
         "options": {
           "A": "56",
           "B": "84",
@@ -2201,19 +2201,19 @@ export const cspSProgramProblems = [
       {
         "id": "2020-reading-3-6",
         "number": 6,
-        "text": "第 6 小题",
+        "text": "若两个字符串的长度均为 n，且 0<m<n-1，且两个字符串的构成相同（即任何一个字符在两个字符串中出现的次数均相同），则下列说法正确的是（ ）。",
         "options": {
-          "A": "若 $n,m$ 均为奇数，则输出**可能**小于 0。",
-          "B": "若 $n,m$ 均为偶数，则输出**可能**小于 $0$。",
-          "C": "若 $n$ 为奇数、$m$ 为偶数，则输出**可能**小于 $0$。",
-          "D": "若 $n$ 为偶数、$m$ 为奇数，则输出**可能**小于 $0$。"
+          "A": "若 n,m 均为奇数，则输出可能小于 0。",
+          "B": "若 n,m 均为偶数，则输出可能小于 0。",
+          "C": "若 n 为奇数、m 为偶数，则输出可能小于 0。",
+          "D": "若 n 为偶数、m 为奇数，则输出可能小于 0。"
         },
         "answers": [
           "C"
         ],
         "multiple": false,
         "score": 4,
-        "explanation": "参考答案为 C（若 $n$ 为奇数、$m$ 为偶数，则输出**可能**小于 $0$。）。请回到题目条件，按定义、执行顺序或复杂度逐项核对。"
+        "explanation": "参考答案为 C（若 n 为奇数、m 为偶数，则输出可能小于 0）。请回到题目条件，按定义、执行顺序或复杂度逐项核对。"
       }
     ],
     "sourceUrl": "https://ti.luogu.com.cn/problemset/1035?submission=1544651"
