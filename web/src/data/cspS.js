@@ -30,12 +30,12 @@ export const cspSChoicePapers = {
     {
       "id": "2019-choice-3",
       "number": 3,
-      "question": "二进制数 $\\text{11 1011 1001 0111}$ 和 $\\text{01 0110 1110 1011}$ 进行按位或运算的结果是（）。\n\n> 编者注：原题为“逻辑或”，但是根据题意应当是按位或。",
+      "question": "二进制数 \\text{11 1011 1001 0111} 和 \\text{01 0110 1110 1011} 进行按位或运算的结果是（）。\n\n> 编者注：原题为“逻辑或”，但是根据题意应当是按位或。",
       "options": {
-        "A": "$\\text{11 1111 1101 1111}$",
-        "B": "$\\text{11 1111 1111 1101}$",
-        "C": "$\\text{10 1111 1111 1111}$",
-        "D": "$\\text{11 1111 1111 1111}$"
+        "A": "\\text{11 1111 1101 1111}",
+        "B": "\\text{11 1111 1111 1101}",
+        "C": "\\text{10 1111 1111 1111}",
+        "D": "\\text{11 1111 1111 1111}"
       },
       "answer": "D",
       "explanation": "参考答案为 D（11 1111 1111 1111）。\n\n**解析：**\n\n按位或运算规则：有 1 则 1。\n\n`11 1011 1001 0111 | 01 0110 1110 1011 = 11 1111 1111 1111`\n\n每一位进行或运算，只要有一个为 1，结果就为 1。最终结果为 11 1111 1111 1111。"
@@ -56,7 +56,7 @@ export const cspSChoicePapers = {
     {
       "id": "2019-choice-5",
       "number": 5,
-      "question": "设变量 $x$ 为 float 型且已赋值，则以下语句中能将 $x$ 中的数值保留到小数点后两位，并将第三位四舍五入的是（）",
+      "question": "设变量 x 为 float 型且已赋值，则以下语句中能将 x 中的数值保留到小数点后两位，并将第三位四舍五入的是（）",
       "options": {
         "A": "`x= (x*100+0.5)/100.0;`",
         "B": "`x=(int) (x*100+0.5)/100.0;`",
@@ -69,7 +69,7 @@ export const cspSChoicePapers = {
     {
       "id": "2019-choice-6",
       "number": 6,
-      "question": "由数字 $1, 1, 2, 4, 8, 8$ 所组成的不同的 $4$ 位数的个数是（）。",
+      "question": "由数字 1, 1, 2, 4, 8, 8 所组成的不同的 4 位数的个数是（）。",
       "options": {
         "A": "104",
         "B": "102",
@@ -95,7 +95,7 @@ export const cspSChoicePapers = {
     {
       "id": "2019-choice-8",
       "number": 8,
-      "question": "$G$ 是一个非连通无向图（没有重边和自环），共有 $28$ 条边，则该图至少有 （）个顶点。",
+      "question": "G 是一个非连通无向图（没有重边和自环），共有 28 条边，则该图至少有 （）个顶点。",
       "options": {
         "A": "10",
         "B": "9",
@@ -108,7 +108,7 @@ export const cspSChoicePapers = {
     {
       "id": "2019-choice-9",
       "number": 9,
-      "question": "一些数字可以颠倒过来看，例如 $0,1,8$ 颠倒过来还是本身，$6$ 颠倒过来是  $9,9$ 颠倒过来看还是 $6$,其他数字颠倒过来都不构成数字。类似的，一些多位数也可以颠倒过来看，比如 $106$ 颠倒过来是 $901$。假设某个城市的车牌只有 $5$ 位数字，每一位都可以取 $0$ 到 $9$。请问这个城市有多少个车牌倒过来恰好还是原来的车牌，并且车牌上的 $5$ 位数能被 $3$ 整除？（）",
+      "question": "一些数字可以颠倒过来看，例如 0,1,8 颠倒过来还是本身，6 颠倒过来是  9,9 颠倒过来看还是 6,其他数字颠倒过来都不构成数字。类似的，一些多位数也可以颠倒过来看，比如 106 颠倒过来是 901。假设某个城市的车牌只有 5 位数字，每一位都可以取 0 到 9。请问这个城市有多少个车牌倒过来恰好还是原来的车牌，并且车牌上的 5 位数能被 3 整除？（）",
       "options": {
         "A": "40",
         "B": "25",
@@ -121,7 +121,7 @@ export const cspSChoicePapers = {
     {
       "id": "2019-choice-10",
       "number": 10,
-      "question": "—次期末考试，某班有 $15$ 人数学得满分，有 $12$ 人语文得满分，并且有 $4$ 人语、数都是满分，那么这个班至少有一门得满分的同学有多少人？（）。",
+      "question": "—次期末考试，某班有 15 人数学得满分，有 12 人语文得满分，并且有 4 人语、数都是满分，那么这个班至少有一门得满分的同学有多少人？（）。",
       "options": {
         "A": "23",
         "B": "21",
@@ -134,12 +134,12 @@ export const cspSChoicePapers = {
     {
       "id": "2019-choice-11",
       "number": 11,
-      "question": "设 $A$ 和 $B$ 是两个长为 $n$ 的有序数组，现在需要将 $A$ 和 $B$ 合并成一个排好序的数组，问任何以元素比较作为基本运算的归并算法，在最坏情况下至少要做多少次比较？（）。",
+      "question": "设 A 和 B 是两个长为 n 的有序数组，现在需要将 A 和 B 合并成一个排好序的数组，问任何以元素比较作为基本运算的归并算法，在最坏情况下至少要做多少次比较？（）。",
       "options": {
-        "A": "$n^2$",
-        "B": "$n \\log n$",
-        "C": "$2n$",
-        "D": "$2n - 1$"
+        "A": "n²",
+        "B": "n log n",
+        "C": "2n",
+        "D": "2n - 1"
       },
       "answer": "D",
       "explanation": "参考答案为 D（2n - 1）。\n\n**解析：**\n\n两个长度为 n 的有序数组归并时，最坏情况下需要比较 2n-1 次。\n\n例如：A = [1, 3, 5], B = [2, 4, 6]\n\n归并过程：\n- 比较 A[0] 和 B[0]：选 A[0]=1（第 1 次）\n- 比较 A[1] 和 B[0]：选 B[0]=2（第 2 次）\n- 比较 A[1] 和 B[1]：选 A[1]=3（第 3 次）\n- 比较 A[2] 和 B[1]：选 B[1]=4（第 4 次）\n- 比较 A[2] 和 B[2]：选 A[2]=5（第 5 次）\n- 剩余 B[2]=6（无需比较）\n\n共 5 次 = 2×3 - 1。一般地，最坏情况为 2n-1 次。"
@@ -173,7 +173,7 @@ export const cspSChoicePapers = {
     {
       "id": "2019-choice-14",
       "number": 14,
-      "question": "有一个等比数列，共有奇数项，其中第一项和最后一项分别是 $2$ 和 $118098$，中间一项是 $486$,请问以下哪个数是可能的公比？（）",
+      "question": "有一个等比数列，共有奇数项，其中第一项和最后一项分别是 2 和 118098，中间一项是 486,请问以下哪个数是可能的公比？（）",
       "options": {
         "A": "5",
         "B": "3",
@@ -186,12 +186,12 @@ export const cspSChoicePapers = {
     {
       "id": "2019-choice-15",
       "number": 15,
-      "question": "正实数构成的数字三角形排列形式如图所示。第一行的数为 $a_{1,1}$；第二行的数从左到右依次为 $a_{2,1},a_{2,2}$，第 $n$ 行的数为$a_{n,1},a_{n,2},\\dots,a_{n,n}$ 从 $a_{1,1}$ 开始，每一行的数 $a_{i,j}$ 只有两条边可以分别通向下一行的两个数 $a_{i+1,j}$ 和 $a_{i+1,j+1}$。用动态规划算法找出一条从 $a_{1,1}$ 向下通到 $a_{n,1},a_{n,2},\\dots,a_{n,n}$ 中某个数的路径，使得该路径上的数之和最大。\n\n![数字三角形](/csp-assets/2019-choice-15.jpg)\n\n令 $C[i][j]$ 是从 $a_{1,1}$ 到 $a_{i,j}$ 的路径上的数的最大和，并且 $C[i][0]=C[0][j]=0$，则 $C[i][j]=$ ( )。",
+      "question": "正实数构成的数字三角形排列形式如图所示。第一行的数为 a₁,₁；第二行的数从左到右依次为 a₂,₁},ₐ_{₂,₂，第 n 行的数为aₙ,₁},ₐ_{ₙ,₂},…,ₐ_{ₙ,ₙ 从 a₁,₁ 开始，每一行的数 aᵢ,ⱼ 只有两条边可以分别通向下一行的两个数 aᵢ+₁,ⱼ 和 aᵢ+₁,ⱼ+₁。用动态规划算法找出一条从 a₁,₁ 向下通到 aₙ,₁},ₐ_{ₙ,₂},…,ₐ_{ₙ,ₙ 中某个数的路径，使得该路径上的数之和最大。\n\n![数字三角形](/csp-assets/2019-choice-15.jpg)\n\n令 C[i][j] 是从 a₁,₁ 到 aᵢ,ⱼ 的路径上的数的最大和，并且 C[i][0]=C[0][j]=0，则 C[i][j]= ( )。",
       "options": {
-        "A": "$max{C[i-1][j-1],C[i-1][j]\\}+a_{i,j}$",
-        "B": "$C[i-1][j-1]+C[i-1][j]$",
-        "C": "$max{C[i-1][j-1],C[i-1][j]\\}+1$",
-        "D": "$max{C[i][j-1],C[i-1][j]\\}+a_{i,j}$"
+        "A": "max{C[i-1][j-1],C[i-1][j]\\}+a_{i,j}",
+        "B": "C[i-1][j-1]+C[i-1][j]",
+        "C": "max{C[i-1][j-1],C[i-1][j]\\}+1",
+        "D": "max{C[i][j-1],C[i-1][j]\\}+a_{i,j}"
       },
       "answer": "A",
       "explanation": "参考答案为 A。\n\n**解析：**\n\n数字三角形问题，用动态规划求解。\n\nC[i][j] 表示从 a₁,₁ 到 aᵢ,ⱼ 的路径最大和。\n\n要到达 aᵢ,ⱼ，上一步只能来自：\n- aᵢ₋₁,ⱼ₋₁（左上方）\n- aᵢ₋₁,ⱼ（正上方）\n\n所以状态转移方程为：\nC[i][j] = max{C[i-1][j-1], C[i-1][j]} + aᵢ,ⱼ\n\n边界条件：C[i][0] = C[0][j] = 0\n\n选项 A 正确表达了这个递推关系。"
@@ -203,13 +203,13 @@ export const cspSChoicePapers = {
       "number": 1,
       "question": "请选出以下最大的数（ ）。",
       "options": {
-        "A": "$(550)_{10}$",
-        "B": "$(777)_{8}$",
-        "C": "$2^{10}$",
-        "D": "$(22F)_{16}$"
+        "A": "(550)_{10}",
+        "B": "(777)_{8}",
+        "C": "2¹⁰",
+        "D": "(22F)_{16}"
       },
       "answer": "C",
-      "explanation": "参考答案为 C（$2^{10}$）。请回到题目条件，按定义、执行顺序或复杂度逐项核对。"
+      "explanation": "参考答案为 C（2¹⁰）。请回到题目条件，按定义、执行顺序或复杂度逐项核对。"
     },
     {
       "id": "2020-choice-2",
@@ -227,7 +227,7 @@ export const cspSChoicePapers = {
     {
       "id": "2020-choice-3",
       "number": 3,
-      "question": "现有一段 $8$ 分钟的视频文件，它的播放速度是每秒 $24$ 帧图像，每帧图像是  一幅分辨率为 $2048\\times 1024$ 像素的 $32$ 位真彩色图像。请问要存储这段原始无压缩视频，需要多大的存储空间？（ ）。",
+      "question": "现有一段 8 分钟的视频文件，它的播放速度是每秒 24 帧图像，每帧图像是  一幅分辨率为 2048× 1024 像素的 32 位真彩色图像。请问要存储这段原始无压缩视频，需要多大的存储空间？（ ）。",
       "options": {
         "A": "30G",
         "B": "90G",
@@ -240,7 +240,7 @@ export const cspSChoicePapers = {
     {
       "id": "2020-choice-4",
       "number": 4,
-      "question": "今有一空栈 $S$，对下列待进栈的数据元素序列 $a,b,c,d,e,f$ 依次进行：进栈，进栈，出栈，进栈，进栈，出栈的操作，则此操作完成后，栈底元素为（  ）。",
+      "question": "今有一空栈 S，对下列待进栈的数据元素序列 a,b,c,d,e,f 依次进行：进栈，进栈，出栈，进栈，进栈，出栈的操作，则此操作完成后，栈底元素为（  ）。",
       "options": {
         "A": "b",
         "B": "a",
@@ -253,15 +253,15 @@ export const cspSChoicePapers = {
     {
       "id": "2020-choice-5",
       "number": 5,
-      "question": "将 $(2, 7, 10, 18)$ 分别存储到某个地址区间为 $0\\sim 10$ 的哈希表中，如果哈希函数 $h(x)=$（  ），将**不会**产生冲突，其中 $a mod b$ 表示 $a$ 除以 $b$ 的余数。",
+      "question": "将 (2, 7, 10, 18) 分别存储到某个地址区间为 0~ 10 的哈希表中，如果哈希函数 h(x)=（  ），将**不会**产生冲突，其中 a mod b 表示 a 除以 b 的余数。",
       "options": {
-        "A": "$x^2 mod 11$",
-        "B": "$2x mod 11$",
-        "C": "$x mod 11$",
-        "D": "$\\lfloor \\dfrac{x}{2} \\rfloor mod 11$，其中$\\lfloor \\dfrac{x}{2} \\rfloor$ 表示 $\\dfrac{x}{2}$ 下取整"
+        "A": "x² mod 11",
+        "B": "2x mod 11",
+        "C": "x mod 11",
+        "D": "⌊ {x}{2} ⌋ mod 11，其中⌊ {x}{2} ⌋ 表示 {x}{2} 下取整"
       },
       "answer": "D",
-      "explanation": "参考答案为 D（$\\lfloor \\dfrac{x}{2} \\rfloor \\bmod{11}$，其中$\\lfloor \\dfrac{x}{2} \\rfloor$ 表示 $\\dfrac{x}{2}$ 下取整）。请回到题目条件，按定义、执行顺序或复杂度逐项核对。"
+      "explanation": "参考答案为 D（⌊ {x}{2} ⌋ \\bmod{11}，其中⌊ {x}{2} ⌋ 表示 {x}{2} 下取整）。请回到题目条件，按定义、执行顺序或复杂度逐项核对。"
     },
     {
       "id": "2020-choice-6",
@@ -279,20 +279,20 @@ export const cspSChoicePapers = {
     {
       "id": "2020-choice-7",
       "number": 7,
-      "question": "具有 $n$ 个顶点，$e$ 条边的图采用邻接表存储结构，进行深度优先遍历运算的时间复杂度为（  ）。",
+      "question": "具有 n 个顶点，e 条边的图采用邻接表存储结构，进行深度优先遍历运算的时间复杂度为（  ）。",
       "options": {
-        "A": "$O(n+e)$",
-        "B": "$O(n^2)$",
-        "C": "$O(e^2)$",
-        "D": "$O(n)$"
+        "A": "O(n+e)",
+        "B": "O(n²)",
+        "C": "O(e²)",
+        "D": "O(n)"
       },
       "answer": "A",
-      "explanation": "参考答案为 A（$O(n+e)$）。请回到题目条件，按定义、执行顺序或复杂度逐项核对。"
+      "explanation": "参考答案为 A（O(n+e)）。请回到题目条件，按定义、执行顺序或复杂度逐项核对。"
     },
     {
       "id": "2020-choice-8",
       "number": 8,
-      "question": "二分图是指能将顶点划分成两个部分，每一部分内的顶点间没有边相连的简单无向图。那么，$24$ 个顶点的二分图**至多**有（ ）条边。",
+      "question": "二分图是指能将顶点划分成两个部分，每一部分内的顶点间没有边相连的简单无向图。那么，24 个顶点的二分图**至多**有（ ）条边。",
       "options": {
         "A": "144",
         "B": "100",
@@ -318,20 +318,20 @@ export const cspSChoicePapers = {
     {
       "id": "2020-choice-10",
       "number": 10,
-      "question": "—个班学生分组做游戏，如果每组三人就多两人，每组五人就多三人，每组七人就多四人，问这个班的学生人数 $n$ 在以下哪个区间？已知 $n<60$。(  ）",
+      "question": "—个班学生分组做游戏，如果每组三人就多两人，每组五人就多三人，每组七人就多四人，问这个班的学生人数 n 在以下哪个区间？已知 n<60。(  ）",
       "options": {
-        "A": "$30<n<40$",
-        "B": "$40<n<50$",
-        "C": "$50<n<60$",
-        "D": "$20<n<30$"
+        "A": "30<n<40",
+        "B": "40<n<50",
+        "C": "50<n<60",
+        "D": "20<n<30"
       },
       "answer": "C",
-      "explanation": "参考答案为 C（$50<n<60$）。请回到题目条件，按定义、执行顺序或复杂度逐项核对。"
+      "explanation": "参考答案为 C（50<n<60）。请回到题目条件，按定义、执行顺序或复杂度逐项核对。"
     },
     {
       "id": "2020-choice-11",
       "number": 11,
-      "question": "小明想通过走楼梯来锻炼身体，假设从第 $1$ 层走到第 $2$ 层消耗 $10$ 卡热量，接着从第 $2$ 层走到第 $3$ 层消耗 $20$ 卡热量，再从第 $3$ 层走到第 $4$ 层消耗 $30$ 卡热量，依此类推，从第 $k$ 层走到第 $k+1$ 层消耗 $10k$ 卡热量 $(k>1)$？如果小明想从 $1$ 层开始，通过连续向上爬楼梯消耗 $1000$ 卡热量，至少要爬到第几层楼？ （  ）。",
+      "question": "小明想通过走楼梯来锻炼身体，假设从第 1 层走到第 2 层消耗 10 卡热量，接着从第 2 层走到第 3 层消耗 20 卡热量，再从第 3 层走到第 4 层消耗 30 卡热量，依此类推，从第 k 层走到第 k+1 层消耗 10k 卡热量 (k>1)？如果小明想从 1 层开始，通过连续向上爬楼梯消耗 1000 卡热量，至少要爬到第几层楼？ （  ）。",
       "options": {
         "A": "14",
         "B": "16",
@@ -346,18 +346,18 @@ export const cspSChoicePapers = {
       "number": 12,
       "question": "表达式 `a*(b+c)-d` 的后缀表达形式为（ ）。",
       "options": {
-        "A": "$\\texttt{abc*+d-}$",
-        "B": "$\\texttt{-+*abcd}$",
-        "C": "$\\texttt{abcd*+-}$",
-        "D": "$\\texttt{abc+*d-}$"
+        "A": "`abc*+d-}",
+        "B": "`-+*abcd}",
+        "C": "`abcd*+-}",
+        "D": "`abc+*d-}"
       },
       "answer": "D",
-      "explanation": "参考答案为 D（$\\texttt{abc+*d-}$）。请回到题目条件，按定义、执行顺序或复杂度逐项核对。"
+      "explanation": "参考答案为 D（`abc+*d-}）。请回到题目条件，按定义、执行顺序或复杂度逐项核对。"
     },
     {
       "id": "2020-choice-13",
       "number": 13,
-      "question": "从一个 $4 \\times 4$ 的棋盘中选取不在同一行也不在同一列上的两个方格，共有（ ）种方法。",
+      "question": "从一个 4 × 4 的棋盘中选取不在同一行也不在同一列上的两个方格，共有（ ）种方法。",
       "options": {
         "A": "60",
         "B": "72",
@@ -370,15 +370,15 @@ export const cspSChoicePapers = {
     {
       "id": "2020-choice-14",
       "number": 14,
-      "question": "对一个 $n$ 个顶点、$m$ 条边的带权有向简单图用 Dijkstra 算法计算单源最短路时，如果不使用堆或其它优先队列进行优化，则其时间复杂度为（ ）。",
+      "question": "对一个 n 个顶点、m 条边的带权有向简单图用 Dijkstra 算法计算单源最短路时，如果不使用堆或其它优先队列进行优化，则其时间复杂度为（ ）。",
       "options": {
-        "A": "$O((m + n^2) \\log n)$",
-        "B": "$O(mn + n^3)$",
-        "C": "$O((m + n) \\log n)$",
-        "D": "$O(n^2)$"
+        "A": "O((m + n²) log n)",
+        "B": "O(mn + n³)",
+        "C": "O((m + n) log n)",
+        "D": "O(n²)"
       },
       "answer": "D",
-      "explanation": "参考答案为 D（$O(n^2)$）。请回到题目条件，按定义、执行顺序或复杂度逐项核对。"
+      "explanation": "参考答案为 D（O(n²)）。请回到题目条件，按定义、执行顺序或复杂度逐项核对。"
     },
     {
       "id": "2020-choice-15",
@@ -544,7 +544,7 @@ export const cspSChoicePapers = {
       "question": "斐波那契数列的定义为：F₁ = 1，F₂ = 1，Fₙ = Fₙ₋₁ + Fₙ₋₂ (n>=3)。现在用如下程序来计算斐波那契数列的第 n 项，其时间复杂度为（ ）。\n```\nF(n):\n    if n<=2 return 1\n    else return F(n-1) + F(n-2)\n```",
       "options": {
         "A": "O(n)",
-        "B": "O(n^2)",
+        "B": "O(n²)",
         "C": "O(2ⁿ)",
         "D": "O(n log n)"
       },
@@ -634,7 +634,7 @@ export const cspSChoicePapers = {
     {
       "id": "2022-choice-4",
       "number": 4,
-      "question": "考虑对 n 个数进行排序，以下最坏时间复杂度低于 O(n^2) 的排序方法是（ ）。",
+      "question": "考虑对 n 个数进行排序，以下最坏时间复杂度低于 O(n²) 的排序方法是（ ）。",
       "options": {
         "A": "插入排序",
         "B": "冒泡排序",
@@ -756,9 +756,9 @@ export const cspSChoicePapers = {
         "A": "O(n)",
         "B": "O(n log n)",
         "C": "O(n√n)",
-        "D": "O(n^2)"
+        "D": "O(n²)"
       },
-      "explanation": "参考答案为 B（O(nlog⁡n)O(n \\log n)O(nlogn)）。请回到题目条件，按定义、计算顺序或程序执行过程逐项核对。",
+      "explanation": "参考答案为 B（O(nlog⁡n)O(n log n)O(nlogn)）。请回到题目条件，按定义、计算顺序或程序执行过程逐项核对。",
       "answer": "B"
     },
     {
@@ -821,12 +821,12 @@ export const cspSChoicePapers = {
       "question": "假设 n 是图的顶点的个数，m 是图的边的个数，为求解某一问题有下面四种不同时间复杂度的算法。对于 m=Θ(n) 的稀疏图而言，下面的四个选项，哪一项的渐近时间复杂度最小。（ ）",
       "options": {
         "A": "O(m√log n · log log n)",
-        "B": "O(n^2 + m)",
-        "C": "O(n^2 / log m + m log n)",
+        "B": "O(n² + m)",
+        "C": "O(n² / log m + m log n)",
         "D": "O(m + n log n)"
       },
       "answer": "A",
-      "explanation": "参考答案为 A（O(mlog⁡n⋅log⁡log⁡n)O(m\\sqrt{\\log n}\\cdot \\log\\log n)O(mlogn​⋅loglogn)）。请回到题目条件，按定义、计算顺序或程序执行过程逐项核对。"
+      "explanation": "参考答案为 A（O(mlog⁡n⋅log⁡log⁡n)O(m\\sqrt{log n}\\cdot loglog n)O(mlogn​⋅loglogn)）。请回到题目条件，按定义、计算顺序或程序执行过程逐项核对。"
     },
     {
       "id": "2023-choice-4",
@@ -913,7 +913,7 @@ export const cspSChoicePapers = {
       "options": {
         "A": "快速排序对于此类输入的表现最好，因为数组已经排序。",
         "B": "快速排序对于此类输入的时间复杂度是 O(n log n)。",
-        "C": "快速排序对于此类输入的时间复杂度是 O(n^2)。",
+        "C": "快速排序对于此类输入的时间复杂度是 O(n²)。",
         "D": "快速排序无法对此类数组进行排序，因为数组已经排序。"
       },
       "answer": "C",
@@ -2013,7 +2013,7 @@ export const cspSProgramProblems = [
           "A": "O(n log n)",
           "B": "O(n)",
           "C": "O(log n)",
-          "D": "O(n^2)"
+          "D": "O(n²)"
         },
         "answers": [
           "A"
@@ -2027,7 +2027,7 @@ export const cspSProgramProblems = [
         "number": 4,
         "text": "当输入的 d[i] 是严格单调递减序列时，第 17 行的 swap 平均执行次数是（ ）。",
         "options": {
-          "A": "O(n^2)",
+          "A": "O(n²)",
           "B": "O(n)",
           "C": "O(n log n)",
           "D": "O(log n)"
@@ -2044,9 +2044,9 @@ export const cspSProgramProblems = [
         "number": 5,
         "text": "若输入的 d[i] 为 i，此程序平均的时间复杂度和最坏情况下的时间复杂度分别是（ ）。",
         "options": {
-          "A": "O(n), O(n^2)",
+          "A": "O(n), O(n²)",
           "B": "O(n), O(n log n)",
-          "C": "O(n log n), O(n^2)",
+          "C": "O(n log n), O(n²)",
           "D": "O(n log n), O(n log n)"
         },
         "answers": [
@@ -2054,7 +2054,7 @@ export const cspSProgramProblems = [
         ],
         "multiple": false,
         "score": 2.5,
-        "explanation": "参考答案为 A（O(n), O(n^2)）。请回到题目条件，按定义、执行顺序或复杂度逐项核对。"
+        "explanation": "参考答案为 A（O(n), O(n²)）。请回到题目条件，按定义、执行顺序或复杂度逐项核对。"
       },
       {
         "id": "2020-reading-2-6",
@@ -2064,14 +2064,14 @@ export const cspSProgramProblems = [
           "A": "O(n)",
           "B": "O(log n)",
           "C": "O(n log n)",
-          "D": "O(n^2)"
+          "D": "O(n²)"
         },
         "answers": [
           "D"
         ],
         "multiple": false,
         "score": 2.5,
-        "explanation": "参考答案为 D（$O(n^2)$）。请回到题目条件，按定义、执行顺序或复杂度逐项核对。"
+        "explanation": "参考答案为 D（O(n²)）。请回到题目条件，按定义、执行顺序或复杂度逐项核对。"
       }
     ],
     "sourceUrl": "https://ti.luogu.com.cn/problemset/1035?submission=1544651"
@@ -2190,8 +2190,8 @@ export const cspSProgramProblems = [
     "type": "completion",
     "number": 1,
     "title": "完善程序第 1 题",
-    "description": "三、完善程序（单选题，每小题 $3$ 分，共计 $30$ 分）\n\n1.（分数背包）小 S 有 $n$ 块蛋糕，编号从 $1$ 到 $n$。第 $i$ 块蛋糕的价值是 $w_i$，体积是 $v_i$。他有一个大小为 $B$ 的盒子来装这些蛋糕，也就是说装入盒子的蛋糕的体积总和不能超过 $B$。他打算选择一些蛋糕装入盒子，他希望盒子里装的蛋糕的价值之和尽量大。\n\n  为了使盒子里的蛋糕价值之和更大，他可以任意切割蛋糕。具体来说，他可以选择一个 $a(0<a<1)$，并将一块价值是 $w$，体积为 $v$ 的蛋糕切割成两 块，其中一块的价值是 $a\\times w$，体积是 $a\\times v$，另一块的价值是$(1-a)\\times w$，体积是 $(1-a)\\times v$。他可以重复无限次切割操作。\n\n  现要求编程输出最大可能的价值，以分数的形式输出。\n\n  比如 $n=3,B=8$，三块蛋糕的价值分别是 $4,4,2$，体积分别是 $5,3,2$。那么最优的方案就是将体积为 $5$ 的蛋糕切成两份，一份体积是 $3$，价值是 $2.4$，另一份体积是 $2$，价值是 $1.6$，然后把体积是 $3$ 的那部分和后两块蛋糕打包进盒子。最优的价值之和是 $8.4$，故程序输出 $\\dfrac{42}{5}$。\n\n输入的数据范围为：$1\\leq n\\leq 1000$，$1\\leq B\\leq 10^5$，$1\\leq w_i,v_i\\leq 100$。\n\n  提示：将所有的蛋糕按照性价比 $\\dfrac{w_i}{v_i}$ 可从大到小排序后进行贪心选择。\n\n  试补全程序。\n\n```cpp\n01 #include <cstdio>\n02 using namespace std;\n03 \n04 const int maxn = 1005;\n05 \n06 int n, B, w[maxn], v[maxn];\n07 \n08 int gcd(int u, int v) {\n09     if (v == 0)\n10         return u;\n11     return gcd(v, u % v);\n12 }\n13 \n14 void print(int w, int v) {\n15     int d = gcd(w, v);\n16     w = w / d;\n17     v = v / d;\n18     if (v == 1)\n19         printf(\"%d\\n\", w);\n20     else\n21         printf(\"%d/%d\\n\", w, v);\n22 }\n23 void swap(int &x, int &y) {\n24     int t = x; x = y; y = t;\n25 }\n26 \n27 int main() {\n28     scanf(\"%d %d\", &n, &B);\n29     for (int i = 1; i <= n; i ++) {\n30         scanf(\"%d %d\", &w[i], &v[i]);\n31     }\n32     for (int i = 1; i < n; i ++)\n33         for (int j = 1; j < n; j ++)\n34             if (①) {\n35                 swap(w[j], w[j + 1]);\n36                 swap(v[j], v[j + 1]);\n37             }\n38     int curV, curW;\n39     if  (②) {\n40         ③\n41     } else {\n42         print(B * w[1] , v[1]);\n43         return 0;\n44     }\n45     for (int i = 2; i <= n; i ++)\n46         if (curV + v[i] <= B) {\n47             curV += v[i];\n48             curW += w[i];\n49         } else {\n50             print (④);\n51             return 0;\n52         }\n53     print(⑤);\n54     return 0;\n55 }\n```",
-    "statement": "三、完善程序（单选题，每小题 $3$ 分，共计 $30$ 分）\n\n1.（分数背包）小 S 有 $n$ 块蛋糕，编号从 $1$ 到 $n$。第 $i$ 块蛋糕的价值是 $w_i$，体积是 $v_i$。他有一个大小为 $B$ 的盒子来装这些蛋糕，也就是说装入盒子的蛋糕的体积总和不能超过 $B$。他打算选择一些蛋糕装入盒子，他希望盒子里装的蛋糕的价值之和尽量大。\n\n  为了使盒子里的蛋糕价值之和更大，他可以任意切割蛋糕。具体来说，他可以选择一个 $a(0<a<1)$，并将一块价值是 $w$，体积为 $v$ 的蛋糕切割成两 块，其中一块的价值是 $a\\times w$，体积是 $a\\times v$，另一块的价值是$(1-a)\\times w$，体积是 $(1-a)\\times v$。他可以重复无限次切割操作。\n\n  现要求编程输出最大可能的价值，以分数的形式输出。\n\n  比如 $n=3,B=8$，三块蛋糕的价值分别是 $4,4,2$，体积分别是 $5,3,2$。那么最优的方案就是将体积为 $5$ 的蛋糕切成两份，一份体积是 $3$，价值是 $2.4$，另一份体积是 $2$，价值是 $1.6$，然后把体积是 $3$ 的那部分和后两块蛋糕打包进盒子。最优的价值之和是 $8.4$，故程序输出 $\\dfrac{42}{5}$。\n\n输入的数据范围为：$1\\leq n\\leq 1000$，$1\\leq B\\leq 10^5$，$1\\leq w_i,v_i\\leq 100$。\n\n  提示：将所有的蛋糕按照性价比 $\\dfrac{w_i}{v_i}$ 可从大到小排序后进行贪心选择。\n\n  试补全程序。\n\n```cpp\n01 #include <cstdio>\n02 using namespace std;\n03 \n04 const int maxn = 1005;\n05 \n06 int n, B, w[maxn], v[maxn];\n07 \n08 int gcd(int u, int v) {\n09     if (v == 0)\n10         return u;\n11     return gcd(v, u % v);\n12 }\n13 \n14 void print(int w, int v) {\n15     int d = gcd(w, v);\n16     w = w / d;\n17     v = v / d;\n18     if (v == 1)\n19         printf(\"%d\\n\", w);\n20     else\n21         printf(\"%d/%d\\n\", w, v);\n22 }\n23 void swap(int &x, int &y) {\n24     int t = x; x = y; y = t;\n25 }\n26 \n27 int main() {\n28     scanf(\"%d %d\", &n, &B);\n29     for (int i = 1; i <= n; i ++) {\n30         scanf(\"%d %d\", &w[i], &v[i]);\n31     }\n32     for (int i = 1; i < n; i ++)\n33         for (int j = 1; j < n; j ++)\n34             if (①) {\n35                 swap(w[j], w[j + 1]);\n36                 swap(v[j], v[j + 1]);\n37             }\n38     int curV, curW;\n39     if  (②) {\n40         ③\n41     } else {\n42         print(B * w[1] , v[1]);\n43         return 0;\n44     }\n45     for (int i = 2; i <= n; i ++)\n46         if (curV + v[i] <= B) {\n47             curV += v[i];\n48             curW += w[i];\n49         } else {\n50             print (④);\n51             return 0;\n52         }\n53     print(⑤);\n54     return 0;\n55 }\n```",
+    "description": "三、完善程序（单选题，每小题 3 分，共计 30 分）\n\n1.（分数背包）小 S 有 n 块蛋糕，编号从 1 到 n。第 i 块蛋糕的价值是 w_i，体积是 v_i。他有一个大小为 B 的盒子来装这些蛋糕，也就是说装入盒子的蛋糕的体积总和不能超过 B。他打算选择一些蛋糕装入盒子，他希望盒子里装的蛋糕的价值之和尽量大。\n\n  为了使盒子里的蛋糕价值之和更大，他可以任意切割蛋糕。具体来说，他可以选择一个 a(0<a<1)，并将一块价值是 w，体积为 v 的蛋糕切割成两 块，其中一块的价值是 a× w，体积是 a× v，另一块的价值是(1-a)× w，体积是 (1-a)× v。他可以重复无限次切割操作。\n\n  现要求编程输出最大可能的价值，以分数的形式输出。\n\n  比如 n=3,B=8，三块蛋糕的价值分别是 4,4,2，体积分别是 5,3,2。那么最优的方案就是将体积为 5 的蛋糕切成两份，一份体积是 3，价值是 2.4，另一份体积是 2，价值是 1.6，然后把体积是 3 的那部分和后两块蛋糕打包进盒子。最优的价值之和是 8.4，故程序输出 {42}{5}。\n\n输入的数据范围为：1≤ n≤ 1000，1≤ B≤ 10⁵，1≤ w_i,v_i≤ 100。\n\n  提示：将所有的蛋糕按照性价比 {w_i}{v_i} 可从大到小排序后进行贪心选择。\n\n  试补全程序。\n\n```cpp\n01 #include <cstdio>\n02 using namespace std;\n03 \n04 const int maxn = 1005;\n05 \n06 int n, B, w[maxn], v[maxn];\n07 \n08 int gcd(int u, int v) {\n09     if (v == 0)\n10         return u;\n11     return gcd(v, u % v);\n12 }\n13 \n14 void print(int w, int v) {\n15     int d = gcd(w, v);\n16     w = w / d;\n17     v = v / d;\n18     if (v == 1)\n19         printf(\"%d\\n\", w);\n20     else\n21         printf(\"%d/%d\\n\", w, v);\n22 }\n23 void swap(int &x, int &y) {\n24     int t = x; x = y; y = t;\n25 }\n26 \n27 int main() {\n28     scanf(\"%d %d\", &n, &B);\n29     for (int i = 1; i <= n; i ++) {\n30         scanf(\"%d %d\", &w[i], &v[i]);\n31     }\n32     for (int i = 1; i < n; i ++)\n33         for (int j = 1; j < n; j ++)\n34             if (①) {\n35                 swap(w[j], w[j + 1]);\n36                 swap(v[j], v[j + 1]);\n37             }\n38     int curV, curW;\n39     if  (②) {\n40         ③\n41     } else {\n42         print(B * w[1] , v[1]);\n43         return 0;\n44     }\n45     for (int i = 2; i <= n; i ++)\n46         if (curV + v[i] <= B) {\n47             curV += v[i];\n48             curW += w[i];\n49         } else {\n50             print (④);\n51             return 0;\n52         }\n53     print(⑤);\n54     return 0;\n55 }\n```",
+    "statement": "三、完善程序（单选题，每小题 3 分，共计 30 分）\n\n1.（分数背包）小 S 有 n 块蛋糕，编号从 1 到 n。第 i 块蛋糕的价值是 w_i，体积是 v_i。他有一个大小为 B 的盒子来装这些蛋糕，也就是说装入盒子的蛋糕的体积总和不能超过 B。他打算选择一些蛋糕装入盒子，他希望盒子里装的蛋糕的价值之和尽量大。\n\n  为了使盒子里的蛋糕价值之和更大，他可以任意切割蛋糕。具体来说，他可以选择一个 a(0<a<1)，并将一块价值是 w，体积为 v 的蛋糕切割成两 块，其中一块的价值是 a× w，体积是 a× v，另一块的价值是(1-a)× w，体积是 (1-a)× v。他可以重复无限次切割操作。\n\n  现要求编程输出最大可能的价值，以分数的形式输出。\n\n  比如 n=3,B=8，三块蛋糕的价值分别是 4,4,2，体积分别是 5,3,2。那么最优的方案就是将体积为 5 的蛋糕切成两份，一份体积是 3，价值是 2.4，另一份体积是 2，价值是 1.6，然后把体积是 3 的那部分和后两块蛋糕打包进盒子。最优的价值之和是 8.4，故程序输出 {42}{5}。\n\n输入的数据范围为：1≤ n≤ 1000，1≤ B≤ 10⁵，1≤ w_i,v_i≤ 100。\n\n  提示：将所有的蛋糕按照性价比 {w_i}{v_i} 可从大到小排序后进行贪心选择。\n\n  试补全程序。\n\n```cpp\n01 #include <cstdio>\n02 using namespace std;\n03 \n04 const int maxn = 1005;\n05 \n06 int n, B, w[maxn], v[maxn];\n07 \n08 int gcd(int u, int v) {\n09     if (v == 0)\n10         return u;\n11     return gcd(v, u % v);\n12 }\n13 \n14 void print(int w, int v) {\n15     int d = gcd(w, v);\n16     w = w / d;\n17     v = v / d;\n18     if (v == 1)\n19         printf(\"%d\\n\", w);\n20     else\n21         printf(\"%d/%d\\n\", w, v);\n22 }\n23 void swap(int &x, int &y) {\n24     int t = x; x = y; y = t;\n25 }\n26 \n27 int main() {\n28     scanf(\"%d %d\", &n, &B);\n29     for (int i = 1; i <= n; i ++) {\n30         scanf(\"%d %d\", &w[i], &v[i]);\n31     }\n32     for (int i = 1; i < n; i ++)\n33         for (int j = 1; j < n; j ++)\n34             if (①) {\n35                 swap(w[j], w[j + 1]);\n36                 swap(v[j], v[j + 1]);\n37             }\n38     int curV, curW;\n39     if  (②) {\n40         ③\n41     } else {\n42         print(B * w[1] , v[1]);\n43         return 0;\n44     }\n45     for (int i = 2; i <= n; i ++)\n46         if (curV + v[i] <= B) {\n47             curV += v[i];\n48             curW += w[i];\n49         } else {\n50             print (④);\n51             return 0;\n52         }\n53     print(⑤);\n54     return 0;\n55 }\n```",
     "questions": [
       {
         "id": "2020-completion-1-1",
@@ -3157,7 +3157,7 @@ export const cspSProgramProblems = [
           "A": "Θ(√n)",
           "B": "Θ(n)",
           "C": "Θ(n log n)",
-          "D": "Θ(n^2)"
+          "D": "Θ(n²)"
         },
         "answers": [
           "B"
@@ -3282,8 +3282,8 @@ export const cspSProgramProblems = [
     "type": "completion",
     "number": 2,
     "title": "完善程序第 2 题",
-    "description": "（2）（RMQ 区间最值问题）给定序列 a₁,…,aₙ，和 m 次询问，每次询问给定 l,r，求 max{aₗ,…,aᵣ}。\n\n为了解决该问题，有一个算法叫 the Method of Four Russians，其时间复杂度为 O(n+m)，步骤如下：\n• 建立 Cartesian（笛卡尔）树，将问题转化为树上的 LCA（最近公共祖先）问题。\n• 对于 LCA 问题，可以考虑其 Euler 序（即按照 DFS 过程，经过所有点，环游回根的序列），即求 Euler 序列上两点间一个新的 RMQ 问题。\n• 注意新的问题为 ±1 RMQ，即相邻两点的深度差一定为 1。\n\n下面解决这个 ±1 RMQ 问题，\"序列\"指 Euler 序列：\n• 设 t 为 Euler 序列长度。取 b=⌈log₂t / 2⌉。将序列每 b 个分为一大块，使用 ST 表（倍增表）处理大块间的 RMQ 问题，复杂度 O((t/b) * log t) = O(n)。\n• （重点）对于一个块内的 RMQ 问题，也需要 O(1) 的算法。由于差分数组只有 2^(b-1) 种，可以预处理出所有情况下的最值位置，预处理复杂度 O(b·2^b)，不超过 O(n)。\n• 最终，对于一个查询，可以转化为中间整的大块的 RMQ 问题，以及两端块内的 RMQ 问题。\n\n试补全程序。\n\n```cpp\n001 #include <iostream>\n002 #include <cmath>\n003 \n004 using namespace std;\n005 \n006 const int MAXN = 100000, MAXT = MAXN << 1;\n007 const int MAXL = 18, MAXB = 9, MAXC = MAXT / MAXB;\n008 \n009 struct node {\n010     int val;\n011     int dep, dfn, end;\n012     node *son[2]; // son[0], son[1] 分别表示左右儿子\n013 } T[MAXN];\n014 \n015 int n, t, b, c, Log2[MAXC + 1];\n016 int Pos[(1 << (MAXB - 1)) + 5], Dif[MAXC + 1];\n017 node *root, *A[MAXT], *Min[MAXL][MAXC];\n018 \n019 void build() { // 建立 Cartesian 树\n020     static node *S[MAXN + 1];\n021     int top = 0;\n022     for (int i = 0; i < n; i++) {\n023         node *p = &T[i];\n024         while (top && S[top]->val < p->val)\n025             ①;\n026         if (top)\n027             ②;\n028         S[++top] = p;\n029     }\n030     root = S[1];\n031 }\n032 \n033 void DFS(node *p) { // 构建 Euler 序列\n034     A[p->dfn = t++] = p;\n035     for (int i = 0; i < 2; i++)\n036         if (p->son[i]) {\n037             p->son[i]->dep = p->dep + 1;\n038             DFS(p->son[i]);\n039             A[t++] = p;\n040         }\n041     p->end = t - 1;\n042 }\n043 \n044 node *min(node *x, node *y) {\n045     return ③ ? x : y;\n046 }\n047 \n048 void ST_init() {\n049     b = (int)(ceil(log2(t) / 2));\n050     c = t / b;\n051     Log2[1] = 0;\n052     for (int i = 2; i <= c; i++)\n053         Log2[i] = Log2[i >> 1] + 1;\n054     for (int i = 0; i < c; i++) {\n055         Min[0][i] = A[i * b];\n056         for (int j = 1; j < b; j++)\n057             Min[0][i] = min(Min[0][i], A[i * b + j]);\n058     }\n059     for (int i = 1, l = 2; l <= c; i++, l <<= 1)\n060         for (int j = 0; j + l <= c; j++)\n061             Min[i][j] = min(Min[i - 1][j], Min[i - 1][j + (l >> 1)]);\n062 }\n063 \n064 void small_init() { // 块内预处理\n065     for (int i = 0; i <= c; i++)\n066         for (int j = 1; j < b && i * b + j < t; j++)\n067             if (④)\n068                 Dif[i] |= 1 << (j - 1);\n069     for (int S = 0; S < (1 << (b - 1)); S++) {\n070         int mx = 0, v = 0;\n071         for (int i = 1; i < b; i++) {\n072             ⑤;\n073             if (v < mx) {\n074                 mx = v;\n075                 Pos[S] = i;\n076             }\n077         }\n078     }\n079 }\n080 \n081 node *ST_query(int l, int r) {\n082     int g = Log2[r - l + 1];\n083     return min(Min[g][l], Min[g][r - (1 << g) + 1]);\n084 }\n085 \n086 node *small_query(int l, int r) { // 块内查询\n087     int p = l / b;\n088     int S = ⑥;\n089     return A[l + Pos[S]];\n090 }\n091 \n092 node *query(int l, int r) {\n093     if (l > r)\n094         return query(r, l);\n095     int pl = l / b, pr = r / b;\n096     if (pl == pr) {\n097         return small_query(l, r);\n098     } else {\n099         node *s = min(small_query(l, pl * b + b - 1), small_query(pr * b, r));\n100         if (pl + 1 <= pr - 1)\n101             s = min(s, ST_query(pl + 1, pr - 1));\n102         return s;\n103     }\n104 }\n105 \n106 int main() {\n107     int m;\n108     cin >> n >> m;\n109     for (int i = 0; i < n; i++)\n110         cin >> T[i].val;\n111     build();\n112     DFS(root);\n113     ST_init();\n114     small_init();\n115     while (m--) {\n116         int l, r;\n117         cin >> l >> r;\n118         cout << query(T[l].dfn, T[r].dfn)->val << endl;\n119     }\n120     return 0;\n121 }\n\n```",
-    "statement": "（2）（RMQ 区间最值问题）给定序列 a₁,…,aₙ，和 m 次询问，每次询问给定 l,r，求 max{aₗ,…,aᵣ}。\n\n为了解决该问题，有一个算法叫 the Method of Four Russians，其时间复杂度为 O(n+m)，步骤如下：\n• 建立 Cartesian（笛卡尔）树，将问题转化为树上的 LCA（最近公共祖先）问题。\n• 对于 LCA 问题，可以考虑其 Euler 序（即按照 DFS 过程，经过所有点，环游回根的序列），即求 Euler 序列上两点间一个新的 RMQ 问题。\n• 注意新的问题为 ±1 RMQ，即相邻两点的深度差一定为 1。\n\n下面解决这个 ±1 RMQ 问题，\"序列\"指 Euler 序列：\n• 设 t 为 Euler 序列长度。取 b=⌈log₂t / 2⌉。将序列每 b 个分为一大块，使用 ST 表（倍增表）处理大块间的 RMQ 问题，复杂度 O((t/b) * log t) = O(n)。\n• （重点）对于一个块内的 RMQ 问题，也需要 O(1) 的算法。由于差分数组只有 2^(b-1) 种，可以预处理出所有情况下的最值位置，预处理复杂度 O(b·2^b)，不超过 O(n)。\n• 最终，对于一个查询，可以转化为中间整的大块的 RMQ 问题，以及两端块内的 RMQ 问题。\n\n试补全程序。\n\n```cpp\n001 #include <iostream>\n002 #include <cmath>\n003 \n004 using namespace std;\n005 \n006 const int MAXN = 100000, MAXT = MAXN << 1;\n007 const int MAXL = 18, MAXB = 9, MAXC = MAXT / MAXB;\n008 \n009 struct node {\n010     int val;\n011     int dep, dfn, end;\n012     node *son[2]; // son[0], son[1] 分别表示左右儿子\n013 } T[MAXN];\n014 \n015 int n, t, b, c, Log2[MAXC + 1];\n016 int Pos[(1 << (MAXB - 1)) + 5], Dif[MAXC + 1];\n017 node *root, *A[MAXT], *Min[MAXL][MAXC];\n018 \n019 void build() { // 建立 Cartesian 树\n020     static node *S[MAXN + 1];\n021     int top = 0;\n022     for (int i = 0; i < n; i++) {\n023         node *p = &T[i];\n024         while (top && S[top]->val < p->val)\n025             ①;\n026         if (top)\n027             ②;\n028         S[++top] = p;\n029     }\n030     root = S[1];\n031 }\n032 \n033 void DFS(node *p) { // 构建 Euler 序列\n034     A[p->dfn = t++] = p;\n035     for (int i = 0; i < 2; i++)\n036         if (p->son[i]) {\n037             p->son[i]->dep = p->dep + 1;\n038             DFS(p->son[i]);\n039             A[t++] = p;\n040         }\n041     p->end = t - 1;\n042 }\n043 \n044 node *min(node *x, node *y) {\n045     return ③ ? x : y;\n046 }\n047 \n048 void ST_init() {\n049     b = (int)(ceil(log2(t) / 2));\n050     c = t / b;\n051     Log2[1] = 0;\n052     for (int i = 2; i <= c; i++)\n053         Log2[i] = Log2[i >> 1] + 1;\n054     for (int i = 0; i < c; i++) {\n055         Min[0][i] = A[i * b];\n056         for (int j = 1; j < b; j++)\n057             Min[0][i] = min(Min[0][i], A[i * b + j]);\n058     }\n059     for (int i = 1, l = 2; l <= c; i++, l <<= 1)\n060         for (int j = 0; j + l <= c; j++)\n061             Min[i][j] = min(Min[i - 1][j], Min[i - 1][j + (l >> 1)]);\n062 }\n063 \n064 void small_init() { // 块内预处理\n065     for (int i = 0; i <= c; i++)\n066         for (int j = 1; j < b && i * b + j < t; j++)\n067             if (④)\n068                 Dif[i] |= 1 << (j - 1);\n069     for (int S = 0; S < (1 << (b - 1)); S++) {\n070         int mx = 0, v = 0;\n071         for (int i = 1; i < b; i++) {\n072             ⑤;\n073             if (v < mx) {\n074                 mx = v;\n075                 Pos[S] = i;\n076             }\n077         }\n078     }\n079 }\n080 \n081 node *ST_query(int l, int r) {\n082     int g = Log2[r - l + 1];\n083     return min(Min[g][l], Min[g][r - (1 << g) + 1]);\n084 }\n085 \n086 node *small_query(int l, int r) { // 块内查询\n087     int p = l / b;\n088     int S = ⑥;\n089     return A[l + Pos[S]];\n090 }\n091 \n092 node *query(int l, int r) {\n093     if (l > r)\n094         return query(r, l);\n095     int pl = l / b, pr = r / b;\n096     if (pl == pr) {\n097         return small_query(l, r);\n098     } else {\n099         node *s = min(small_query(l, pl * b + b - 1), small_query(pr * b, r));\n100         if (pl + 1 <= pr - 1)\n101             s = min(s, ST_query(pl + 1, pr - 1));\n102         return s;\n103     }\n104 }\n105 \n106 int main() {\n107     int m;\n108     cin >> n >> m;\n109     for (int i = 0; i < n; i++)\n110         cin >> T[i].val;\n111     build();\n112     DFS(root);\n113     ST_init();\n114     small_init();\n115     while (m--) {\n116         int l, r;\n117         cin >> l >> r;\n118         cout << query(T[l].dfn, T[r].dfn)->val << endl;\n119     }\n120     return 0;\n121 }\n\n```",
+    "description": "（2）（RMQ 区间最值问题）给定序列 a₁,…,aₙ，和 m 次询问，每次询问给定 l,r，求 max{aₗ,…,aᵣ}。\n\n为了解决该问题，有一个算法叫 the Method of Four Russians，其时间复杂度为 O(n+m)，步骤如下：\n• 建立 Cartesian（笛卡尔）树，将问题转化为树上的 LCA（最近公共祖先）问题。\n• 对于 LCA 问题，可以考虑其 Euler 序（即按照 DFS 过程，经过所有点，环游回根的序列），即求 Euler 序列上两点间一个新的 RMQ 问题。\n• 注意新的问题为 ±1 RMQ，即相邻两点的深度差一定为 1。\n\n下面解决这个 ±1 RMQ 问题，\"序列\"指 Euler 序列：\n• 设 t 为 Euler 序列长度。取 b=⌈log₂t / 2⌉。将序列每 b 个分为一大块，使用 ST 表（倍增表）处理大块间的 RMQ 问题，复杂度 O((t/b) * log t) = O(n)。\n• （重点）对于一个块内的 RMQ 问题，也需要 O(1) 的算法。由于差分数组只有 2^(b-1) 种，可以预处理出所有情况下的最值位置，预处理复杂度 O(b·2ᵇ)，不超过 O(n)。\n• 最终，对于一个查询，可以转化为中间整的大块的 RMQ 问题，以及两端块内的 RMQ 问题。\n\n试补全程序。\n\n```cpp\n001 #include <iostream>\n002 #include <cmath>\n003 \n004 using namespace std;\n005 \n006 const int MAXN = 100000, MAXT = MAXN << 1;\n007 const int MAXL = 18, MAXB = 9, MAXC = MAXT / MAXB;\n008 \n009 struct node {\n010     int val;\n011     int dep, dfn, end;\n012     node *son[2]; // son[0], son[1] 分别表示左右儿子\n013 } T[MAXN];\n014 \n015 int n, t, b, c, Log2[MAXC + 1];\n016 int Pos[(1 << (MAXB - 1)) + 5], Dif[MAXC + 1];\n017 node *root, *A[MAXT], *Min[MAXL][MAXC];\n018 \n019 void build() { // 建立 Cartesian 树\n020     static node *S[MAXN + 1];\n021     int top = 0;\n022     for (int i = 0; i < n; i++) {\n023         node *p = &T[i];\n024         while (top && S[top]->val < p->val)\n025             ①;\n026         if (top)\n027             ②;\n028         S[++top] = p;\n029     }\n030     root = S[1];\n031 }\n032 \n033 void DFS(node *p) { // 构建 Euler 序列\n034     A[p->dfn = t++] = p;\n035     for (int i = 0; i < 2; i++)\n036         if (p->son[i]) {\n037             p->son[i]->dep = p->dep + 1;\n038             DFS(p->son[i]);\n039             A[t++] = p;\n040         }\n041     p->end = t - 1;\n042 }\n043 \n044 node *min(node *x, node *y) {\n045     return ③ ? x : y;\n046 }\n047 \n048 void ST_init() {\n049     b = (int)(ceil(log2(t) / 2));\n050     c = t / b;\n051     Log2[1] = 0;\n052     for (int i = 2; i <= c; i++)\n053         Log2[i] = Log2[i >> 1] + 1;\n054     for (int i = 0; i < c; i++) {\n055         Min[0][i] = A[i * b];\n056         for (int j = 1; j < b; j++)\n057             Min[0][i] = min(Min[0][i], A[i * b + j]);\n058     }\n059     for (int i = 1, l = 2; l <= c; i++, l <<= 1)\n060         for (int j = 0; j + l <= c; j++)\n061             Min[i][j] = min(Min[i - 1][j], Min[i - 1][j + (l >> 1)]);\n062 }\n063 \n064 void small_init() { // 块内预处理\n065     for (int i = 0; i <= c; i++)\n066         for (int j = 1; j < b && i * b + j < t; j++)\n067             if (④)\n068                 Dif[i] |= 1 << (j - 1);\n069     for (int S = 0; S < (1 << (b - 1)); S++) {\n070         int mx = 0, v = 0;\n071         for (int i = 1; i < b; i++) {\n072             ⑤;\n073             if (v < mx) {\n074                 mx = v;\n075                 Pos[S] = i;\n076             }\n077         }\n078     }\n079 }\n080 \n081 node *ST_query(int l, int r) {\n082     int g = Log2[r - l + 1];\n083     return min(Min[g][l], Min[g][r - (1 << g) + 1]);\n084 }\n085 \n086 node *small_query(int l, int r) { // 块内查询\n087     int p = l / b;\n088     int S = ⑥;\n089     return A[l + Pos[S]];\n090 }\n091 \n092 node *query(int l, int r) {\n093     if (l > r)\n094         return query(r, l);\n095     int pl = l / b, pr = r / b;\n096     if (pl == pr) {\n097         return small_query(l, r);\n098     } else {\n099         node *s = min(small_query(l, pl * b + b - 1), small_query(pr * b, r));\n100         if (pl + 1 <= pr - 1)\n101             s = min(s, ST_query(pl + 1, pr - 1));\n102         return s;\n103     }\n104 }\n105 \n106 int main() {\n107     int m;\n108     cin >> n >> m;\n109     for (int i = 0; i < n; i++)\n110         cin >> T[i].val;\n111     build();\n112     DFS(root);\n113     ST_init();\n114     small_init();\n115     while (m--) {\n116         int l, r;\n117         cin >> l >> r;\n118         cout << query(T[l].dfn, T[r].dfn)->val << endl;\n119     }\n120     return 0;\n121 }\n\n```",
+    "statement": "（2）（RMQ 区间最值问题）给定序列 a₁,…,aₙ，和 m 次询问，每次询问给定 l,r，求 max{aₗ,…,aᵣ}。\n\n为了解决该问题，有一个算法叫 the Method of Four Russians，其时间复杂度为 O(n+m)，步骤如下：\n• 建立 Cartesian（笛卡尔）树，将问题转化为树上的 LCA（最近公共祖先）问题。\n• 对于 LCA 问题，可以考虑其 Euler 序（即按照 DFS 过程，经过所有点，环游回根的序列），即求 Euler 序列上两点间一个新的 RMQ 问题。\n• 注意新的问题为 ±1 RMQ，即相邻两点的深度差一定为 1。\n\n下面解决这个 ±1 RMQ 问题，\"序列\"指 Euler 序列：\n• 设 t 为 Euler 序列长度。取 b=⌈log₂t / 2⌉。将序列每 b 个分为一大块，使用 ST 表（倍增表）处理大块间的 RMQ 问题，复杂度 O((t/b) * log t) = O(n)。\n• （重点）对于一个块内的 RMQ 问题，也需要 O(1) 的算法。由于差分数组只有 2^(b-1) 种，可以预处理出所有情况下的最值位置，预处理复杂度 O(b·2ᵇ)，不超过 O(n)。\n• 最终，对于一个查询，可以转化为中间整的大块的 RMQ 问题，以及两端块内的 RMQ 问题。\n\n试补全程序。\n\n```cpp\n001 #include <iostream>\n002 #include <cmath>\n003 \n004 using namespace std;\n005 \n006 const int MAXN = 100000, MAXT = MAXN << 1;\n007 const int MAXL = 18, MAXB = 9, MAXC = MAXT / MAXB;\n008 \n009 struct node {\n010     int val;\n011     int dep, dfn, end;\n012     node *son[2]; // son[0], son[1] 分别表示左右儿子\n013 } T[MAXN];\n014 \n015 int n, t, b, c, Log2[MAXC + 1];\n016 int Pos[(1 << (MAXB - 1)) + 5], Dif[MAXC + 1];\n017 node *root, *A[MAXT], *Min[MAXL][MAXC];\n018 \n019 void build() { // 建立 Cartesian 树\n020     static node *S[MAXN + 1];\n021     int top = 0;\n022     for (int i = 0; i < n; i++) {\n023         node *p = &T[i];\n024         while (top && S[top]->val < p->val)\n025             ①;\n026         if (top)\n027             ②;\n028         S[++top] = p;\n029     }\n030     root = S[1];\n031 }\n032 \n033 void DFS(node *p) { // 构建 Euler 序列\n034     A[p->dfn = t++] = p;\n035     for (int i = 0; i < 2; i++)\n036         if (p->son[i]) {\n037             p->son[i]->dep = p->dep + 1;\n038             DFS(p->son[i]);\n039             A[t++] = p;\n040         }\n041     p->end = t - 1;\n042 }\n043 \n044 node *min(node *x, node *y) {\n045     return ③ ? x : y;\n046 }\n047 \n048 void ST_init() {\n049     b = (int)(ceil(log2(t) / 2));\n050     c = t / b;\n051     Log2[1] = 0;\n052     for (int i = 2; i <= c; i++)\n053         Log2[i] = Log2[i >> 1] + 1;\n054     for (int i = 0; i < c; i++) {\n055         Min[0][i] = A[i * b];\n056         for (int j = 1; j < b; j++)\n057             Min[0][i] = min(Min[0][i], A[i * b + j]);\n058     }\n059     for (int i = 1, l = 2; l <= c; i++, l <<= 1)\n060         for (int j = 0; j + l <= c; j++)\n061             Min[i][j] = min(Min[i - 1][j], Min[i - 1][j + (l >> 1)]);\n062 }\n063 \n064 void small_init() { // 块内预处理\n065     for (int i = 0; i <= c; i++)\n066         for (int j = 1; j < b && i * b + j < t; j++)\n067             if (④)\n068                 Dif[i] |= 1 << (j - 1);\n069     for (int S = 0; S < (1 << (b - 1)); S++) {\n070         int mx = 0, v = 0;\n071         for (int i = 1; i < b; i++) {\n072             ⑤;\n073             if (v < mx) {\n074                 mx = v;\n075                 Pos[S] = i;\n076             }\n077         }\n078     }\n079 }\n080 \n081 node *ST_query(int l, int r) {\n082     int g = Log2[r - l + 1];\n083     return min(Min[g][l], Min[g][r - (1 << g) + 1]);\n084 }\n085 \n086 node *small_query(int l, int r) { // 块内查询\n087     int p = l / b;\n088     int S = ⑥;\n089     return A[l + Pos[S]];\n090 }\n091 \n092 node *query(int l, int r) {\n093     if (l > r)\n094         return query(r, l);\n095     int pl = l / b, pr = r / b;\n096     if (pl == pr) {\n097         return small_query(l, r);\n098     } else {\n099         node *s = min(small_query(l, pl * b + b - 1), small_query(pr * b, r));\n100         if (pl + 1 <= pr - 1)\n101             s = min(s, ST_query(pl + 1, pr - 1));\n102         return s;\n103     }\n104 }\n105 \n106 int main() {\n107     int m;\n108     cin >> n >> m;\n109     for (int i = 0; i < n; i++)\n110         cin >> T[i].val;\n111     build();\n112     DFS(root);\n113     ST_init();\n114     small_init();\n115     while (m--) {\n116         int l, r;\n117         cin >> l >> r;\n118         cout << query(T[l].dfn, T[r].dfn)->val << endl;\n119     }\n120     return 0;\n121 }\n\n```",
     "questions": [
       {
         "id": "2021-completion-2-1",
@@ -4066,10 +4066,10 @@ export const cspSProgramProblems = [
         "number": 4,
         "text": "solve1(n) 的时间复杂度为（）。",
         "options": {
-          "A": "O(nlog⁡2n)O(n \\log^2 n)O(nlog2n)",
+          "A": "O(nlog⁡2n)O(n log^2 n)O(nlog2n)",
           "B": "O(n)O(n)O(n)",
-          "C": "O(nlog⁡n)O(n \\log n)O(nlogn)",
-          "D": "O(nlog⁡log⁡n)O(n \\log\\log n)O(nloglogn)"
+          "C": "O(nlog⁡n)O(n log n)O(nlogn)",
+          "D": "O(nlog⁡log⁡n)O(n loglog n)O(nloglogn)"
         },
         "answers": [
           "D"
@@ -4077,15 +4077,15 @@ export const cspSProgramProblems = [
         "multiple": false,
         "score": 3,
         "id": "2023-reading-2-4",
-        "explanation": "参考答案为 D（O(nlog⁡log⁡n)O(n \\log\\log n)O(nloglogn)）。请回到题目条件，按定义、执行顺序或复杂度逐项核对。"
+        "explanation": "参考答案为 D（O(nlog⁡log⁡n)O(n loglog n)O(nloglogn)）。请回到题目条件，按定义、执行顺序或复杂度逐项核对。"
       },
       {
         "number": 5,
         "text": "solve2(n) 的时间复杂度为（）。",
         "options": {
-          "A": "O(n2)O(n^2)O(n2)",
+          "A": "O(n2)O(n²)O(n2)",
           "B": "O(n)O(n)O(n)",
-          "C": "O(nlog⁡n)O(n \\log n)O(nlogn)",
+          "C": "O(nlog⁡n)O(n log n)O(nlogn)",
           "D": "O(nn)O(n \\sqrt n)O(nn​)"
         },
         "answers": [
@@ -4174,10 +4174,10 @@ export const cspSProgramProblems = [
         "number": 4,
         "text": "设 a 数组中最大值减最小值加 1 为 A，则 f 函数的时间复杂度为（）。",
         "options": {
-          "A": "O(nlog⁡A)O(n \\log A)O(nlogA)",
-          "B": "O(n2log⁡A)O(n^2 \\log A)O(n2logA)",
-          "C": "O(nlog⁡(nA))O(n \\log (nA))O(nlog(nA))",
-          "D": "O(nlog⁡n)O(n \\log n)O(nlogn)"
+          "A": "O(nlog⁡A)O(n log A)O(nlogA)",
+          "B": "O(n2log⁡A)O(n² log A)O(n2logA)",
+          "C": "O(nlog⁡(nA))O(n log (nA))O(nlog(nA))",
+          "D": "O(nlog⁡n)O(n log n)O(nlogn)"
         },
         "answers": [
           "C"
@@ -4185,7 +4185,7 @@ export const cspSProgramProblems = [
         "multiple": false,
         "score": 3,
         "id": "2023-reading-3-4",
-        "explanation": "参考答案为 C（O(nlog⁡(nA))O(n \\log (nA))O(nlog(nA))）。请回到题目条件，按定义、执行顺序或复杂度逐项核对。"
+        "explanation": "参考答案为 C（O(nlog⁡(nA))O(n log (nA))O(nlog(nA))）。请回到题目条件，按定义、执行顺序或复杂度逐项核对。"
       },
       {
         "number": 5,
@@ -4230,8 +4230,8 @@ export const cspSProgramProblems = [
     "type": "completion",
     "number": 1,
     "title": "完善程序第 1 题",
-    "description": "（1）（第 k 小路径）给定一张 n 个点 m 条边的有向无环图，顶点编号从 0 到 n-1。\n\n对于一条路径，我们定义\"路径序列\"为该路径从起点出发依次经过的顶点编号构成的序列。求所有至少包含一个点的简单路径中，\"路径序列\"字典序第 k 小的路径。保证存在至少 k 条路径。上述参数满足 1 ≤ n, m ≤ 10^5 和 1 ≤ k ≤ 10^18。\n\n在程序中，我们求出从每个点出发的路径数量 f[u]。超过 10^18 的数都用 LIM 表示。然后我们根据 k 的值和每个顶点的路径数量，确定路径的起点，然后可以类似地依次求出路径中的每个点。\n\n试补全程序。\n\n```cpp\n#include <iostream>\n#include <algorithm>\n#include <vector>\n\nconst int MAXN = 100000;\nconst long long LIM = 1000000000000000000ll;\n\nint n, m, deg[MAXN];\nstd::vector<int> E[MAXN];\n\nlong long k, f[MAXN];\n\nint next(std::vector<int> cand, long long &k) {\n    std::sort(cand.begin(), cand.end());\n    for (int u : cand) {\n        if (①) return u;\n        k -= f[u];\n    }\n    return -1;\n}\n\nint main() {\n    std::cin >> n >> m >> k;\n    for (int i = 0; i < m; ++i) {\n        int u, v;\n        std::cin >> u >> v; // 一条从 u 到 v 的边\n        E[u].push_back(v);\n        ++deg[v];\n    }\n    std::vector<int> Q;\n    for (int i = 0; i < n; ++i)\n        if (!deg[i]) Q.push_back(i);\n    for (int i = 0; i < n; ++i) {\n        int u = Q[i];\n        for (int v : E[u]) {\n            if (②) Q.push_back(v);\n            --deg[v];\n        }\n    }\n    std::reverse(Q.begin(), Q.end());\n    for (int u : Q) {\n        f[u] = 1;\n        for (int v : E[u]) f[u] = ③;\n    }\n    int u = next(Q, k);\n    std::cout << u << std::endl;\n    while (④) {\n        ⑤;\n        u = next(E[u], k);\n        std::cout << u << std::endl;\n    }\n    return 0;\n}\n\n```",
-    "statement": "（1）（第 k 小路径）给定一张 n 个点 m 条边的有向无环图，顶点编号从 0 到 n-1。\n\n对于一条路径，我们定义\"路径序列\"为该路径从起点出发依次经过的顶点编号构成的序列。求所有至少包含一个点的简单路径中，\"路径序列\"字典序第 k 小的路径。保证存在至少 k 条路径。上述参数满足 1 ≤ n, m ≤ 10^5 和 1 ≤ k ≤ 10^18。\n\n在程序中，我们求出从每个点出发的路径数量 f[u]。超过 10^18 的数都用 LIM 表示。然后我们根据 k 的值和每个顶点的路径数量，确定路径的起点，然后可以类似地依次求出路径中的每个点。\n\n试补全程序。\n\n```cpp\n#include <iostream>\n#include <algorithm>\n#include <vector>\n\nconst int MAXN = 100000;\nconst long long LIM = 1000000000000000000ll;\n\nint n, m, deg[MAXN];\nstd::vector<int> E[MAXN];\n\nlong long k, f[MAXN];\n\nint next(std::vector<int> cand, long long &k) {\n    std::sort(cand.begin(), cand.end());\n    for (int u : cand) {\n        if (①) return u;\n        k -= f[u];\n    }\n    return -1;\n}\n\nint main() {\n    std::cin >> n >> m >> k;\n    for (int i = 0; i < m; ++i) {\n        int u, v;\n        std::cin >> u >> v; // 一条从 u 到 v 的边\n        E[u].push_back(v);\n        ++deg[v];\n    }\n    std::vector<int> Q;\n    for (int i = 0; i < n; ++i)\n        if (!deg[i]) Q.push_back(i);\n    for (int i = 0; i < n; ++i) {\n        int u = Q[i];\n        for (int v : E[u]) {\n            if (②) Q.push_back(v);\n            --deg[v];\n        }\n    }\n    std::reverse(Q.begin(), Q.end());\n    for (int u : Q) {\n        f[u] = 1;\n        for (int v : E[u]) f[u] = ③;\n    }\n    int u = next(Q, k);\n    std::cout << u << std::endl;\n    while (④) {\n        ⑤;\n        u = next(E[u], k);\n        std::cout << u << std::endl;\n    }\n    return 0;\n}\n\n```",
+    "description": "（1）（第 k 小路径）给定一张 n 个点 m 条边的有向无环图，顶点编号从 0 到 n-1。\n\n对于一条路径，我们定义\"路径序列\"为该路径从起点出发依次经过的顶点编号构成的序列。求所有至少包含一个点的简单路径中，\"路径序列\"字典序第 k 小的路径。保证存在至少 k 条路径。上述参数满足 1 ≤ n, m ≤ 10⁵ 和 1 ≤ k ≤ 10^18。\n\n在程序中，我们求出从每个点出发的路径数量 f[u]。超过 10^18 的数都用 LIM 表示。然后我们根据 k 的值和每个顶点的路径数量，确定路径的起点，然后可以类似地依次求出路径中的每个点。\n\n试补全程序。\n\n```cpp\n#include <iostream>\n#include <algorithm>\n#include <vector>\n\nconst int MAXN = 100000;\nconst long long LIM = 1000000000000000000ll;\n\nint n, m, deg[MAXN];\nstd::vector<int> E[MAXN];\n\nlong long k, f[MAXN];\n\nint next(std::vector<int> cand, long long &k) {\n    std::sort(cand.begin(), cand.end());\n    for (int u : cand) {\n        if (①) return u;\n        k -= f[u];\n    }\n    return -1;\n}\n\nint main() {\n    std::cin >> n >> m >> k;\n    for (int i = 0; i < m; ++i) {\n        int u, v;\n        std::cin >> u >> v; // 一条从 u 到 v 的边\n        E[u].push_back(v);\n        ++deg[v];\n    }\n    std::vector<int> Q;\n    for (int i = 0; i < n; ++i)\n        if (!deg[i]) Q.push_back(i);\n    for (int i = 0; i < n; ++i) {\n        int u = Q[i];\n        for (int v : E[u]) {\n            if (②) Q.push_back(v);\n            --deg[v];\n        }\n    }\n    std::reverse(Q.begin(), Q.end());\n    for (int u : Q) {\n        f[u] = 1;\n        for (int v : E[u]) f[u] = ③;\n    }\n    int u = next(Q, k);\n    std::cout << u << std::endl;\n    while (④) {\n        ⑤;\n        u = next(E[u], k);\n        std::cout << u << std::endl;\n    }\n    return 0;\n}\n\n```",
+    "statement": "（1）（第 k 小路径）给定一张 n 个点 m 条边的有向无环图，顶点编号从 0 到 n-1。\n\n对于一条路径，我们定义\"路径序列\"为该路径从起点出发依次经过的顶点编号构成的序列。求所有至少包含一个点的简单路径中，\"路径序列\"字典序第 k 小的路径。保证存在至少 k 条路径。上述参数满足 1 ≤ n, m ≤ 10⁵ 和 1 ≤ k ≤ 10^18。\n\n在程序中，我们求出从每个点出发的路径数量 f[u]。超过 10^18 的数都用 LIM 表示。然后我们根据 k 的值和每个顶点的路径数量，确定路径的起点，然后可以类似地依次求出路径中的每个点。\n\n试补全程序。\n\n```cpp\n#include <iostream>\n#include <algorithm>\n#include <vector>\n\nconst int MAXN = 100000;\nconst long long LIM = 1000000000000000000ll;\n\nint n, m, deg[MAXN];\nstd::vector<int> E[MAXN];\n\nlong long k, f[MAXN];\n\nint next(std::vector<int> cand, long long &k) {\n    std::sort(cand.begin(), cand.end());\n    for (int u : cand) {\n        if (①) return u;\n        k -= f[u];\n    }\n    return -1;\n}\n\nint main() {\n    std::cin >> n >> m >> k;\n    for (int i = 0; i < m; ++i) {\n        int u, v;\n        std::cin >> u >> v; // 一条从 u 到 v 的边\n        E[u].push_back(v);\n        ++deg[v];\n    }\n    std::vector<int> Q;\n    for (int i = 0; i < n; ++i)\n        if (!deg[i]) Q.push_back(i);\n    for (int i = 0; i < n; ++i) {\n        int u = Q[i];\n        for (int v : E[u]) {\n            if (②) Q.push_back(v);\n            --deg[v];\n        }\n    }\n    std::reverse(Q.begin(), Q.end());\n    for (int u : Q) {\n        f[u] = 1;\n        for (int v : E[u]) f[u] = ③;\n    }\n    int u = next(Q, k);\n    std::cout << u << std::endl;\n    while (④) {\n        ⑤;\n        u = next(E[u], k);\n        std::cout << u << std::endl;\n    }\n    return 0;\n}\n\n```",
     "questions": [
       {
         "number": 1,
@@ -4327,8 +4327,8 @@ export const cspSProgramProblems = [
     "type": "completion",
     "number": 2,
     "title": "完善程序第 2 题",
-    "description": "（2）（最大值之和）给定整数序列 a0, ..., a_{n-1}，求该序列所有非空连续子序列的最大值之和。上述参数满足 1 ≤ n ≤ 10^5 和 1 ≤ a_i ≤ 10^9。\n\n一个序列的非空连续子序列可以用两个下标 l 和 r（其中 0 ≤ l ≤ r < n）表示，对应的序列为 a_l, a_{l+1}, ..., a_r。两个非空连续子序列不同，当且仅当下标不同。\n\n例如，当原序列为 [1,2,1,2] 时，要计算子序列 [1]、[2]、[1]、[2]、[1,2]、[2,1]、[1,2,1]、[2,1,2]、[1,2,1,2] 的最大值之和，答案为 18。注意 [1,1] 和 [2,2] 虽然是原序列的子序列，但不是连续子序列，所以不应该被计算。另外，注意其中有一些值相同的子序列，但由于他们在原序列中的下标不同，属于不同的非空连续子序列，所以会被分别计算。\n\n解决该问题有许多算法，以下程序使用分治算法，时间复杂度 O(n log n)。\n\n试补全程序。\n\n```cpp\n#include <iostream>\n#include <algorithm>\n#include <vector>\n\nconst int MAXN = 100000;\n\nint n;\nint a[MAXN];\nlong long ans;\n\nvoid solve(int l, int r) {\n    if (l + 1 == r) {\n        ans += a[l];\n        return;\n    }\n    int mid = (l + r) >> 1;\n    std::vector<int> pre(a + mid, a + r);\n    for (int i = 1; i < r - mid; ++i) ①;\n    std::vector<long long> sum(r - mid + 1);\n    for (int i = 0; i < r - mid; ++i) sum[i + 1] = sum[i] + pre[i];\n    for (int i = mid - 1, j = mid, max = 0; i >= l; --i) {\n        while (j < r && ②) ++j;\n        max = std::max(max, a[i]);\n        ans += ③;\n        ans += ④;\n    }\n    solve(l, mid);\n    solve(mid, r);\n}\n\nint main() {\n    std::cin >> n;\n    for (int i = 0; i < n; ++i) std::cin >> a[i];\n    ⑤;\n    std::cout << ans << std::endl;\n    return 0;\n}\n\n```",
-    "statement": "（2）（最大值之和）给定整数序列 a0, ..., a_{n-1}，求该序列所有非空连续子序列的最大值之和。上述参数满足 1 ≤ n ≤ 10^5 和 1 ≤ a_i ≤ 10^9。\n\n一个序列的非空连续子序列可以用两个下标 l 和 r（其中 0 ≤ l ≤ r < n）表示，对应的序列为 a_l, a_{l+1}, ..., a_r。两个非空连续子序列不同，当且仅当下标不同。\n\n例如，当原序列为 [1,2,1,2] 时，要计算子序列 [1]、[2]、[1]、[2]、[1,2]、[2,1]、[1,2,1]、[2,1,2]、[1,2,1,2] 的最大值之和，答案为 18。注意 [1,1] 和 [2,2] 虽然是原序列的子序列，但不是连续子序列，所以不应该被计算。另外，注意其中有一些值相同的子序列，但由于他们在原序列中的下标不同，属于不同的非空连续子序列，所以会被分别计算。\n\n解决该问题有许多算法，以下程序使用分治算法，时间复杂度 O(n log n)。\n\n试补全程序。\n\n```cpp\n#include <iostream>\n#include <algorithm>\n#include <vector>\n\nconst int MAXN = 100000;\n\nint n;\nint a[MAXN];\nlong long ans;\n\nvoid solve(int l, int r) {\n    if (l + 1 == r) {\n        ans += a[l];\n        return;\n    }\n    int mid = (l + r) >> 1;\n    std::vector<int> pre(a + mid, a + r);\n    for (int i = 1; i < r - mid; ++i) ①;\n    std::vector<long long> sum(r - mid + 1);\n    for (int i = 0; i < r - mid; ++i) sum[i + 1] = sum[i] + pre[i];\n    for (int i = mid - 1, j = mid, max = 0; i >= l; --i) {\n        while (j < r && ②) ++j;\n        max = std::max(max, a[i]);\n        ans += ③;\n        ans += ④;\n    }\n    solve(l, mid);\n    solve(mid, r);\n}\n\nint main() {\n    std::cin >> n;\n    for (int i = 0; i < n; ++i) std::cin >> a[i];\n    ⑤;\n    std::cout << ans << std::endl;\n    return 0;\n}\n\n```",
+    "description": "（2）（最大值之和）给定整数序列 a0, ..., a_{n-1}，求该序列所有非空连续子序列的最大值之和。上述参数满足 1 ≤ n ≤ 10⁵ 和 1 ≤ a_i ≤ 10^9。\n\n一个序列的非空连续子序列可以用两个下标 l 和 r（其中 0 ≤ l ≤ r < n）表示，对应的序列为 a_l, a_{l+1}, ..., a_r。两个非空连续子序列不同，当且仅当下标不同。\n\n例如，当原序列为 [1,2,1,2] 时，要计算子序列 [1]、[2]、[1]、[2]、[1,2]、[2,1]、[1,2,1]、[2,1,2]、[1,2,1,2] 的最大值之和，答案为 18。注意 [1,1] 和 [2,2] 虽然是原序列的子序列，但不是连续子序列，所以不应该被计算。另外，注意其中有一些值相同的子序列，但由于他们在原序列中的下标不同，属于不同的非空连续子序列，所以会被分别计算。\n\n解决该问题有许多算法，以下程序使用分治算法，时间复杂度 O(n log n)。\n\n试补全程序。\n\n```cpp\n#include <iostream>\n#include <algorithm>\n#include <vector>\n\nconst int MAXN = 100000;\n\nint n;\nint a[MAXN];\nlong long ans;\n\nvoid solve(int l, int r) {\n    if (l + 1 == r) {\n        ans += a[l];\n        return;\n    }\n    int mid = (l + r) >> 1;\n    std::vector<int> pre(a + mid, a + r);\n    for (int i = 1; i < r - mid; ++i) ①;\n    std::vector<long long> sum(r - mid + 1);\n    for (int i = 0; i < r - mid; ++i) sum[i + 1] = sum[i] + pre[i];\n    for (int i = mid - 1, j = mid, max = 0; i >= l; --i) {\n        while (j < r && ②) ++j;\n        max = std::max(max, a[i]);\n        ans += ③;\n        ans += ④;\n    }\n    solve(l, mid);\n    solve(mid, r);\n}\n\nint main() {\n    std::cin >> n;\n    for (int i = 0; i < n; ++i) std::cin >> a[i];\n    ⑤;\n    std::cout << ans << std::endl;\n    return 0;\n}\n\n```",
+    "statement": "（2）（最大值之和）给定整数序列 a0, ..., a_{n-1}，求该序列所有非空连续子序列的最大值之和。上述参数满足 1 ≤ n ≤ 10⁵ 和 1 ≤ a_i ≤ 10^9。\n\n一个序列的非空连续子序列可以用两个下标 l 和 r（其中 0 ≤ l ≤ r < n）表示，对应的序列为 a_l, a_{l+1}, ..., a_r。两个非空连续子序列不同，当且仅当下标不同。\n\n例如，当原序列为 [1,2,1,2] 时，要计算子序列 [1]、[2]、[1]、[2]、[1,2]、[2,1]、[1,2,1]、[2,1,2]、[1,2,1,2] 的最大值之和，答案为 18。注意 [1,1] 和 [2,2] 虽然是原序列的子序列，但不是连续子序列，所以不应该被计算。另外，注意其中有一些值相同的子序列，但由于他们在原序列中的下标不同，属于不同的非空连续子序列，所以会被分别计算。\n\n解决该问题有许多算法，以下程序使用分治算法，时间复杂度 O(n log n)。\n\n试补全程序。\n\n```cpp\n#include <iostream>\n#include <algorithm>\n#include <vector>\n\nconst int MAXN = 100000;\n\nint n;\nint a[MAXN];\nlong long ans;\n\nvoid solve(int l, int r) {\n    if (l + 1 == r) {\n        ans += a[l];\n        return;\n    }\n    int mid = (l + r) >> 1;\n    std::vector<int> pre(a + mid, a + r);\n    for (int i = 1; i < r - mid; ++i) ①;\n    std::vector<long long> sum(r - mid + 1);\n    for (int i = 0; i < r - mid; ++i) sum[i + 1] = sum[i] + pre[i];\n    for (int i = mid - 1, j = mid, max = 0; i >= l; --i) {\n        while (j < r && ②) ++j;\n        max = std::max(max, a[i]);\n        ans += ③;\n        ans += ④;\n    }\n    solve(l, mid);\n    solve(mid, r);\n}\n\nint main() {\n    std::cin >> n;\n    for (int i = 0; i < n; ++i) std::cin >> a[i];\n    ⑤;\n    std::cout << ans << std::endl;\n    return 0;\n}\n\n```",
     "questions": [
       {
         "number": 1,
@@ -4731,8 +4731,8 @@ export const cspSProgramProblems = [
     "type": "completion",
     "number": 1,
     "title": "完善程序第 1 题",
-    "description": "（1）（序列合并）有两个长度为 N 的单调不降序列 A 和 B，序列的每个元素都是小于 10^9 的非负整数。在 A 和 B 中各取一个数相加可以得到 N^2 个和，求其中第 K 小的和。上述参数满足 N <= 10^5 和 1 <= K <= N^2。\n\n```cpp\n#include <iostream>\nusing namespace std;\n\nconst int maxn = 100005;\n\nint n;\nlong long k;\nint a[maxn], b[maxn];\n\nint* upper_bound(int *a, int *an, int ai) {\n    int l = 0, r = ___①___;\n    while (l < r) {\n        int mid = (l+r)>>1;\n        if (___②___) {\n            r = mid;\n        } else {\n            l = mid + 1;\n        }\n    }\n    return ___③___;\n}\n\nlong long get_rank(int sum) {\n    long long rank = 0;\n    for (int i = 0; i < n; ++i) {\n        rank += upper_bound(b, b+n, sum - a[i]) - b;\n    }\n    return rank;\n}\n\nint solve() {\n    int l = 0, r = ___④___;\n    while (l < r) {\n        int mid = ((long long)l+r)>>1;\n        if (___⑤___) {\n            l = mid + 1;\n        } else {\n            r = mid;\n        }\n    }\n    return l;\n}\n\nint main() {\n    cin >> n >> k;\n    for (int i = 0; i < n; ++i) cin >> a[i];\n    for (int i = 0; i < n; ++i) cin >> b[i];\n    cout << solve() << endl;\n}\n\n\n```",
-    "statement": "（1）（序列合并）有两个长度为 N 的单调不降序列 A 和 B，序列的每个元素都是小于 10^9 的非负整数。在 A 和 B 中各取一个数相加可以得到 N^2 个和，求其中第 K 小的和。上述参数满足 N <= 10^5 和 1 <= K <= N^2。\n\n```cpp\n#include <iostream>\nusing namespace std;\n\nconst int maxn = 100005;\n\nint n;\nlong long k;\nint a[maxn], b[maxn];\n\nint* upper_bound(int *a, int *an, int ai) {\n    int l = 0, r = ___①___;\n    while (l < r) {\n        int mid = (l+r)>>1;\n        if (___②___) {\n            r = mid;\n        } else {\n            l = mid + 1;\n        }\n    }\n    return ___③___;\n}\n\nlong long get_rank(int sum) {\n    long long rank = 0;\n    for (int i = 0; i < n; ++i) {\n        rank += upper_bound(b, b+n, sum - a[i]) - b;\n    }\n    return rank;\n}\n\nint solve() {\n    int l = 0, r = ___④___;\n    while (l < r) {\n        int mid = ((long long)l+r)>>1;\n        if (___⑤___) {\n            l = mid + 1;\n        } else {\n            r = mid;\n        }\n    }\n    return l;\n}\n\nint main() {\n    cin >> n >> k;\n    for (int i = 0; i < n; ++i) cin >> a[i];\n    for (int i = 0; i < n; ++i) cin >> b[i];\n    cout << solve() << endl;\n}\n\n\n```",
+    "description": "（1）（序列合并）有两个长度为 N 的单调不降序列 A 和 B，序列的每个元素都是小于 10^9 的非负整数。在 A 和 B 中各取一个数相加可以得到 N² 个和，求其中第 K 小的和。上述参数满足 N <= 10⁵ 和 1 <= K <= N²。\n\n```cpp\n#include <iostream>\nusing namespace std;\n\nconst int maxn = 100005;\n\nint n;\nlong long k;\nint a[maxn], b[maxn];\n\nint* upper_bound(int *a, int *an, int ai) {\n    int l = 0, r = ___①___;\n    while (l < r) {\n        int mid = (l+r)>>1;\n        if (___②___) {\n            r = mid;\n        } else {\n            l = mid + 1;\n        }\n    }\n    return ___③___;\n}\n\nlong long get_rank(int sum) {\n    long long rank = 0;\n    for (int i = 0; i < n; ++i) {\n        rank += upper_bound(b, b+n, sum - a[i]) - b;\n    }\n    return rank;\n}\n\nint solve() {\n    int l = 0, r = ___④___;\n    while (l < r) {\n        int mid = ((long long)l+r)>>1;\n        if (___⑤___) {\n            l = mid + 1;\n        } else {\n            r = mid;\n        }\n    }\n    return l;\n}\n\nint main() {\n    cin >> n >> k;\n    for (int i = 0; i < n; ++i) cin >> a[i];\n    for (int i = 0; i < n; ++i) cin >> b[i];\n    cout << solve() << endl;\n}\n\n\n```",
+    "statement": "（1）（序列合并）有两个长度为 N 的单调不降序列 A 和 B，序列的每个元素都是小于 10^9 的非负整数。在 A 和 B 中各取一个数相加可以得到 N² 个和，求其中第 K 小的和。上述参数满足 N <= 10⁵ 和 1 <= K <= N²。\n\n```cpp\n#include <iostream>\nusing namespace std;\n\nconst int maxn = 100005;\n\nint n;\nlong long k;\nint a[maxn], b[maxn];\n\nint* upper_bound(int *a, int *an, int ai) {\n    int l = 0, r = ___①___;\n    while (l < r) {\n        int mid = (l+r)>>1;\n        if (___②___) {\n            r = mid;\n        } else {\n            l = mid + 1;\n        }\n    }\n    return ___③___;\n}\n\nlong long get_rank(int sum) {\n    long long rank = 0;\n    for (int i = 0; i < n; ++i) {\n        rank += upper_bound(b, b+n, sum - a[i]) - b;\n    }\n    return rank;\n}\n\nint solve() {\n    int l = 0, r = ___④___;\n    while (l < r) {\n        int mid = ((long long)l+r)>>1;\n        if (___⑤___) {\n            l = mid + 1;\n        } else {\n            r = mid;\n        }\n    }\n    return l;\n}\n\nint main() {\n    cin >> n >> k;\n    for (int i = 0; i < n; ++i) cin >> a[i];\n    for (int i = 0; i < n; ++i) cin >> b[i];\n    cout << solve() << endl;\n}\n\n\n```",
     "questions": [
       {
         "number": 1,
