@@ -3942,8 +3942,8 @@ export const cspSProgramProblems = [
     "type": "reading",
     "number": 1,
     "title": "阅读程序第 1 题",
-    "description": "```cpp\nint a = 5, b = 3, c = 4;\nbool res = a & b || c ^ b && a | c;\n\n```",
-    "statement": "```cpp\nint a = 5, b = 3, c = 4;\nbool res = a & b || c ^ b && a | c;\n\n```",
+    "description": "```cpp\n#include <iostream>\nusing namespace std;\n\nunsigned short f(unsigned short x) {\n    x ^= x << 6;\n    x ^= x >> 8;\n    return x;\n}\n\nint main() {\n    unsigned short x;\n    cin >> x;\n    unsigned short y = f(x);\n    cout << y << endl;\n    return 0;\n}\n\n```\n\n假设输入的 x 是不超过 65535 的自然数，完成下面的判断题和单选题：",
+    "statement": "```cpp\n#include <iostream>\nusing namespace std;\n\nunsigned short f(unsigned short x) {\n    x ^= x << 6;\n    x ^= x >> 8;\n    return x;\n}\n\nint main() {\n    unsigned short x;\n    cin >> x;\n    unsigned short y = f(x);\n    cout << y << endl;\n    return 0;\n}\n\n```\n\n假设输入的 x 是不超过 65535 的自然数，完成下面的判断题和单选题：",
     "questions": [
       {
         "number": 1,
@@ -4024,7 +4024,7 @@ export const cspSProgramProblems = [
       },
       {
         "number": 6,
-        "text": "当输入为 64 时，执行完第 555 行后 x 的值为（）。",
+        "text": "当输入为 64 时，执行完第 5 行后 x 的值为（）。",
         "options": {
           "A": "8256",
           "B": "4130",
@@ -4048,12 +4048,12 @@ export const cspSProgramProblems = [
     "type": "reading",
     "number": 2,
     "title": "阅读程序第 2 题",
-    "description": "```cpp\ndouble quick_power(double x, unsigned n) {\n    if (n == 0) return 1;\n    if (n == 1) return x;\n    return quick_power(x, n / 2)\n        * quick_power(x, n / 2)\n        * ((n & 1) ? x : 1);\n}\n\n```",
-    "statement": "```cpp\ndouble quick_power(double x, unsigned n) {\n    if (n == 0) return 1;\n    if (n == 1) return x;\n    return quick_power(x, n / 2)\n        * quick_power(x, n / 2)\n        * ((n & 1) ? x : 1);\n}\n\n```",
+    "description": "```cpp\n#include <iostream>\n#include <cmath>\n#include <vector>\n#include <algorithm>\nusing namespace std;\n\nlong long solve1(int n) {\n    vector<bool> p(n+1, true);\n    vector<long long> f(n+1, 0), g(n+1, 0);\n    f[1] = 1;\n    for (int i = 2; i * i <= n; i++) {\n        if (p[i]) {\n            vector<int> d;\n            for (int k = i; k <= n; k *= i) d.push_back(k);\n            reverse(d.begin(), d.end());\n            for (int k : d) {\n                for (int j = k; j <= n; j += k) {\n                    if (p[j]) {\n                        p[j] = false;\n                        f[j] = i;\n                        g[j] = k;\n                    }\n                }\n            }\n        }\n    }\n    for (int i = sqrt(n) + 1; i <= n; i++) {\n        if (p[i]) {\n            f[i] = i;\n            g[i] = i;\n        }\n    }\n    long long sum = 1;\n    for (int i = 2; i <= n; i++) {\n        f[i] = f[i / g[i]] * (g[i] * f[i] - 1) / (f[i] - 1);\n        sum += f[i];\n    }\n    return sum;\n}\n\nlong long solve2(int n) {\n    long long sum = 0;\n    for (int i = 1; i <= n; i++) {\n        sum += i * (n / i);\n    }\n    return sum;\n}\n\nint main() {\n    int n;\n    cin >> n;\n    cout << solve1(n) << endl;\n    cout << solve2(n) << endl;\n    return 0;\n}\n\n```\n\n假设输入的 n 是不超过 1000000 的自然数，完成下面的判断题和单选题：",
+    "statement": "```cpp\n#include <iostream>\n#include <cmath>\n#include <vector>\n#include <algorithm>\nusing namespace std;\n\nlong long solve1(int n) {\n    vector<bool> p(n+1, true);\n    vector<long long> f(n+1, 0), g(n+1, 0);\n    f[1] = 1;\n    for (int i = 2; i * i <= n; i++) {\n        if (p[i]) {\n            vector<int> d;\n            for (int k = i; k <= n; k *= i) d.push_back(k);\n            reverse(d.begin(), d.end());\n            for (int k : d) {\n                for (int j = k; j <= n; j += k) {\n                    if (p[j]) {\n                        p[j] = false;\n                        f[j] = i;\n                        g[j] = k;\n                    }\n                }\n            }\n        }\n    }\n    for (int i = sqrt(n) + 1; i <= n; i++) {\n        if (p[i]) {\n            f[i] = i;\n            g[i] = i;\n        }\n    }\n    long long sum = 1;\n    for (int i = 2; i <= n; i++) {\n        f[i] = f[i / g[i]] * (g[i] * f[i] - 1) / (f[i] - 1);\n        sum += f[i];\n    }\n    return sum;\n}\n\nlong long solve2(int n) {\n    long long sum = 0;\n    for (int i = 1; i <= n; i++) {\n        sum += i * (n / i);\n    }\n    return sum;\n}\n\nint main() {\n    int n;\n    cin >> n;\n    cout << solve1(n) << endl;\n    cout << solve2(n) << endl;\n    return 0;\n}\n\n```\n\n假设输入的 n 是不超过 1000000 的自然数，完成下面的判断题和单选题：",
     "questions": [
       {
         "number": 1,
-        "text": "将第 151515 行删去，输出不变。（）",
+        "text": "将第 15 行删去，输出不变。（）",
         "options": {
           "A": "正确",
           "B": "错误"
@@ -4156,12 +4156,12 @@ export const cspSProgramProblems = [
     "type": "reading",
     "number": 3,
     "title": "阅读程序第 3 题",
-    "description": "```cpp\n#include <iostream>\nusing namespace std;\nunsigned short f(unsigned short x) {\n    x ^= x << 6;\n    x ^= x >> 8;\n    return x;\n}\nint main() {\n    unsigned short x;\n    cin >> x;\n    unsigned short y = f(x);\n    cout << y << endl;\n    return 0;\n}\n\n```",
-    "statement": "```cpp\n#include <iostream>\nusing namespace std;\nunsigned short f(unsigned short x) {\n    x ^= x << 6;\n    x ^= x >> 8;\n    return x;\n}\nint main() {\n    unsigned short x;\n    cin >> x;\n    unsigned short y = f(x);\n    cout << y << endl;\n    return 0;\n}\n\n```",
+    "description": "```cpp\n#include <vector>\n#include <algorithm>\n#include <iostream>\nusing namespace std;\n\nbool f0(vector<int>& a, int m, int k) {\n    int s = 0;\n    for (int i = 0, j = 0; i < a.size(); i++) {\n        while (a[i] - a[j] > m) j++;\n        s += i - j;\n    }\n    return s >= k;\n}\n\nint f(vector<int>& a, int k) {\n    sort(a.begin(), a.end());\n    int g = 0;\n    int h = a.back() - a[0];\n    while (g < h) {\n        int m = g + (h - g) / 2;\n        if (f0(a, m, k)) {\n            h = m;\n        } else {\n            g = m + 1;\n        }\n    }\n    return g;\n}\n\nint main() {\n    int n, k;\n    cin >> n >> k;\n    vector<int> a(n, 0);\n    for(int i = 0; i < n; i++) {\n        cin >> a[i];\n    }\n    cout << f(a, k) << endl;\n    return 0;\n}\n\n```",
+    "statement": "```cpp\n#include <vector>\n#include <algorithm>\n#include <iostream>\nusing namespace std;\n\nbool f0(vector<int>& a, int m, int k) {\n    int s = 0;\n    for (int i = 0, j = 0; i < a.size(); i++) {\n        while (a[i] - a[j] > m) j++;\n        s += i - j;\n    }\n    return s >= k;\n}\n\nint f(vector<int>& a, int k) {\n    sort(a.begin(), a.end());\n    int g = 0;\n    int h = a.back() - a[0];\n    while (g < h) {\n        int m = g + (h - g) / 2;\n        if (f0(a, m, k)) {\n            h = m;\n        } else {\n            g = m + 1;\n        }\n    }\n    return g;\n}\n\nint main() {\n    int n, k;\n    cin >> n >> k;\n    vector<int> a(n, 0);\n    for(int i = 0; i < n; i++) {\n        cin >> a[i];\n    }\n    cout << f(a, k) << endl;\n    return 0;\n}\n\n```",
     "questions": [
       {
         "number": 1,
-        "text": "将第 242424 行的 m 改为 m - 1，输出有可能不变，而剩下情况为少 111。（）",
+        "text": "将第 24 行的 m 改为 m - 1，输出有可能不变，而剩下情况为少 1。（）",
         "options": {
           "A": "正确",
           "B": "错误"
@@ -4176,7 +4176,7 @@ export const cspSProgramProblems = [
       },
       {
         "number": 2,
-        "text": "将第 222222 行的 g + (h - g) / 2 改为 (h + g) >> 1，输出不变。（）",
+        "text": "将第 22 行的 g + (h - g) / 2 改为 (h + g) >> 1，输出不变。（）",
         "options": {
           "A": "正确",
           "B": "错误"
@@ -4206,7 +4206,7 @@ export const cspSProgramProblems = [
       },
       {
         "number": 4,
-        "text": "设 aaa 数组中最大值减最小值加 111 为 AAA，则 f 函数的时间复杂度为（）。",
+        "text": "设 a 数组中最大值减最小值加 1 为 A，则 f 函数的时间复杂度为（）。",
         "options": {
           "A": "O(nlog⁡A)O(n \\log A)O(nlogA)",
           "B": "O(n2log⁡A)O(n^2 \\log A)O(n2logA)",
@@ -4223,7 +4223,7 @@ export const cspSProgramProblems = [
       },
       {
         "number": 5,
-        "text": "将第 101010 行中的 > 替换为 >=，那么原输出与现输出的大小关系为（）。",
+        "text": "将第 10 行中的 > 替换为 >=，那么原输出与现输出的大小关系为（）。",
         "options": {
           "A": "一定小于",
           "B": "一定小于等于且不一定小于",
