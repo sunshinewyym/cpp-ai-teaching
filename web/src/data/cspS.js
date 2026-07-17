@@ -3372,10 +3372,10 @@ export const cspSProgramProblems = [
         "number": 4,
         "text": "④ 处应填（ ）。",
         "options": {
-          "A": "A[i*b+j-1] == A[i*b+j]->son[0]",
-          "B": "A[i*b+j]->val < A[i*b+j-1]->val",
-          "C": "A[i*b+j] == A[i*b+j-1]->son[1]",
-          "D": "A[i*b+j]->dep < A[i*b+j-1]->dep"
+          "A": "A[i * b + j - 1] == A[i * b + j]->son[0]",
+          "B": "A[i * b + j]->val < A[i * b + j - 1]->val",
+          "C": "A[i * b + j] == A[i * b + j - 1]->son[1]",
+          "D": "A[i * b + j]->dep < A[i * b + j - 1]->dep"
         },
         "answers": [
           "D"
@@ -3390,8 +3390,8 @@ export const cspSProgramProblems = [
         "options": {
           "A": "v += (S >> i & 1) ? -1 : 1",
           "B": "v += (S >> i & 1) ? 1 : -1",
-          "C": "v += (S >> (i-1) & 1) ? 1 : -1",
-          "D": "v += (S >> (i-1) & 1) ? -1 : 1"
+          "C": "v += (S >> (i - 1) & 1) ? 1 : -1",
+          "D": "v += (S >> (i - 1) & 1) ? -1 : 1"
         },
         "answers": [
           "D"
@@ -3404,10 +3404,10 @@ export const cspSProgramProblems = [
         "number": 6,
         "text": "⑥ 处应填（ ）。",
         "options": {
-          "A": "(Dif[p] >> (r-p*b)) & ((1 << (r-l)) - 1)",
+          "A": "(Dif[p] >> (r - p * b)) & ((1 << (r - l)) - 1)",
           "B": "Dif[p]",
-          "C": "(Dif[p] >> (l-p*b)) & ((1 << (r-l)) - 1)",
-          "D": "(Dif[p] >> ((p+1)*b-r)) & ((1 << (r-l+1)) - 1)"
+          "C": "(Dif[p] >> (l - p * b)) & ((1 << (r - l)) - 1)",
+          "D": "(Dif[p] >> ((p + 1) * b - r)) & ((1 << (r - l + 1)) - 1)"
         },
         "answers": [
           "C"
