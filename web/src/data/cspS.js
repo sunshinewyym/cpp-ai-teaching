@@ -608,7 +608,7 @@ export const cspSChoicePapers = {
     {
       "id": "2022-choice-2",
       "number": 2,
-      "question": "你同时用 time 命令和秒表为某个程序在单核 CPU 的运行计时。假如 time 命令的输出如下：",
+      "question": "你同时用 time 命令和秒表为某个程序在单核 CPU 的运行计时。假如 time 命令的输出如下：\nreal 0m30.721s\nuser 0m24.579s\nsys 0m6.123s\n以下最接近秒表计时的时长为（ ）。",
       "options": {
         "A": "30s",
         "B": "24s",
@@ -634,7 +634,7 @@ export const cspSChoicePapers = {
     {
       "id": "2022-choice-4",
       "number": 4,
-      "question": "考虑对 n 个数进行排序，以下最坏时间复杂度低于 O(n2)O(n^2)O(n2) 的排序方法是（ ）。",
+      "question": "考虑对 n 个数进行排序，以下最坏时间复杂度低于 O(n^2) 的排序方法是（ ）。",
       "options": {
         "A": "插入排序",
         "B": "冒泡排序",
@@ -738,7 +738,7 @@ export const cspSChoicePapers = {
     {
       "id": "2022-choice-12",
       "number": 12,
-      "question": "给定地址区间为 0~9 的哈希表，哈希函数为 h(x)=xh(x) = x % 10h(x)=x，采用线性探查的冲突解决策略（对于出现冲突情况，会往后探查第一个空的地址存储；若地址 9 冲突了则从地址 0 重新开始探查）。哈希表初始为空表，依次存储(71, 23, 73, 99, 44, 79, 89)后，请问 89 存储在哈希表哪个地址中。（ ）",
+      "question": "给定地址区间为 0~9 的哈希表，哈希函数为 h(x) = x % 10，采用线性探查的冲突解决策略（对于出现冲突情况，会往后探查第一个空的地址存储；若地址 9 冲突了则从地址 0 重新开始探查）。哈希表初始为空表，依次存储(71, 23, 73, 99, 44, 79, 89)后，请问 89 存储在哈希表哪个地址中。（ ）",
       "options": {
         "A": "9",
         "B": "0",
@@ -751,12 +751,12 @@ export const cspSChoicePapers = {
     {
       "id": "2022-choice-13",
       "number": 13,
-      "question": "对于给定的 nnn，分析以下代码段对应的时间复杂度，其中最为准确的时间复杂度为（ ）。",
+      "question": "对于给定的 n，分析以下代码段对应的时间复杂度，其中最为准确的时间复杂度为（ ）。\nint i, j, k = 0;\nfor (i = 0; i < n; i++) {\n    for (j = 0; j < n; j*=2) {\n        k = k + n / 2;\n    }\n}",
       "options": {
-        "A": "O(n)O(n)O(n)",
-        "B": "O(nlog⁡n)O(n \\log n)O(nlogn)",
-        "C": "O(nn)O(n\\sqrt{n})O(nn​)",
-        "D": "O(n2)O(n^2)O(n2)"
+        "A": "O(n)",
+        "B": "O(n log n)",
+        "C": "O(n√n)",
+        "D": "O(n^2)"
       },
       "explanation": "参考答案为 B（O(nlog⁡n)O(n \\log n)O(nlogn)）。请回到题目条件，按定义、计算顺序或程序执行过程逐项核对。",
       "answer": "B"
@@ -766,10 +766,10 @@ export const cspSChoicePapers = {
       "number": 14,
       "question": "以比较为基本运算，在 n 个数的数组中找最大的数，在最坏情况下至少要做（ ）次运算。",
       "options": {
-        "A": "n/2n/2n/2",
-        "B": "n−1n-1n−1",
-        "C": "nnn",
-        "D": "n+1n+1n+1"
+        "A": "n/2",
+        "B": "n-1",
+        "C": "n",
+        "D": "n+1"
       },
       "explanation": "参考答案为 B（n−1n-1n−1）。请回到题目条件，按定义、计算顺序或程序执行过程逐项核对。",
       "answer": "B"
