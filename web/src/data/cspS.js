@@ -3144,7 +3144,7 @@ export const cspSProgramProblems = [
       {
         "id": "2021-reading-3-1",
         "number": 1,
-        "text": "程序总是先输出一行整数，再输出一行字符串。",
+        "text": "程序总是先输出一行一个整数，再输出一行一个字符串。（ ）",
         "options": {
           "A": "正确",
           "B": "错误"
@@ -3191,7 +3191,7 @@ export const cspSProgramProblems = [
           "A": "Θ(√n)",
           "B": "Θ(n)",
           "C": "Θ(n log n)",
-          "D": "Θ(n!)"
+          "D": "Θ(n^2)"
         },
         "answers": [
           "B"
