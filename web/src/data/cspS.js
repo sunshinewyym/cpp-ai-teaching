@@ -3316,8 +3316,8 @@ export const cspSProgramProblems = [
     "type": "completion",
     "number": 2,
     "title": "完善程序第 2 题",
-    "description": "（2）（RMQ 区间最值问题）给定序列 a₁,…,aₙ，和 m 次询问，每次询问给定 l,r，求 max{aₗ,…,aᵣ}。"
-    "statement": "（2）（RMQ 区间最值问题）给定序列 a₁,…,aₙ，和 m 次询问，每次询问给定 l,r，求 max{aₗ,…,aᵣ}。"
+    "description": "（2）（RMQ 区间最值问题）给定序列 a₁,…,aₙ，和 m 次询问，每次询问给定 l,r，求 max{aₗ,…,aᵣ}。",
+    "statement": "（2）（RMQ 区间最值问题）给定序列 a₁,…,aₙ，和 m 次询问，每次询问给定 l,r，求 max{aₗ,…,aᵣ}。",
     "questions": [
       {
         "id": "2021-completion-2-1",
