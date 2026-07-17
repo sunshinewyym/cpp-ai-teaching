@@ -647,7 +647,7 @@ export const cspSChoicePapers = {
     {
       "id": "2022-choice-5",
       "number": 5,
-      "question": "假设在基数排序过程中，受宇宙射线的影响，某项数据异变为一个完全不同的值。请问排 序算法结束后，可能出现的最坏情况是（ ）。",
+      "question": "假设在基数排序过程中，受宇宙射线的影响，某项数据异变为一个完全不同的值。请问排序算法结束后，可能出现的最坏情况是（ ）。",
       "options": {
         "A": "移除受影响的数据后，最终序列是有序序列",
         "B": "移除受影响的数据后，最终序列是前后两个有序的子序列",
@@ -660,7 +660,7 @@ export const cspSChoicePapers = {
     {
       "id": "2022-choice-6",
       "number": 6,
-      "question": "计算机系统用小端（Little Endian）和大端（Big Endian）来描述多字节数据的存储地 址顺序模式，其中小端表示将低位字节数据存储在低地址的模式、大端表示将高位字节数 据存储在低地址的模式。在小端模式的系统和大端模式的系统分别编译和运行以下 C++代码段表示的程序，将分别输出什么结果？（ ）",
+      "question": "计算机系统用小端（Little Endian）和大端（Big Endian）来描述多字节数据的存储地址顺序模式，其中小端表示将低位字节数据存储在低地址的模式、大端表示将高位字节数 据存储在低地址的模式。在小端模式的系统和大端模式的系统分别编译和运行以下 C++代码段表示的程序，将分别输出什么结果？（ ）",
       "options": {
         "A": "EF、EF",
         "B": "EF、DE",
@@ -751,7 +751,7 @@ export const cspSChoicePapers = {
     {
       "id": "2022-choice-13",
       "number": 13,
-      "question": "对于给定的 n，分析以下代码段对应的时间复杂度，其中最为准确的时间复杂度为（ ）。\nint i, j, k = 0;\nfor (i = 0; i < n; i++) {\n    for (j = 0; j < n; j*=2) {\n        k = k + n / 2;\n    }\n}",
+      "question": "对于给定的 n，分析以下代码段对应的时间复杂度，其中最为准确的时间复杂度为（ ）。\n```cpp\nint i, j, k = 0;\nfor (i = 0; i < n; i++) {\n    for (j = 0; j < n; j*=2) {\n        k = k + n / 2;\n    }\n}\n```",
       "options": {
         "A": "O(n)",
         "B": "O(n log n)",
@@ -777,7 +777,7 @@ export const cspSChoicePapers = {
     {
       "id": "2022-choice-15",
       "number": 15,
-      "question": "ack 函数在输入参数“(2,2)”时的返回值为（）。",
+      "question": "ack 函数在输入参数“(2,2)”时的返回值为（ ）。\n```cpp\nunsigned ack(unsigned m, unsigned n) {\n    if (m == 0) return n + 1;\n    if (n == 0) return ack(m - 1, 1);\n    return ack(m - 1, ack(m, n - 1));\n}\n```",
       "options": {
         "A": "5",
         "B": "7",
