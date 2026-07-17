@@ -411,12 +411,12 @@ export const cspSChoicePapers = {
     {
       "id": "2021-choice-2",
       "number": 2,
-      "question": "二进制数 00101010₂ 和 00010110₂ 的和为（ ）。",
+      "question": "二进制数 00101010 和 00010110 的和为（ ）。",
       "options": {
-        "A": "00111100₂",
-        "B": "01000000₂",
-        "C": "00111100₂",
-        "D": "01000010₂"
+        "A": "00111100",
+        "B": "01000000",
+        "C": "00111100",
+        "D": "01000010"
       },
       "answer": "B",
       "explanation": "参考答案为 B（01000000₂）。请回到题目条件，按定义、执行顺序或复杂度逐项核对。"
@@ -463,7 +463,7 @@ export const cspSChoicePapers = {
     {
       "id": "2021-choice-6",
       "number": 6,
-      "question": "哈希表地址区间为 0～10，依次存储 0～7，h(x)=x² mod 11，7 存储在哪个地址？",
+      "question": "现有一个地址区间为 0～10 的哈希表，对于出现冲突情况，会往后找第一个空的地址存储（到 10 冲突了就从 0 开始往后），现在要依次存储（0，1，2，3，4，5，6，7），哈希函数为 h(x)=x² mod 11。请问 7 存储在哈希表哪个地址中（ ）。",
       "options": {
         "A": "5",
         "B": "6",
@@ -476,7 +476,7 @@ export const cspSChoicePapers = {
     {
       "id": "2021-choice-7",
       "number": 7,
-      "question": "G 是非连通简单无向图，共有 36 条边，则该图至少有多少个点？",
+      "question": "G 是一个非连通简单无向图（没有自环和重边），共有 36 条边，则该图至少有（ ）个点。",
       "options": {
         "A": "8",
         "B": "9",
@@ -489,7 +489,7 @@ export const cspSChoicePapers = {
     {
       "id": "2021-choice-8",
       "number": 8,
-      "question": "令根结点高度为 1，含有 2021 个结点的二叉树高度至少为（ ）。",
+      "question": "令根结点的高度为 1，则一棵含有 2021 个结点的二叉树的高度至少为（ ）。",
       "options": {
         "A": "10",
         "B": "11",
@@ -504,10 +504,10 @@ export const cspSChoicePapers = {
       "number": 9,
       "question": "前序遍历和中序遍历相同的二叉树为且仅为（ ）。",
       "options": {
-        "A": "只有 1 个点",
-        "B": "根结点没有左子树",
-        "C": "非叶子结点只有左子树",
-        "D": "非叶子结点只有右子树"
+        "A": "只有 1 个点的二叉树",
+        "B": "根结点没有左子树的二叉树",
+        "C": "非叶子结点只有左子树的二叉树",
+        "D": "非叶子结点只有右子树的二叉树"
       },
       "answer": "D",
       "explanation": "参考答案为 D（非叶子结点只有右子树）。请回到题目条件，按定义、执行顺序或复杂度逐项核对。"
@@ -515,7 +515,7 @@ export const cspSChoicePapers = {
     {
       "id": "2021-choice-10",
       "number": 10,
-      "question": "将 DACFEB 变为 ABCDEF，最少需要交换相邻字符多少次？",
+      "question": "定义一种字符串操作为交换相邻两个字符。将 \"DACFEB\" 变为 \"ABCDEF\" 最少需要（ ）次上述操作。",
       "options": {
         "A": "7",
         "B": "8",
@@ -528,7 +528,7 @@ export const cspSChoicePapers = {
     {
       "id": "2021-choice-11",
       "number": 11,
-      "question": "solve(23,23) 计算 5 的幂模 23，结果为（ ）。",
+      "question": "有如下递归代码\nsolve(t, n):\nif t=1 return 1\nelse return 5*solve(t-1,n) mod n\n则 solve(23,23) 的结果为（ ）。",
       "options": {
         "A": "1",
         "B": "7",
@@ -541,10 +541,10 @@ export const cspSChoicePapers = {
     {
       "id": "2021-choice-12",
       "number": 12,
-      "question": "朴素递归计算斐波那契数列第 n 项的时间复杂度为（ ）。",
+      "question": "斐波那契数列的定义为：F₁ = 1，F₂ = 1，Fₙ = Fₙ₋₁ + Fₙ₋₂ (n>=3)。现在用如下程序来计算斐波那契数列的第 n 项，其时间复杂度为（ ）。\nF(n):\nif n<=2 return 1\nelse return F(n-1) + F(n-2)",
       "options": {
         "A": "O(n)",
-        "B": "O(n²)",
+        "B": "O(n!)",
         "C": "O(2ⁿ)",
         "D": "O(n log n)"
       },
@@ -554,12 +554,12 @@ export const cspSChoicePapers = {
     {
       "id": "2021-choice-13",
       "number": 13,
-      "question": "程序 solve(7) 的返回结果为（ ）。",
+      "question": "有 8 个苹果从左到右排成一排，你要从中挑选至少一个苹果，并且不能同时挑选相邻的两个苹果，一共有（ ）种方案。",
       "options": {
-        "A": "105",
-        "B": "840",
-        "C": "210",
-        "D": "420"
+        "A": "36",
+        "B": "48",
+        "C": "54",
+        "D": "64"
       },
       "answer": "C",
       "explanation": "参考答案为 C（210）。请回到题目条件，按定义、执行顺序或复杂度逐项核对。"
@@ -567,12 +567,12 @@ export const cspSChoicePapers = {
     {
       "id": "2021-choice-14",
       "number": 14,
-      "question": "以 a 为起点对图深度优先遍历，可能作为最后访问点的点数为（ ）。",
+      "question": "设一个三位数 n = abc，a, b, c 均为 1～9 之间的整数，若以 a、b、c 作为三角形的三条边可以构成等腰三角形（包括等边），则这样的 n 有（ ）个。",
       "options": {
-        "A": "1",
-        "B": "2",
-        "C": "3",
-        "D": "4"
+        "A": "81",
+        "B": "120",
+        "C": "165",
+        "D": "216"
       },
       "answer": "A",
       "explanation": "参考答案为 A（1）。请回到题目条件，按定义、执行顺序或复杂度逐项核对。"
@@ -580,12 +580,12 @@ export const cspSChoicePapers = {
     {
       "id": "2021-choice-15",
       "number": 15,
-      "question": "四人过河，过河时间为 1、2、4、8，一次最多两人，最短总时间为（ ）。",
+      "question": "有如下的有向图，节点为 A, B, … , J, 其中每条边的长度都标在图中。则节点 A 到节点 J 的最短路径长度为（ ）。",
       "options": {
-        "A": "14",
-        "B": "15",
-        "C": "16",
-        "D": "17"
+        "A": "16",
+        "B": "19",
+        "C": "20",
+        "D": "22"
       },
       "answer": "B",
       "explanation": "参考答案为 B（15）。请回到题目条件，按定义、执行顺序或复杂度逐项核对。"
