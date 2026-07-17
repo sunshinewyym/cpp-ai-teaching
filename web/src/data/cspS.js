@@ -3158,7 +3158,7 @@ export const cspSProgramProblems = [
       {
         "id": "2021-reading-3-2",
         "number": 2,
-        "text": "对任意不含空白字符的字符串，先编码再解码必然得到原字符串。",
+        "text": "对于任意不含空白字符的字符串 str1，先执行程序输入 \"0 str1\"，得到输出的第二行记为 str2；再执行程序输入 \"1 str2\"，输出的第二行必为 str1。（ ）",
         "options": {
           "A": "正确",
           "B": "错误"
@@ -3186,7 +3186,7 @@ export const cspSProgramProblems = [
       {
         "id": "2021-reading-3-4",
         "number": 4,
-        "text": "encode 函数的时间复杂度为（ ）。",
+        "text": "设输入字符串长度为 n，encode 函数的时间复杂度为（ ）。",
         "options": {
           "A": "Θ(√n)",
           "B": "Θ(n)",
@@ -3218,7 +3218,7 @@ export const cspSProgramProblems = [
       {
         "id": "2021-reading-3-6",
         "number": 6,
-        "text": "输入 0 CSP2021csp 时，第二行输出为（ ）。",
+        "text": "当输入为 \"0 CSP2021csp\" 时，输出的第二行为（ ）。",
         "options": {
           "A": "Q1NQMjAyMWNzcAv=",
           "B": "Q1NQMjAyMGNzcA==",
