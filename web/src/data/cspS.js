@@ -528,7 +528,7 @@ export const cspSChoicePapers = {
     {
       "id": "2021-choice-11",
       "number": 11,
-      "question": "有如下递归代码\nsolve(t, n):\nif t=1 return 1\nelse return 5*solve(t-1,n) mod n\n则 solve(23,23) 的结果为（ ）。",
+      "question": "有如下递归代码\n```\nsolve(t, n):\n    if t=1 return 1\n    else return 5*solve(t-1,n) mod n\n```\n则 solve(23,23) 的结果为（ ）。",
       "options": {
         "A": "1",
         "B": "7",
@@ -541,10 +541,10 @@ export const cspSChoicePapers = {
     {
       "id": "2021-choice-12",
       "number": 12,
-      "question": "斐波那契数列的定义为：F₁ = 1，F₂ = 1，Fₙ = Fₙ₋₁ + Fₙ₋₂ (n>=3)。现在用如下程序来计算斐波那契数列的第 n 项，其时间复杂度为（ ）。\nF(n):\nif n<=2 return 1\nelse return F(n-1) + F(n-2)",
+      "question": "斐波那契数列的定义为：F₁ = 1，F₂ = 1，Fₙ = Fₙ₋₁ + Fₙ₋₂ (n>=3)。现在用如下程序来计算斐波那契数列的第 n 项，其时间复杂度为（ ）。\n```\nF(n):\n    if n<=2 return 1\n    else return F(n-1) + F(n-2)\n```",
       "options": {
         "A": "O(n)",
-        "B": "O(n!)",
+        "B": "O(n^2)",
         "C": "O(2ⁿ)",
         "D": "O(n log n)"
       },
@@ -580,7 +580,7 @@ export const cspSChoicePapers = {
     {
       "id": "2021-choice-15",
       "number": 15,
-      "question": "有如下的有向图，节点为 A, B, … , J, 其中每条边的长度都标在图中。则节点 A 到节点 J 的最短路径长度为（ ）。",
+      "question": "有如下的有向图，节点为 A, B, … , J, 其中每条边的长度都标在图中。则节点 A 到节点 J 的最短路径长度为（ ）。\n\n![有向图](/csp-assets/2021-choice-15.png)",
       "options": {
         "A": "16",
         "B": "19",
