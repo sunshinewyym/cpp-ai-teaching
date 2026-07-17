@@ -386,9 +386,26 @@ import { streamPost } from './utils/api';
 const markdownRenderer = new marked.Renderer();
 markdownRenderer.code = (code, infoString) => {
   const language = (infoString || '').trim().split(/\s+/)[0];
-  const highlighted = language && hljs.getLanguage(language)
-    ? hljs.highlight(code, { language }).value
-    : hljs.highlightAuto(code).value;
+  const hasLineNumbers = /^\d{1,2} /m.test(code);
+  let highlighted;
+  if (hasLineNumbers) {
+    // Wrap line numbers in spans with fixed color before highlighting
+    const lines = code.split('\n');
+    const wrapped = lines.map(line => {
+      const m = line.match(/^(\d{1,2} )(.*)$/);
+      if (m) return `<span class="ln">${m[1]}</span>${m[2]}`;
+      return line;
+    }).join('\n');
+    highlighted = language && hljs.getLanguage(language)
+      ? hljs.highlight(wrapped, { language, html: true }).value
+      : hljs.highlightAuto(wrapped).value;
+    // Remove any highlight.js spans that overlap with line numbers
+    highlighted = highlighted.replace(/<span class="ln">(.*?)<\/span>/g, '<span class="ln">$1</span>');
+  } else {
+    highlighted = language && hljs.getLanguage(language)
+      ? hljs.highlight(code, { language }).value
+      : hljs.highlightAuto(code).value;
+  }
   return `<pre><code class="hljs language-${language || 'plaintext'}">${highlighted}</code></pre>`;
 };
 
