@@ -2935,14 +2935,14 @@ export const cspSProgramProblems = [
     "year": "2021",
     "type": "reading",
     "number": 1,
-    "title": "几何体积程序",
-    "description": "下面程序计算两个球的相交体积：\n\n```cpp\n(1)\n#include <iostream>\n#include <cmath>\nusing namespace std; 04\nconst double r = acos(0.5); 06\nint a1, b1, c1, d1;\nint a2, b2, c2, d2; 09\ninline int sq(const int x) { return x * x; }\ninline int cu(const int x) { return x * x * x; } 12\nint main() 14 {\ncout.flags(ios::fixed);\ncout.precision(4); 17\ncin >> a1 >> b1 >> c1 >> d1;\ncin >> a2 >> b2 >> c2 >> d2; 20\nint t = sq(a1 - a2) + sq(b1 - b2) + sq(c1 - c2); 22\nif (t <= sq(d2 - d1)) cout << cu(min(d1, d2)) * r * 4;\nelse if (t >= sq(d2 + d1)) cout << 0;\nelse {\ndouble x = d1 - (sq(d1) - sq(d2) + t) / sqrt(t) / 2;\ndouble y = d2 - (sq(d2) - sq(d1) + t) / sqrt(t) / 2;\ncout << (x * x * (3 * d1 - x) + y * y * (3 * d2 - y)) * r; 29     }\ncout << endl;\nreturn 0; 32 } \r\n\r\n\r\n\\n\n```",
-    "statement": "下面程序计算两个球的相交体积：\n\n```cpp\n(1)\n#include <iostream>\n#include <cmath>\nusing namespace std; 04\nconst double r = acos(0.5); 06\nint a1, b1, c1, d1;\nint a2, b2, c2, d2; 09\ninline int sq(const int x) { return x * x; }\ninline int cu(const int x) { return x * x * x; } 12\nint main() 14 {\ncout.flags(ios::fixed);\ncout.precision(4); 17\ncin >> a1 >> b1 >> c1 >> d1;\ncin >> a2 >> b2 >> c2 >> d2; 20\nint t = sq(a1 - a2) + sq(b1 - b2) + sq(c1 - c2); 22\nif (t <= sq(d2 - d1)) cout << cu(min(d1, d2)) * r * 4;\nelse if (t >= sq(d2 + d1)) cout << 0;\nelse {\ndouble x = d1 - (sq(d1) - sq(d2) + t) / sqrt(t) / 2;\ndouble y = d2 - (sq(d2) - sq(d1) + t) / sqrt(t) / 2;\ncout << (x * x * (3 * d1 - x) + y * y * (3 * d2 - y)) * r; 29     }\ncout << endl;\nreturn 0; 32 } \r\n\r\n\r\n\\n\n```",
+    "title": "阅读程序第 1 题",
+    "description": "```cpp\n01 #include <iostream>\n02 #include <cmath>\n03 using namespace std;\n04 \n05 const double r = acos(0.5);\n06 \n07 int a1, b1, c1, d1;\n08 int a2, b2, c2, d2;\n09 \n10 inline int sq(const int x) { return x * x; }\n11 inline int cu(const int x) { return x * x * x; }\n12 \n13 int main()\n14 {\n15     cout.flags(ios::fixed);\n16     cout.precision(4);\n17 \n18     cin >> a1 >> b1 >> c1 >> d1;\n19     cin >> a2 >> b2 >> c2 >> d2;\n20 \n21     int t = sq(a1 - a2) + sq(b1 - b2) + sq(c1 - c2);\n22 \n23     if (t <= sq(d2 - d1)) cout << cu(min(d1, d2)) * r * 4;\n24     else if (t >= sq(d2 + d1)) cout << 0;\n25     else {\n26         double x = d1 - (sq(d1) - sq(d2) + t) / sqrt(t) / 2;\n27         double y = d2 - (sq(d2) - sq(d1) + t) / sqrt(t) / 2;\n28         cout << (x * x * (3 * d1 - x) + y * y * (3 * d2 - y)) * r;\n29     }\n30     cout << endl;\n31     return 0;\n32 }\n\n```\n\n假设输入的所有数的绝对值都不超过 1000，完成下面的判断题和单选题：",
+    "statement": "```cpp\n01 #include <iostream>\n02 #include <cmath>\n03 using namespace std;\n04 \n05 const double r = acos(0.5);\n06 \n07 int a1, b1, c1, d1;\n08 int a2, b2, c2, d2;\n09 \n10 inline int sq(const int x) { return x * x; }\n11 inline int cu(const int x) { return x * x * x; }\n12 \n13 int main()\n14 {\n15     cout.flags(ios::fixed);\n16     cout.precision(4);\n17 \n18     cin >> a1 >> b1 >> c1 >> d1;\n19     cin >> a2 >> b2 >> c2 >> d2;\n20 \n21     int t = sq(a1 - a2) + sq(b1 - b2) + sq(c1 - c2);\n22 \n23     if (t <= sq(d2 - d1)) cout << cu(min(d1, d2)) * r * 4;\n24     else if (t >= sq(d2 + d1)) cout << 0;\n25     else {\n26         double x = d1 - (sq(d1) - sq(d2) + t) / sqrt(t) / 2;\n27         double y = d2 - (sq(d2) - sq(d1) + t) / sqrt(t) / 2;\n28         cout << (x * x * (3 * d1 - x) + y * y * (3 * d2 - y)) * r;\n29     }\n30     cout << endl;\n31     return 0;\n32 }\n\n```\n\n假设输入的所有数的绝对值都不超过 1000，完成下面的判断题和单选题：",
     "questions": [
       {
         "id": "2021-reading-1-1",
         "number": 1,
-        "text": "将第 21 行中 t 的类型声明从 int 改为 double，不会影响程序运行结果。",
+        "text": "将第 21 行中 t 的类型声明从 int 改为 double，不会影响程序运行的结果。（ ）",
         "options": {
           "A": "正确",
           "B": "错误"
@@ -2956,7 +2956,7 @@ export const cspSProgramProblems = [
       {
         "id": "2021-reading-1-2",
         "number": 2,
-        "text": "将第 26、27 行中的 / sqrt(t) / 2 替换为 / 2 / sqrt(t)，不会影响结果。",
+        "text": "将第 26、27 行中的 \"/ sqrt(t) / 2\" 替换为 \"/ 2 / sqrt(t)\"，不会影响程序运行的结果。（ ）",
         "options": {
           "A": "正确",
           "B": "错误"
@@ -2970,7 +2970,7 @@ export const cspSProgramProblems = [
       {
         "id": "2021-reading-1-3",
         "number": 3,
-        "text": "将第 28 行中的 x*x 改成 sq(x)、y*y 改成 sq(y)，不会影响结果。",
+        "text": "将第 28 行中的 \"x * x\" 改成 \"sq(x)\"、\"y * y\" 改成 \"sq(y)\"，不会影响程序运行的结果。（ ）",
         "options": {
           "A": "正确",
           "B": "错误"
@@ -2984,7 +2984,7 @@ export const cspSProgramProblems = [
       {
         "id": "2021-reading-1-4",
         "number": 4,
-        "text": "输入 0 0 0 1 1 0 0 1 时，输出为 1.3090。",
+        "text": "当输入为 \"0 0 0 1 1 0 0 1\" 时，输出为 \"1.3090\"。（ ）",
         "options": {
           "A": "正确",
           "B": "错误"
@@ -2998,7 +2998,7 @@ export const cspSProgramProblems = [
       {
         "id": "2021-reading-1-5",
         "number": 5,
-        "text": "输入 1 1 1 1 1 1 1 2 时，输出为（ ）。",
+        "text": "当输入为 \"1 1 1 1 1 1 1 2\" 时，输出为（ ）。",
         "options": {
           "A": "3.1416",
           "B": "6.2832",
