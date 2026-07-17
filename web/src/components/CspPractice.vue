@@ -201,7 +201,7 @@ function applyCspS2025CompletionMarkers(value){
   return {...value,statement};
 }
 const displayPaper=computed(()=>paper.value.map(item=>{if(level.value!=='S')return item;const correction=(year.value==='2024'?cspS2024ChoiceCorrections:item.year==='2023'?cspSChoiceCorrections[`${year.value}-${item.number}`]:null);return correction?{...item,...correction}:item}));
-const problem=computed(()=>{const value=problems.value[index.value];if(!value)return value;if(level.value==='S'&&year.value==='2023'&&type.value==='reading'){const code=value.number===1?corrected2023Reading1:value.number===2?corrected2023Reading2:null;if(code)return {...value,description:'```cpp\n'+code+'\n```',statement:'```cpp\n'+code+'\n```'}}return level.value==='S'&&year.value==='2025'&&type.value==='completion'?applyCspS2025CompletionMarkers(value):value});
+const problem=computed(()=>{const value=problems.value[index.value];if(!value)return value;return level.value==='S'&&year.value==='2025'&&type.value==='completion'?applyCspS2025CompletionMarkers(value):value});
 const typeLabel=computed(()=>type.value==='reading'?'阅读程序题':'完善程序题');
 const choiceSetKey=computed(()=>`choice-${year.value}`),choiceSetSubmitted=computed(()=>Boolean(submittedSets.value[choiceSetKey.value]));
 const programSetSubmitted=computed(()=>Boolean(problem.value&&submittedSets.value[problem.value.id]));
