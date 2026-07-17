@@ -3645,7 +3645,7 @@ export const cspSProgramProblems = [
     "questions": [
       {
         "number": 1,
-        "text": "该算法的时间复杂度为O(log⁡kn)O(\\log_k n)O(logk​n)。",
+        "text": "该算法的时间复杂度为 O(log_k n)。",
         "options": {
           "A": "正确",
           "B": "错误"
@@ -3675,7 +3675,7 @@ export const cspSProgramProblems = [
       },
       {
         "number": 3,
-        "text": "除非输入的 n 为 0，否则程序输出的字符数为 ⌊log⁡k∣n∣⌋+1\\lfloor \\log_k|n|\\rfloor+1⌊logk​∣n∣⌋+1。",
+        "text": "除非输入的 n 为 0，否则程序输出的字符数为 ⌊log_k|n|⌋+1。",
         "options": {
           "A": "正确",
           "B": "错误"
