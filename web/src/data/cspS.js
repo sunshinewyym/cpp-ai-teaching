@@ -253,12 +253,12 @@ export const cspSChoicePapers = {
     {
       "id": "2020-choice-5",
       "number": 5,
-      "question": "将 $(2, 7, 10, 18)$ 分别存储到某个地址区间为 $0\\sim 10$ 的哈希表中，如果哈希函数 $h(x)=$（  ），将**不会**产生冲突，其中 $a \\bmod b$ 表示 $a$ 除以 $b$ 的余数。",
+      "question": "将 $(2, 7, 10, 18)$ 分别存储到某个地址区间为 $0\\sim 10$ 的哈希表中，如果哈希函数 $h(x)=$（  ），将**不会**产生冲突，其中 $a mod b$ 表示 $a$ 除以 $b$ 的余数。",
       "options": {
-        "A": "$x^2 \\bmod{11}$",
-        "B": "$2x \\bmod{11}$",
-        "C": "$x \\bmod{11}$",
-        "D": "$\\lfloor \\dfrac{x}{2} \\rfloor \\bmod{11}$，其中$\\lfloor \\dfrac{x}{2} \\rfloor$ 表示 $\\dfrac{x}{2}$ 下取整"
+        "A": "$x^2 mod 11$",
+        "B": "$2x mod 11$",
+        "C": "$x mod 11$",
+        "D": "$\\lfloor \\dfrac{x}{2} \\rfloor mod 11$，其中$\\lfloor \\dfrac{x}{2} \\rfloor$ 表示 $\\dfrac{x}{2}$ 下取整"
       },
       "answer": "D",
       "explanation": "参考答案为 D（$\\lfloor \\dfrac{x}{2} \\rfloor \\bmod{11}$，其中$\\lfloor \\dfrac{x}{2} \\rfloor$ 表示 $\\dfrac{x}{2}$ 下取整）。请回到题目条件，按定义、执行顺序或复杂度逐项核对。"
@@ -1900,13 +1900,13 @@ export const cspSProgramProblems = [
     "type": "reading",
     "number": 1,
     "title": "阅读程序第 1 题",
-    "description": "二、阅读程序（程序输入不超过数组或字符串定义的范围；判断题正确填 √，错误填 ×；除特殊说明外，判断题 $1.5$ 分，选择题 $3$ 分，共计 $40$ 分）\n\n1.\n```\n#include <iostream>\nusing namespace std;\n\nint n;\nint d[1000];\n\nint main() {\n  cin >> n;\n  for (int i = 0; i < n; ++i)\n    cin >> d[i];\n  int ans = -1;\n  for (int i = 0; i < n; ++i)\n    for (int j = 0; j < n; ++j)\n      if (d[i] < d[j])\n         ans = max(ans, d[i] + d[j] - (d[i] & d[j]));\n    cout << ans;\n    return 0;\n}\n\n```\n  假设输入的 $n$ 和 $d[i]$ 都是不超过 $10000$ 的正整数，完成下面的判断题和单选题：\n\n- 判断题\n\n  1)  $n$ 必须小于 $1000$,否则程序**可能**会发生运行错误。（ ）\n\n  2)  输出一定大于等于 $0$。（ ）\n\n  3)  若将第 13 行的 `j=0` 改为 `j = i + 1` 程序输出**可能**会改变。 （ ）\n\n  4)  将第 14 行的 `d[i] < d[j]` 改为 `d[i] != d[j]`，程序输出**不会**改变。（ ）\n\n- 单选题\n\n  5)  若输入 $n$ 为 $100$，且输出为 $127$，则输入的 $d[i]$ 中不可能有（  ）。\n\n\n  6)  若输出的数大于 $0$，则下面说法正确的是(  ）。",
-    "statement": "二、阅读程序（程序输入不超过数组或字符串定义的范围；判断题正确填 √，错误填 ×；除特殊说明外，判断题 $1.5$ 分，选择题 $3$ 分，共计 $40$ 分）\n\n1.\n```\n#include <iostream>\nusing namespace std;\n\nint n;\nint d[1000];\n\nint main() {\n  cin >> n;\n  for (int i = 0; i < n; ++i)\n    cin >> d[i];\n  int ans = -1;\n  for (int i = 0; i < n; ++i)\n    for (int j = 0; j < n; ++j)\n      if (d[i] < d[j])\n         ans = max(ans, d[i] + d[j] - (d[i] & d[j]));\n    cout << ans;\n    return 0;\n}\n\n```\n  假设输入的 $n$ 和 $d[i]$ 都是不超过 $10000$ 的正整数，完成下面的判断题和单选题：\n\n- 判断题\n\n  1)  $n$ 必须小于 $1000$,否则程序**可能**会发生运行错误。（ ）\n\n  2)  输出一定大于等于 $0$。（ ）\n\n  3)  若将第 13 行的 `j=0` 改为 `j = i + 1` 程序输出**可能**会改变。 （ ）\n\n  4)  将第 14 行的 `d[i] < d[j]` 改为 `d[i] != d[j]`，程序输出**不会**改变。（ ）\n\n- 单选题\n\n  5)  若输入 $n$ 为 $100$，且输出为 $127$，则输入的 $d[i]$ 中不可能有（  ）。\n\n\n  6)  若输出的数大于 $0$，则下面说法正确的是(  ）。",
+    "description": "```cpp\n01 #include <iostream>\n02 using namespace std;\n03 \n04 int n;\n05 int d[1000];\n06 \n07 int main() {\n08     cin >> n;\n09     for (int i = 0; i < n; ++i)\n10         cin >> d[i];\n11     int ans = -1;\n12     for (int i = 0; i < n; ++i)\n13         for (int j = 0; j < n; ++j)\n14             if (d[i] < d[j])\n15                 ans = max(ans, d[i] + d[j] - (d[i] & d[j]));\n16     cout << ans;\n17     return 0;\n18 }\n\n```\n\n假设输入的 n 和 d[i] 都是不超过 10000 的正整数，完成下面的判断题和单选题：",
+    "statement": "```cpp\n01 #include <iostream>\n02 using namespace std;\n03 \n04 int n;\n05 int d[1000];\n06 \n07 int main() {\n08     cin >> n;\n09     for (int i = 0; i < n; ++i)\n10         cin >> d[i];\n11     int ans = -1;\n12     for (int i = 0; i < n; ++i)\n13         for (int j = 0; j < n; ++j)\n14             if (d[i] < d[j])\n15                 ans = max(ans, d[i] + d[j] - (d[i] & d[j]));\n16     cout << ans;\n17     return 0;\n18 }\n\n```\n\n假设输入的 n 和 d[i] 都是不超过 10000 的正整数，完成下面的判断题和单选题：",
     "questions": [
       {
         "id": "2020-reading-1-1",
         "number": 1,
-        "text": "第 1 小题",
+        "text": "n 必须小于 1000，否则程序可能会发生运行错误。（ ）",
         "options": {
           "A": "正确",
           "B": "错误"
@@ -1921,7 +1921,7 @@ export const cspSProgramProblems = [
       {
         "id": "2020-reading-1-2",
         "number": 2,
-        "text": "第 2 小题",
+        "text": "输出一定大于等于 0。（ ）",
         "options": {
           "A": "正确",
           "B": "错误"
@@ -1936,7 +1936,7 @@ export const cspSProgramProblems = [
       {
         "id": "2020-reading-1-3",
         "number": 3,
-        "text": "第 3 小题",
+        "text": "若将第 13 行的 j=0 改为 j = i + 1，程序输出可能会改变。（ ）",
         "options": {
           "A": "正确",
           "B": "错误"
@@ -1951,7 +1951,7 @@ export const cspSProgramProblems = [
       {
         "id": "2020-reading-1-4",
         "number": 4,
-        "text": "第 4 小题",
+        "text": "将第 14 行的 d[i] < d[j] 改为 d[i] != d[j]，程序输出不会改变。（ ）",
         "options": {
           "A": "正确",
           "B": "错误"
@@ -1966,7 +1966,7 @@ export const cspSProgramProblems = [
       {
         "id": "2020-reading-1-5",
         "number": 5,
-        "text": "第 5 小题",
+        "text": "若输入 n 为 100，且输出为 127，则输入的 d[i] 中不可能有（ ）。",
         "options": {
           "A": "127",
           "B": "126",
@@ -1983,19 +1983,19 @@ export const cspSProgramProblems = [
       {
         "id": "2020-reading-1-6",
         "number": 6,
-        "text": "第 6 小题",
+        "text": "若输出的数大于 0，则下面说法正确的是（ ）。",
         "options": {
-          "A": "若输出为偶数，则输入的 $d[i]$ 中**最多**有两个偶数",
-          "B": "若输出为奇数，则输入的 $d[i]$ 中**至少**有两个奇数",
-          "C": "若输出为偶数，则输入的 $d[i]$ 中**至少**有两个偶数",
-          "D": "若输出为奇数，则输入的 $d[i]$ 中**最多**有两个奇数"
+          "A": "若输出为偶数，则输入的 d[i] 中最多有两个偶数",
+          "B": "若输出为奇数，则输入的 d[i] 中至少有两个奇数",
+          "C": "若输出为偶数，则输入的 d[i] 中至少有两个偶数",
+          "D": "若输出为奇数，则输入的 d[i] 中最多有两个奇数"
         },
         "answers": [
           "C"
         ],
         "multiple": false,
         "score": 3,
-        "explanation": "参考答案为 C（若输出为偶数，则输入的 $d[i]$ 中**至少**有两个偶数）。请回到题目条件，按定义、执行顺序或复杂度逐项核对。"
+        "explanation": "参考答案为 C（若输出为偶数，则输入的 d[i] 中至少有两个偶数）。请回到题目条件，按定义、执行顺序或复杂度逐项核对。"
       }
     ],
     "sourceUrl": "https://ti.luogu.com.cn/problemset/1035?submission=1544651"
