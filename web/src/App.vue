@@ -386,17 +386,9 @@ import { streamPost } from './utils/api';
 const markdownRenderer = new marked.Renderer();
 markdownRenderer.code = (code, infoString) => {
   const language = (infoString || '').trim().split(/\s+/)[0];
-  // Check if code has line numbers (starts with "01 " or "1 ")
-  const hasLineNumbers = /^\d{1,2} /m.test(code);
-  let highlighted;
-  if (hasLineNumbers) {
-    // Don't apply syntax highlighting to code with line numbers
-    highlighted = code;
-  } else {
-    highlighted = language && hljs.getLanguage(language)
-      ? hljs.highlight(code, { language }).value
-      : hljs.highlightAuto(code).value;
-  }
+  const highlighted = language && hljs.getLanguage(language)
+    ? hljs.highlight(code, { language }).value
+    : hljs.highlightAuto(code).value;
   return `<pre><code class="hljs language-${language || 'plaintext'}">${highlighted}</code></pre>`;
 };
 
