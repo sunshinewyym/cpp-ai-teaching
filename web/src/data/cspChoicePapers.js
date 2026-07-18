@@ -11,7 +11,8 @@ export const cspChoicePapers = {
         "C": ".chn",
         "D": ".china"
       },
-      "answer": "A"
+      "answer": "A",
+      "explanation": "参考答案为 A（.cn）。中国的国家顶级域名是 .cn。"
     },
     {
       "id": "2019-choice-2",
@@ -23,7 +24,8 @@ export const cspChoicePapers = {
         "C": "$\\text{01 0010 1000 0001}$",
         "D": "$\\text{01 0010 1000 0011}$"
       },
-      "answer": "D"
+      "answer": "D",
+      "explanation": "参考答案为 D。按位与运算规则：两个二进制位都为 1 时结果才为 1。"
     },
     {
       "id": "2019-choice-3",
@@ -35,7 +37,8 @@ export const cspChoicePapers = {
         "C": "4",
         "D": "8"
       },
-      "answer": "C"
+      "answer": "C",
+      "explanation": "参考答案为 C（4）。32 位整型变量占用 4 个字节。"
     },
     {
       "id": "2019-choice-4",
@@ -47,7 +50,8 @@ export const cspChoicePapers = {
         "C": "`s = s - c;`",
         "D": "`s = b - c;`"
       },
-      "answer": "A"
+      "answer": "A",
+      "explanation": "参考答案为 A（s = a - c）。循环 c 次后 s = a - c。"
     },
     {
       "id": "2019-choice-5",
@@ -59,7 +63,8 @@ export const cspChoicePapers = {
         "C": "6",
         "D": "8"
       },
-      "answer": "A"
+      "answer": "A",
+      "explanation": "参考答案为 A（7）。折半查找最大比较次数为 7 次。"
     },
     {
       "id": "2019-choice-6",
@@ -71,7 +76,8 @@ export const cspChoicePapers = {
         "C": "所需空间与线性表长度成正比",
         "D": "可随机访问任一元素"
       },
-      "answer": "D"
+      "answer": "D",
+      "explanation": "参考答案为 D。链表不支持随机访问。"
     },
     {
       "id": "2019-choice-7",
@@ -83,7 +89,8 @@ export const cspChoicePapers = {
         "C": "18",
         "D": "20"
       },
-      "answer": "C"
+      "answer": "C",
+      "explanation": "参考答案为 C（18）。整数 8 拆分为不超过 5 个部分共 18 种。"
     },
     {
       "id": "2019-choice-8",
@@ -95,7 +102,8 @@ export const cspChoicePapers = {
         "C": "15",
         "D": "12"
       },
-      "answer": "C"
+      "answer": "C",
+      "explanation": "参考答案为 C（15）。顺序存储二叉树最深层节点下标可达 15。"
     },
     {
       "id": "2019-choice-9",
@@ -107,7 +115,8 @@ export const cspChoicePapers = {
         "C": "91",
         "D": "93"
       },
-      "answer": "B"
+      "answer": "B",
+      "explanation": "参考答案为 B（97）。100 以内最大素数是 97。"
     },
     {
       "id": "2019-choice-10",
@@ -119,7 +128,8 @@ export const cspChoicePapers = {
         "C": "29",
         "D": "31"
       },
-      "answer": "C"
+      "answer": "C",
+      "explanation": "参考答案为 C（29）。辗转相除法得 gcd(319, 377) = 29。"
     },
     {
       "id": "2019-choice-11",
@@ -131,7 +141,8 @@ export const cspChoicePapers = {
         "C": "2400",
         "D": "2520"
       },
-      "answer": "C"
+      "answer": "C",
+      "explanation": "参考答案为 C（2400）。3 天方案二 + 2 天方案一 = 21 公里。"
     },
     {
       "id": "2019-choice-12",
@@ -143,7 +154,8 @@ export const cspChoicePapers = {
         "C": "3",
         "D": "5"
       },
-      "answer": "A"
+      "answer": "A",
+      "explanation": "参考答案为 A（4）。鸽巢原理：至少 4 张牌花色一致。"
     },
     {
       "id": "2019-choice-13",
@@ -155,7 +167,8 @@ export const cspChoicePapers = {
         "C": "75",
         "D": "100"
       },
-      "answer": "C"
+      "answer": "C",
+      "explanation": "参考答案为 C（75）。5x5x3 = 75 种可颠倒车牌。"
     },
     {
       "id": "2019-choice-14",
@@ -167,7 +180,8 @@ export const cspChoicePapers = {
         "C": "$\\texttt{ABDEGJHCFI}$",
         "D": "$\\texttt{ABDEGHJFIC}$"
       },
-      "answer": "B"
+      "answer": "B",
+      "explanation": "参考答案为 B。根据后序和中序求前序遍历。"
     },
     {
       "id": "2019-choice-15",
@@ -179,7 +193,8 @@ export const cspChoicePapers = {
         "C": "诺贝尔奖",
         "D": "普利策奖"
       },
-      "answer": "A"
+      "answer": "A",
+      "explanation": "参考答案为 A（图灵奖）。计算机科学最高荣誉。"
     }
   ],
   "2020": [
