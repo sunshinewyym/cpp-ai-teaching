@@ -6,10 +6,10 @@ export const csp2025ChoicePapers = {
       "number": 1,
       "question": "一个 32 位无符号整数可以表示的最大值，最接近下列哪个选项？（ ）",
       "options": {
-        "A": "$4×10^9$",
-        "B": "$3×10^{10}$",
-        "C": "$2×10^9$",
-        "D": "$2×10^{10}$"
+        "A": "4×10^9",
+        "B": "3×10^{10}",
+        "C": "2×10^9",
+        "D": "2×10^{10}"
       },
       "answer": "A"
     },
@@ -40,7 +40,7 @@ export const csp2025ChoicePapers = {
     {
       "id": "2025-choice-4",
       "number": 4,
-      "question": "用 5 个权值 $10, 12, 15, 20, 25$ 构造哈夫曼树，该树的带权路径长度是多少？（ ）",
+      "question": "用 5 个权值 10, 12, 15, 20, 25 构造哈夫曼树，该树的带权路径长度是多少？（ ）",
       "options": {
         "A": "`176`",
         "B": "`186`",
@@ -88,7 +88,7 @@ export const csp2025ChoicePapers = {
     {
       "id": "2025-choice-8",
       "number": 8,
-      "question": "已知 $f[0] = 1, f[1] = 1$，并且对于所有 $n \\geq 2$ 有\n\n    $f[n] = (f[n-1] + f[n-2]) \\% 7$\n\n    那么 $f[2025]$ 的值是多少？（ ）",
+      "question": "已知 f[0] = 1, f[1] = 1，并且对于所有 n \≥ 2 有\n\n    f[n] = (f[n-1] + f[n-2]) \\% 7\n\n    那么 f[2025] 的值是多少？（ ）",
       "options": {
         "A": "`2`",
         "B": "`4`",
@@ -124,7 +124,7 @@ export const csp2025ChoicePapers = {
     {
       "id": "2025-choice-11",
       "number": 11,
-      "question": "一个 $8 \\times 8$ 的棋盘，左上角坐标为 $(1,1)$，右下角为 $(8,8)$。一个机器人从 $(1,1)$ 出发，每次只能向右或向下走一步。要到达 $(4,5)$，有多少种不同的路径？（ ）",
+      "question": "一个 8 × 8 的棋盘，左上角坐标为 (1,1)，右下角为 (8,8)。一个机器人从 (1,1) 出发，每次只能向右或向下走一步。要到达 (4,5)，有多少种不同的路径？（ ）",
       "options": {
         "A": "`20`",
         "B": "`35`",
@@ -136,7 +136,7 @@ export const csp2025ChoicePapers = {
     {
       "id": "2025-choice-12",
       "number": 12,
-      "question": "某同学用冒泡排序对数组 $\\{6, 1, 5, 2, 4\\}$ 进行升序排序，请问需要进行多少次元素交换？（ ）",
+      "question": "某同学用冒泡排序对数组 \\{6, 1, 5, 2, 4\\} 进行升序排序，请问需要进行多少次元素交换？（ ）",
       "options": {
         "A": "`5`",
         "B": "`6`",
@@ -148,19 +148,19 @@ export const csp2025ChoicePapers = {
     {
       "id": "2025-choice-13",
       "number": 13,
-      "question": "十进制数 $720_{10}$ 和八进制数 $270_8$ 的和用十六进制表示是多少？（ ）",
+      "question": "十进制数 720_{10} 和八进制数 270_8 的和用十六进制表示是多少？（ ）",
       "options": {
-        "A": "$388_{16}$",
-        "B": "$3DE_{16}$",
-        "C": "$288_{16}$",
-        "D": "$990_{16}$"
+        "A": "388_{16}",
+        "B": "3DE_{16}",
+        "C": "288_{16}",
+        "D": "990_{16}"
       },
       "answer": "A"
     },
     {
       "id": "2025-choice-14",
       "number": 14,
-      "question": "一棵包含 $1000$ 个结点的完全二叉树，其中叶子结点的数量是多少？（ ）",
+      "question": "一棵包含 1000 个结点的完全二叉树，其中叶子结点的数量是多少？（ ）",
       "options": {
         "A": "`499`",
         "B": "`512`",
@@ -172,7 +172,7 @@ export const csp2025ChoicePapers = {
     {
       "id": "2025-choice-15",
       "number": 15,
-      "question": "给定一个初始为空的整数栈 $S$ 和一个空的队列 $P$。我们按顺序处理输入的整数队列 $A: 7, 5, 8, 3, 1, 4, 2$。对队列 $A$ 中的每一个数，执行以下规则：如果该数是奇数，则将其压入栈 $S$；如果该数是偶数，且栈 $S$ 非空，则弹出一个栈顶元素，并加入到队列 $P$ 的末尾；如果该数是偶数，且栈 $S$ 为空，则不进行任何操作。当队列 $A$ 中的所有数据处理完毕后，队列 $P$ 的内容是什么？（ ）",
+      "question": "给定一个初始为空的整数栈 S 和一个空的队列 P。我们按顺序处理输入的整数队列 A: 7, 5, 8, 3, 1, 4, 2。对队列 A 中的每一个数，执行以下规则：如果该数是奇数，则将其压入栈 S；如果该数是偶数，且栈 S 非空，则弹出一个栈顶元素，并加入到队列 P 的末尾；如果该数是偶数，且栈 S 为空，则不进行任何操作。当队列 A 中的所有数据处理完毕后，队列 P 的内容是什么？（ ）",
       "options": {
         "A": "5, 1, 3",
         "B": "7, 5, 3",
@@ -191,7 +191,7 @@ export const csp2025ProgramProblems = [
     "type": "reading",
     "number": 1,
     "title": "阅读程序第 1 题",
-    "description": "## 1.\n\n```cpp\n01 #include <algorithm>\n02 #include <cstdio>\n03 #include <cstring>\n04 inline int gcd(int a, int b) {\n05     if (b == 0)\n06         return a;\n07     return gcd(b, a % b);\n08 }\n09 int main() {\n10     int n;\n11     scanf(\"%d\", &n);\n12     int ans = 0;\n13     for (int i = 1; i <= n; ++i) {\n14         for (int j = i + 1; j <= n; ++j) {\n15             for (int k = j + 1; k <= n; ++k) {\n16                 if (gcd(i, j) == 1 && gcd(j, k) == 1\n17                     && gcd(i, k) == 1) {\n18                     ++ans;\n19                 }\n20             }\n21         }\n22     }\n23     printf(\"%d\\n\", ans);\n24     return 0;\n25 }\n```\n\n### 判断题\n\n16. （1 分）当输入为 2 时，程序并不会执行第 16 行的判断语句。（ ）\n\n\n{{ select(16) }}\n\n- 正确\n- 错误\n\n17. 将第 16 行中的 `&& gcd(i,k)==1` 删去不会影响程序运行结果。（ ）\n\n\n{{ select(17) }}\n\n- 正确\n- 错误\n\n18. 当输入的 $n \\geq 3$ 时，程序总是输出一个正整数。（ ）\n\n\n{{ select(18) }}\n\n- 正确\n- 错误\n\n### 单选题\n\n19.  将第 7 行的 `gcd(b, a % b)` 改为 `gcd(a, a % b)` 后，程序可能出现的问题是（ ）\n\n\n{{ select(19) }}\n\n- 输出的答案大于原答案。\n- 输出的答案小于原答案。\n- 程序有可能陷入死循环。\n- 可能发生整型溢出问题。\n\n\n20. 当输入为 8 的时候，输出为（ ）\n\n\n{{ select(20) }}\n\n- `37`\n- `42`\n- `35`\n- `25`\n\n21. 调用 `gcd(36,42)` 会返回（ ）\n\n{{ select(21) }}\n\n- `6`\n- `252`\n- `3`\n- `2`",
+    "description": "## 1.\n\n```cpp\n01 #include <algorithm>\n02 #include <cstdio>\n03 #include <cstring>\n04 inline int gcd(int a, int b) {\n05     if (b == 0)\n06         return a;\n07     return gcd(b, a % b);\n08 }\n09 int main() {\n10     int n;\n11     scanf(\"%d\", &n);\n12     int ans = 0;\n13     for (int i = 1; i <= n; ++i) {\n14         for (int j = i + 1; j <= n; ++j) {\n15             for (int k = j + 1; k <= n; ++k) {\n16                 if (gcd(i, j) == 1 && gcd(j, k) == 1\n17                     && gcd(i, k) == 1) {\n18                     ++ans;\n19                 }\n20             }\n21         }\n22     }\n23     printf(\"%d\\n\", ans);\n24     return 0;\n25 }\n```\n\n### 判断题\n\n16. （1 分）当输入为 2 时，程序并不会执行第 16 行的判断语句。（ ）\n\n\n{{ select(16) }}\n\n- 正确\n- 错误\n\n17. 将第 16 行中的 `&& gcd(i,k)==1` 删去不会影响程序运行结果。（ ）\n\n\n{{ select(17) }}\n\n- 正确\n- 错误\n\n18. 当输入的 n \≥ 3 时，程序总是输出一个正整数。（ ）\n\n\n{{ select(18) }}\n\n- 正确\n- 错误\n\n### 单选题\n\n19.  将第 7 行的 `gcd(b, a % b)` 改为 `gcd(a, a % b)` 后，程序可能出现的问题是（ ）\n\n\n{{ select(19) }}\n\n- 输出的答案大于原答案。\n- 输出的答案小于原答案。\n- 程序有可能陷入死循环。\n- 可能发生整型溢出问题。\n\n\n20. 当输入为 8 的时候，输出为（ ）\n\n\n{{ select(20) }}\n\n- `37`\n- `42`\n- `35`\n- `25`\n\n21. 调用 `gcd(36,42)` 会返回（ ）\n\n{{ select(21) }}\n\n- `6`\n- `252`\n- `3`\n- `2`",
     "statement": "## 1.\n\n```cpp\n01 #include <algorithm>\n02 #include <cstdio>\n03 #include <cstring>\n04 inline int gcd(int a, int b) {\n05     if (b == 0)\n06         return a;\n07     return gcd(b, a % b);\n08 }\n09 int main() {\n10     int n;\n11     scanf(\"%d\", &n);\n12     int ans = 0;\n13     for (int i = 1; i <= n; ++i) {\n14         for (int j = i + 1; j <= n; ++j) {\n15             for (int k = j + 1; k <= n; ++k) {\n16                 if (gcd(i, j) == 1 && gcd(j, k) == 1\n17                     && gcd(i, k) == 1) {\n18                     ++ans;\n19                 }\n20             }\n21         }\n22     }\n23     printf(\"%d\\n\", ans);\n24     return 0;\n25 }\n```",
     "questions": [
       {
@@ -227,7 +227,7 @@ export const csp2025ProgramProblems = [
       {
         "id": "2025-reading-1-3",
         "number": 3,
-        "text": "当输入的 $n \\geq 3$ 时，程序总是输出一个正整数。（ ）",
+        "text": "当输入的 n \≥ 3 时，程序总是输出一个正整数。（ ）",
         "options": {
           "A": "正确",
           "B": "错误"
@@ -300,7 +300,7 @@ export const csp2025ProgramProblems = [
     "type": "reading",
     "number": 2,
     "title": "阅读程序第 2 题",
-    "description": "## 2.\n\n```cpp\n01 #include <algorithm>\n02 #include <cstdio>\n03 #include <cstring>\n04 #define ll long long\n05 int n, k;\n06 int a[200007];\n07 int ans[200007];\n08 int main() {\n09     scanf(\"%d%d\", &n, &k);\n10     for (int i = 1; i <= n; ++i) {\n11         scanf(\"%d\", &a[i]);\n12     }\n13     std::sort(a + 1, a + n + 1);\n14     n = std::unique(a + 1, a + n + 1) - a - 1;\n15     for (int i = 1, j = 0; i <= n; ++i) {\n16         for (; j < i && a[i] - a[j + 1] > k; ++j)\n17             ;\n18         ans[i] = ans[j] + 1;\n19     }\n20     printf(\"%d\\n\", ans[n]);\n21     return 0;\n22 }\n```\n### 判断题\n\n22. 当输入为 “3 1 3 2 1” 时，输出结果为 2。（ ）\n\n{{ select(22) }}\n\n- 正确\n- 错误\n\n23. 假如输入的 $n$ 为正整数，输出的答案一定小于等于 $n$，大于等于 1。\n\n{{ select(23) }}\n\n- 正确\n- 错误\n\n24. 将第 14 行的 `n = std::unique(a+1, a+n+1) - a - 1;` 删除后，有可能出现与原本代码不同的输出结果。（ ）\n\n{{ select(24) }}\n\n- 正确\n- 错误\n\n### 单选题\n\n25. 假设输入的 $a$ 数组和 $k$ 均为正整数，执行第 18 行代码时，一定满足的条件不包括（ ）\n\n{{ select(25) }}\n\n- $j < i$\n- $a[i] - a[j] > k$\n- $j <= n$\n- $a[j] \\leq a[i]$\n\n\n26. 当输入 $n = 100, k = 2, a = \\{1, 2, \\ldots, 100\\}$ 时，输出为（ ）\n\n{{ select(26) }}\n\n- `34`\n- `100`\n- `50`\n- `33`\n\n27. 假设输入的 $a$ 数组和 $k$ 均为正整数，但 $a$ 数组不一定有序，则若误删去第 13 行的 `std::sort(a+1,a+n+1);`，程序又可能出现的问题有（ ）\n\n{{ select(27) }}\n\n- 输出的答案比原本答案更大\n- 输出的答案比原本答案更小\n- 出现死循环行为\n- 以上均可能发生",
+    "description": "## 2.\n\n```cpp\n01 #include <algorithm>\n02 #include <cstdio>\n03 #include <cstring>\n04 #define ll long long\n05 int n, k;\n06 int a[200007];\n07 int ans[200007];\n08 int main() {\n09     scanf(\"%d%d\", &n, &k);\n10     for (int i = 1; i <= n; ++i) {\n11         scanf(\"%d\", &a[i]);\n12     }\n13     std::sort(a + 1, a + n + 1);\n14     n = std::unique(a + 1, a + n + 1) - a - 1;\n15     for (int i = 1, j = 0; i <= n; ++i) {\n16         for (; j < i && a[i] - a[j + 1] > k; ++j)\n17             ;\n18         ans[i] = ans[j] + 1;\n19     }\n20     printf(\"%d\\n\", ans[n]);\n21     return 0;\n22 }\n```\n### 判断题\n\n22. 当输入为 “3 1 3 2 1” 时，输出结果为 2。（ ）\n\n{{ select(22) }}\n\n- 正确\n- 错误\n\n23. 假如输入的 n 为正整数，输出的答案一定小于等于 n，大于等于 1。\n\n{{ select(23) }}\n\n- 正确\n- 错误\n\n24. 将第 14 行的 `n = std::unique(a+1, a+n+1) - a - 1;` 删除后，有可能出现与原本代码不同的输出结果。（ ）\n\n{{ select(24) }}\n\n- 正确\n- 错误\n\n### 单选题\n\n25. 假设输入的 a 数组和 k 均为正整数，执行第 18 行代码时，一定满足的条件不包括（ ）\n\n{{ select(25) }}\n\n- j <= i\n- a[i] - a[j] > k\n- j <= n\n- a[j] ≤ a[i]\n\n\n26. 当输入 n = 100, k = 2, a = \\{1, 2, \…, 100\\} 时，输出为（ ）\n\n{{ select(26) }}\n\n- `34`\n- `100`\n- `50`\n- `33`\n\n27. 假设输入的 a 数组和 k 均为正整数，但 a 数组不一定有序，则若误删去第 13 行的 `std::sort(a+1,a+n+1);`，程序又可能出现的问题有（ ）\n\n{{ select(27) }}\n\n- 输出的答案比原本答案更大\n- 输出的答案比原本答案更小\n- 出现死循环行为\n- 以上均可能发生",
     "statement": "## 2.\n\n```cpp\n01 #include <algorithm>\n02 #include <cstdio>\n03 #include <cstring>\n04 #define ll long long\n05 int n, k;\n06 int a[200007];\n07 int ans[200007];\n08 int main() {\n09     scanf(\"%d%d\", &n, &k);\n10     for (int i = 1; i <= n; ++i) {\n11         scanf(\"%d\", &a[i]);\n12     }\n13     std::sort(a + 1, a + n + 1);\n14     n = std::unique(a + 1, a + n + 1) - a - 1;\n15     for (int i = 1, j = 0; i <= n; ++i) {\n16         for (; j < i && a[i] - a[j + 1] > k; ++j)\n17             ;\n18         ans[i] = ans[j] + 1;\n19     }\n20     printf(\"%d\\n\", ans[n]);\n21     return 0;\n22 }\n```",
     "questions": [
       {
@@ -321,7 +321,7 @@ export const csp2025ProgramProblems = [
       {
         "id": "2025-reading-2-2",
         "number": 2,
-        "text": "假如输入的 $n$ 为正整数，输出的答案一定小于等于 $n$，大于等于 1。",
+        "text": "假如输入的 n 为正整数，输出的答案一定小于等于 n，大于等于 1。",
         "options": {
           "A": "正确",
           "B": "错误"
@@ -351,24 +351,24 @@ export const csp2025ProgramProblems = [
       {
         "id": "2025-reading-2-4",
         "number": 4,
-        "text": "假设输入的 $a$ 数组和 $k$ 均为正整数，执行第 18 行代码时，一定满足的条件不包括（ ）",
+        "text": "假设输入的 a 数组和 k 均为正整数，执行第 18 行代码时，一定满足的条件不包括（ ）",
         "options": {
-          "A": "$j < i$",
-          "B": "$a[i] - a[j] > k$",
-          "C": "$j <= n$",
-          "D": "$a[j] \\leq a[i]$"
+          "A": "j < i",
+          "B": "a[i] - a[j] > k",
+          "C": "j <= n",
+          "D": "a[j] ≤ a[i]"
         },
         "answers": [
           "B"
         ],
         "multiple": false,
         "score": 3,
-        "explanation": "参考答案为 B（$a[i] - a[j] > k$）。请结合完整程序，按执行顺序记录关键变量，再与各选项逐一核对。"
+        "explanation": "参考答案为 B（a[i] - a[j] > k）。请结合完整程序，按执行顺序记录关键变量，再与各选项逐一核对。"
       },
       {
         "id": "2025-reading-2-5",
         "number": 5,
-        "text": "当输入 $n = 100, k = 2, a = \\{1, 2, \\ldots, 100\\}$ 时，输出为（ ）",
+        "text": "当输入 n = 100, k = 2, a = \\{1, 2, \…, 100\\} 时，输出为（ ）",
         "options": {
           "A": "`34`",
           "B": "`100`",
@@ -385,7 +385,7 @@ export const csp2025ProgramProblems = [
       {
         "id": "2025-reading-2-6",
         "number": 6,
-        "text": "假设输入的 $a$ 数组和 $k$ 均为正整数，但 $a$ 数组不一定有序，则若误删去第 13 行的 `std::sort(a+1,a+n+1);`，程序又可能出现的问题有（ ）",
+        "text": "假设输入的 a 数组和 k 均为正整数，但 a 数组不一定有序，则若误删去第 13 行的 `std::sort(a+1,a+n+1);`，程序又可能出现的问题有（ ）",
         "options": {
           "A": "输出的答案比原本答案更大",
           "B": "输出的答案比原本答案更小",
@@ -409,7 +409,7 @@ export const csp2025ProgramProblems = [
     "type": "reading",
     "number": 3,
     "title": "阅读程序第 3 题",
-    "description": "## 3.\n\n```cpp\n01 #include <algorithm>\n02 #include <cstdio>\n03 #include <cstring>\n04 #define ll long long\n05 int f[5007][5007];\n06 int a[5007], b[5007];\n07 int n;\n08 int main() {\n09     scanf(\"%d\", &n);\n10     for (int i = 1; i <= n; ++i) {\n11         scanf(\"%d\", &a[i]);\n12     }\n13     for (int i = 1; i <= n; ++i) {\n14         scanf(\"%d\", &b[i]);\n15     }\n16     for (int i = 1; i <= n; ++i) {\n17         for (int j = 1; j <= n; ++j) {\n18             f[i][j] = std::max(f[i][j], std::max(f[i - 1][j], f[i][j - 1]));\n19             if (a[i] == b[j]) {\n20                 f[i][j] = std::max(f[i][j], f[i - 1][j - 1] + 1);\n21             }\n22         }\n23     }\n24     printf(\"%d\\n\", f[n][n]);\n25     return 0;\n26 }\n```\n\n### 判断题\n\n28. 当输入为 “4 1 2 3 4 1 3 2 2” 时，输出为 2。（ ）\n\n{{ select(28) }}\n\n- 正确\n- 错误\n\n29. 当程序运行完毕后，对于所有的 $1 \\leq i, j \\leq n$，都一定有 $f[i][j] \\leq f[n][n]$。（ ）\n\n{{ select(29) }}\n\n- 正确\n- 错误\n\n30. 将第 18 行的\n\n    `f[i][j] = std::max(f[i][j], std::max(f[i-1][j], f[i][j-1]));`\n删除后，并不影响程序运行结果。（ ）\n\n{{ select(30) }}\n\n- 正确\n- 错误\n\n### 单选题\n\n31. 输出的答案满足的性质有（ ）\n\n{{ select(31) }}\n\n- 小于等于 $n$\n- 大于等于 $0$\n- 不一定大于等于 $1$\n- 以上均是\n\n\n32. 如果在第 16 行的循环前加上以下两行：`std::sort(a+1, a+n+1);` `std::sort(b+1, b+n+1);` 则答案会（ ）\n\n{{ select(32) }}\n\n- 变大或不变\n- 变小或不变\n- 一定变大\n- 不变\n\n33. 如果输入的 $a=\\{1,2,\\ldots,n\\}$，而且 $b$ 数组中数字均为 $1 \\sim n$ 中的正整数，则上述代码等价于下面哪个问题：（ ）\n\n{{ select(33) }}\n\n- 求 b 数组去重后的长度\n- 求 b 数组的最长上升子序列\n- 求 b 数组的长度\n- 求 b 数组的最大值",
+    "description": "## 3.\n\n```cpp\n01 #include <algorithm>\n02 #include <cstdio>\n03 #include <cstring>\n04 #define ll long long\n05 int f[5007][5007];\n06 int a[5007], b[5007];\n07 int n;\n08 int main() {\n09     scanf(\"%d\", &n);\n10     for (int i = 1; i <= n; ++i) {\n11         scanf(\"%d\", &a[i]);\n12     }\n13     for (int i = 1; i <= n; ++i) {\n14         scanf(\"%d\", &b[i]);\n15     }\n16     for (int i = 1; i <= n; ++i) {\n17         for (int j = 1; j <= n; ++j) {\n18             f[i][j] = std::max(f[i][j], std::max(f[i - 1][j], f[i][j - 1]));\n19             if (a[i] == b[j]) {\n20                 f[i][j] = std::max(f[i][j], f[i - 1][j - 1] + 1);\n21             }\n22         }\n23     }\n24     printf(\"%d\\n\", f[n][n]);\n25     return 0;\n26 }\n```\n\n### 判断题\n\n28. 当输入为 “4 1 2 3 4 1 3 2 2” 时，输出为 2。（ ）\n\n{{ select(28) }}\n\n- 正确\n- 错误\n\n29. 当程序运行完毕后，对于所有的 1 ≤ i, j ≤ n，都一定有 f[i][j] ≤ f[n][n]。（ ）\n\n{{ select(29) }}\n\n- 正确\n- 错误\n\n30. 将第 18 行的\n\n    `f[i][j] = std::max(f[i][j], std::max(f[i-1][j], f[i][j-1]));`\n删除后，并不影响程序运行结果。（ ）\n\n{{ select(30) }}\n\n- 正确\n- 错误\n\n### 单选题\n\n31. 输出的答案满足的性质有（ ）\n\n{{ select(31) }}\n\n- 小于等于 n\n- 大于等于 0\n- 不一定大于等于 1\n- 以上均是\n\n\n32. 如果在第 16 行的循环前加上以下两行：`std::sort(a+1, a+n+1);` `std::sort(b+1, b+n+1);` 则答案会（ ）\n\n{{ select(32) }}\n\n- 变大或不变\n- 变小或不变\n- 一定变大\n- 不变\n\n33. 如果输入的 a=\\{1,2,\…,n\\}，而且 b 数组中数字均为 1 ~ n 中的正整数，则上述代码等价于下面哪个问题：（ ）\n\n{{ select(33) }}\n\n- 求 b 数组去重后的长度\n- 求 b 数组的最长上升子序列\n- 求 b 数组的长度\n- 求 b 数组的最大值",
     "statement": "## 3.\n\n```cpp\n01 #include <algorithm>\n02 #include <cstdio>\n03 #include <cstring>\n04 #define ll long long\n05 int f[5007][5007];\n06 int a[5007], b[5007];\n07 int n;\n08 int main() {\n09     scanf(\"%d\", &n);\n10     for (int i = 1; i <= n; ++i) {\n11         scanf(\"%d\", &a[i]);\n12     }\n13     for (int i = 1; i <= n; ++i) {\n14         scanf(\"%d\", &b[i]);\n15     }\n16     for (int i = 1; i <= n; ++i) {\n17         for (int j = 1; j <= n; ++j) {\n18             f[i][j] = std::max(f[i][j], std::max(f[i - 1][j], f[i][j - 1]));\n19             if (a[i] == b[j]) {\n20                 f[i][j] = std::max(f[i][j], f[i - 1][j - 1] + 1);\n21             }\n22         }\n23     }\n24     printf(\"%d\\n\", f[n][n]);\n25     return 0;\n26 }\n```",
     "questions": [
       {
@@ -430,7 +430,7 @@ export const csp2025ProgramProblems = [
       {
         "id": "2025-reading-3-2",
         "number": 2,
-        "text": "当程序运行完毕后，对于所有的 $1 \\leq i, j \\leq n$，都一定有 $f[i][j] \\leq f[n][n]$。（ ）",
+        "text": "当程序运行完毕后，对于所有的 1 ≤ i, j ≤ n，都一定有 f[i][j] ≤ f[n][n]。（ ）",
         "options": {
           "A": "正确",
           "B": "错误"
@@ -462,9 +462,9 @@ export const csp2025ProgramProblems = [
         "number": 4,
         "text": "输出的答案满足的性质有（ ）",
         "options": {
-          "A": "小于等于 $n$",
-          "B": "大于等于 $0$",
-          "C": "不一定大于等于 $1$",
+          "A": "小于等于 n",
+          "B": "大于等于 0",
+          "C": "不一定大于等于 1",
           "D": "以上均是"
         },
         "answers": [
@@ -494,7 +494,7 @@ export const csp2025ProgramProblems = [
       {
         "id": "2025-reading-3-6",
         "number": 6,
-        "text": "如果输入的 $a=\\{1,2,\\ldots,n\\}$，而且 $b$ 数组中数字均为 $1 \\sim n$ 中的正整数，则上述代码等价于下面哪个问题：（ ）",
+        "text": "如果输入的 a=\\{1,2,\…,n\\}，而且 b 数组中数字均为 1 ~ n 中的正整数，则上述代码等价于下面哪个问题：（ ）",
         "options": {
           "A": "求 b 数组去重后的长度",
           "B": "求 b 数组的最长上升子序列",
@@ -518,8 +518,8 @@ export const csp2025ProgramProblems = [
     "type": "completion",
     "number": 1,
     "title": "字符串解码",
-    "description": "## 1. (字符串解码)\n\n“行程长度编码”（Run-Length Encoding）是一种无损压缩算法，常用于压缩重复字符较多的数据，以减少存储空间。假设原始字符串中不包含数字字符。压缩规则如下：\n\n1.  如果原始字符串中一个字符连续出现 $N$ 次（$N \\geq 2$），在压缩字符串中它被表示为“字符+数字 N”。\n    -   例如，编码 `\"A12\"` 代表 12 个连续的字符 A。\n2.  如果原始字符串中一个字符只出现 1 次，在压缩字符串中它就表示为该字符本身。\n    -   例如，编码 `\"B\"` 代表 1 个字符 B。\n\n以下程序实现读取压缩字符串并输出其原始的、解压后的形式。\n\n试补全程序 。\n\n```cpp\n01 #include <cctype>\n02 #include <iostream>\n03 #include <string>\n04 using namespace std;\n05\n06 int main() {\n07     string z;\n08     cin >> z;\n09     string s = \"\";\n10\n11     for (int i = 0; i < z.length(); ) {\n12         char ch = z[i];\n13\n14         if (____①____ && isdigit(z[i + 1])) {\n15             i++;\n16             int count = 0;\n17             while (i < z.length() && isdigit(z[i])) {\n18                 count = ____②____;\n19                 i++;\n20             }\n21             for (int j = 0; j < ____③____; ++j) {\n22                 s += ch;\n23             }\n24         } else {\n25             s += ____④____;\n26             ____⑤____;\n27         }\n28     }\n29\n30     cout << s << endl;\n31     return 0;\n32 }\n```\n1. ①处应填（ ）\n\n{{ select(34) }}\n\n- `i < z.length()`\n- `i - 1 >= 0`\n- `i + 1 < z.length()`\n- `isdigit(z[i])`\n\n\n2. ②处应填（ ）\n\n{{ select(35) }}\n\n- `count + (z[i] - '0')`\n- `count * 10 + (z[i] - '0')`\n- `z[i] - '0'`\n- `count + 1`\n\n\n\n3. ③处应填（ ）\n\n{{ select(36) }}\n\n- `count - 1`\n- `count`\n- `10`\n- `z[i] - '0'`\n\n\n4. ④处应填（ ）\n\n{{ select(37) }}\n\n- `z[i+1]`\n- `ch`\n- `z.back()`\n- `(char)z[i] + 1`\n\n\n5. ⑤处应填（ ）\n\n{{ select(38) }}\n\n- `i--`\n- `i = i + 2`\n- `i++`\n- `// 不执行任何操作`",
-    "statement": "## 1. (字符串解码)\n\n“行程长度编码”（Run-Length Encoding）是一种无损压缩算法，常用于压缩重复字符较多的数据，以减少存储空间。假设原始字符串中不包含数字字符。压缩规则如下：\n\n1.  如果原始字符串中一个字符连续出现 $N$ 次（$N \\geq 2$），在压缩字符串中它被表示为“字符+数字 N”。\n    -   例如，编码 `\"A12\"` 代表 12 个连续的字符 A。\n2.  如果原始字符串中一个字符只出现 1 次，在压缩字符串中它就表示为该字符本身。\n    -   例如，编码 `\"B\"` 代表 1 个字符 B。\n\n以下程序实现读取压缩字符串并输出其原始的、解压后的形式。\n\n试补全程序 。\n\n```cpp\n01 #include <cctype>\n02 #include <iostream>\n03 #include <string>\n04 using namespace std;\n05\n06 int main() {\n07     string z;\n08     cin >> z;\n09     string s = \"\";\n10\n11     for (int i = 0; i < z.length(); ) {\n12         char ch = z[i];\n13\n14         if (____①____ && isdigit(z[i + 1])) {\n15             i++;\n16             int count = 0;\n17             while (i < z.length() && isdigit(z[i])) {\n18                 count = ____②____;\n19                 i++;\n20             }\n21             for (int j = 0; j < ____③____; ++j) {\n22                 s += ch;\n23             }\n24         } else {\n25             s += ____④____;\n26             ____⑤____;\n27         }\n28     }\n29\n30     cout << s << endl;\n31     return 0;\n32 }\n```",
+    "description": "## 1. (字符串解码)\n\n“行程长度编码”（Run-Length Encoding）是一种无损压缩算法，常用于压缩重复字符较多的数据，以减少存储空间。假设原始字符串中不包含数字字符。压缩规则如下：\n\n1.  如果原始字符串中一个字符连续出现 N 次（N \≥ 2），在压缩字符串中它被表示为“字符+数字 N”。\n    -   例如，编码 `\"A12\"` 代表 12 个连续的字符 A。\n2.  如果原始字符串中一个字符只出现 1 次，在压缩字符串中它就表示为该字符本身。\n    -   例如，编码 `\"B\"` 代表 1 个字符 B。\n\n以下程序实现读取压缩字符串并输出其原始的、解压后的形式。\n\n试补全程序 。\n\n```cpp\n01 #include <cctype>\n02 #include <iostream>\n03 #include <string>\n04 using namespace std;\n05\n06 int main() {\n07     string z;\n08     cin >> z;\n09     string s = \"\";\n10\n11     for (int i = 0; i < z.length(); ) {\n12         char ch = z[i];\n13\n14         if (____①____ && isdigit(z[i + 1])) {\n15             i++;\n16             int count = 0;\n17             while (i < z.length() && isdigit(z[i])) {\n18                 count = ____②____;\n19                 i++;\n20             }\n21             for (int j = 0; j < ____③____; ++j) {\n22                 s += ch;\n23             }\n24         } else {\n25             s += ____④____;\n26             ____⑤____;\n27         }\n28     }\n29\n30     cout << s << endl;\n31     return 0;\n32 }\n```\n1. ①处应填（ ）\n\n{{ select(34) }}\n\n- `i < z.length()`\n- `i - 1 >= 0`\n- `i + 1 < z.length()`\n- `isdigit(z[i])`\n\n\n2. ②处应填（ ）\n\n{{ select(35) }}\n\n- `count + (z[i] - '0')`\n- `count * 10 + (z[i] - '0')`\n- `z[i] - '0'`\n- `count + 1`\n\n\n\n3. ③处应填（ ）\n\n{{ select(36) }}\n\n- `count - 1`\n- `count`\n- `10`\n- `z[i] - '0'`\n\n\n4. ④处应填（ ）\n\n{{ select(37) }}\n\n- `z[i+1]`\n- `ch`\n- `z.back()`\n- `(char)z[i] + 1`\n\n\n5. ⑤处应填（ ）\n\n{{ select(38) }}\n\n- `i--`\n- `i = i + 2`\n- `i++`\n- `// 不执行任何操作`",
+    "statement": "## 1. (字符串解码)\n\n“行程长度编码”（Run-Length Encoding）是一种无损压缩算法，常用于压缩重复字符较多的数据，以减少存储空间。假设原始字符串中不包含数字字符。压缩规则如下：\n\n1.  如果原始字符串中一个字符连续出现 N 次（N \≥ 2），在压缩字符串中它被表示为“字符+数字 N”。\n    -   例如，编码 `\"A12\"` 代表 12 个连续的字符 A。\n2.  如果原始字符串中一个字符只出现 1 次，在压缩字符串中它就表示为该字符本身。\n    -   例如，编码 `\"B\"` 代表 1 个字符 B。\n\n以下程序实现读取压缩字符串并输出其原始的、解压后的形式。\n\n试补全程序 。\n\n```cpp\n01 #include <cctype>\n02 #include <iostream>\n03 #include <string>\n04 using namespace std;\n05\n06 int main() {\n07     string z;\n08     cin >> z;\n09     string s = \"\";\n10\n11     for (int i = 0; i < z.length(); ) {\n12         char ch = z[i];\n13\n14         if (____①____ && isdigit(z[i + 1])) {\n15             i++;\n16             int count = 0;\n17             while (i < z.length() && isdigit(z[i])) {\n18                 count = ____②____;\n19                 i++;\n20             }\n21             for (int j = 0; j < ____③____; ++j) {\n22                 s += ch;\n23             }\n24         } else {\n25             s += ____④____;\n26             ____⑤____;\n27         }\n28     }\n29\n30     cout << s << endl;\n31     return 0;\n32 }\n```",
     "questions": [
       {
         "id": "2025-completion-1-1",
@@ -616,8 +616,8 @@ export const csp2025ProgramProblems = [
     "type": "completion",
     "number": 2,
     "title": "精明与糊涂",
-    "description": "## 2. （精明与糊涂）\n\n有 $N$ 个人，分为两类：\n\n1.  **精明人**：永远能正确判断其他人是精明还是糊涂；\n2.  **糊涂人**：判断不可靠，会给出随机的判断。\n\n已知精明人严格占据多数，即如果精明人有 $k$ 个，则满足 $k > N/2$。\n\n你只能通过函数 `query(i, j)` 让第 $i$ 个人判断第 $j$ 个人：\n\n-   返回 `true` 表示判断结果为“精明人”；\n-   返回 `false` 表示判断结果为“糊涂人”。\n\n目标：通过这些互相判断，找出至少一个 100% 确定的精明人。\n\n提示：可以利用“精明人占多数”的优势，设置一个“消除”的过程，让人们互相判断并进行抵消。经过若干轮抵消后，最终留下的候选者必然属于多数派，即精明人。\n\n例如，假设有三个人 $0, 1, 2$。\n\n-   如果 $0$ 说 $1$ 是糊涂人，而 $1$ 也说 $0$ 是糊涂人，则 $0$ 和 $1$ 至少有一个是糊涂人。程序将同时淘汰 $0$ 和 $1$。\n-   由于三人里至少有两个精明人，我们确定 $2$ 是精明人。\n\n试补全程序。\n\n```cpp\n01 #include <iostream>\n02 #include <vector>\n03 using namespace std;\n04\n05 int N;\n06 bool query(int i, int j);\n07\n08 int main() {\n09     cin >> N;\n10     int candidate = 0;\n11     int count = ____①____;\n12\n13     for (int i = 1; i < N; ++i) {\n14         if (____②____) {\n15             candidate = i;\n16             count = 1;\n17         } else {\n18             if (____③____) {\n19                 ____④____;\n20             } else {\n21                 count++;\n22             }\n23         }\n24     }\n25\n26     cout << ____⑤____ << endl;\n27     return 0;\n28 }\n```\n1. ①处应填（ ）\n\n{{ select(39) }}\n\n- 0\n- 1\n- N\n- \\-1\n\n2. ②处应填（ ）\n\n{{ select(40) }}\n\n- `count < 0`\n- `count == 1`\n- `count == 0`\n- `query(candidate, i) == false`\n\n3. ③处应填（ ）\n\n{{ select(41) }}\n\n- `query(candidate, i) == false`\n- `query(i, candidate) == true`\n- `query(candidate, i) == false && query(i, candidate) == false`\n- `query(candidate, i) == false || query(i, candidate) == false`\n\n4. ④处应填（ ）\n\n{{ select(42) }}\n\n- `count--`\n- `break`\n- `count++`\n- `candidate = i`\n\n5. ⑤处应填（ ）\n\n{{ select(43) }}\n\n- `N - 1`\n- `count`\n- `candidate`\n- `0`",
-    "statement": "## 2. （精明与糊涂）\n\n有 $N$ 个人，分为两类：\n\n1.  **精明人**：永远能正确判断其他人是精明还是糊涂；\n2.  **糊涂人**：判断不可靠，会给出随机的判断。\n\n已知精明人严格占据多数，即如果精明人有 $k$ 个，则满足 $k > N/2$。\n\n你只能通过函数 `query(i, j)` 让第 $i$ 个人判断第 $j$ 个人：\n\n-   返回 `true` 表示判断结果为“精明人”；\n-   返回 `false` 表示判断结果为“糊涂人”。\n\n目标：通过这些互相判断，找出至少一个 100% 确定的精明人。\n\n提示：可以利用“精明人占多数”的优势，设置一个“消除”的过程，让人们互相判断并进行抵消。经过若干轮抵消后，最终留下的候选者必然属于多数派，即精明人。\n\n例如，假设有三个人 $0, 1, 2$。\n\n-   如果 $0$ 说 $1$ 是糊涂人，而 $1$ 也说 $0$ 是糊涂人，则 $0$ 和 $1$ 至少有一个是糊涂人。程序将同时淘汰 $0$ 和 $1$。\n-   由于三人里至少有两个精明人，我们确定 $2$ 是精明人。\n\n试补全程序。\n\n```cpp\n01 #include <iostream>\n02 #include <vector>\n03 using namespace std;\n04\n05 int N;\n06 bool query(int i, int j);\n07\n08 int main() {\n09     cin >> N;\n10     int candidate = 0;\n11     int count = ____①____;\n12\n13     for (int i = 1; i < N; ++i) {\n14         if (____②____) {\n15             candidate = i;\n16             count = 1;\n17         } else {\n18             if (____③____) {\n19                 ____④____;\n20             } else {\n21                 count++;\n22             }\n23         }\n24     }\n25\n26     cout << ____⑤____ << endl;\n27     return 0;\n28 }\n```",
+    "description": "## 2. （精明与糊涂）\n\n有 N 个人，分为两类：\n\n1.  **精明人**：永远能正确判断其他人是精明还是糊涂；\n2.  **糊涂人**：判断不可靠，会给出随机的判断。\n\n已知精明人严格占据多数，即如果精明人有 k 个，则满足 k > N/2。\n\n你只能通过函数 `query(i, j)` 让第 i 个人判断第 j 个人：\n\n-   返回 `true` 表示判断结果为“精明人”；\n-   返回 `false` 表示判断结果为“糊涂人”。\n\n目标：通过这些互相判断，找出至少一个 100% 确定的精明人。\n\n提示：可以利用“精明人占多数”的优势，设置一个“消除”的过程，让人们互相判断并进行抵消。经过若干轮抵消后，最终留下的候选者必然属于多数派，即精明人。\n\n例如，假设有三个人 0, 1, 2。\n\n-   如果 0 说 1 是糊涂人，而 1 也说 0 是糊涂人，则 0 和 1 至少有一个是糊涂人。程序将同时淘汰 0 和 1。\n-   由于三人里至少有两个精明人，我们确定 2 是精明人。\n\n试补全程序。\n\n```cpp\n01 #include <iostream>\n02 #include <vector>\n03 using namespace std;\n04\n05 int N;\n06 bool query(int i, int j);\n07\n08 int main() {\n09     cin >> N;\n10     int candidate = 0;\n11     int count = ____①____;\n12\n13     for (int i = 1; i < N; ++i) {\n14         if (____②____) {\n15             candidate = i;\n16             count = 1;\n17         } else {\n18             if (____③____) {\n19                 ____④____;\n20             } else {\n21                 count++;\n22             }\n23         }\n24     }\n25\n26     cout << ____⑤____ << endl;\n27     return 0;\n28 }\n```\n1. ①处应填（ ）\n\n{{ select(39) }}\n\n- 0\n- 1\n- N\n- \\-1\n\n2. ②处应填（ ）\n\n{{ select(40) }}\n\n- `count < 0`\n- `count == 1`\n- `count == 0`\n- `query(candidate, i) == false`\n\n3. ③处应填（ ）\n\n{{ select(41) }}\n\n- `query(candidate, i) == false`\n- `query(i, candidate) == true`\n- `query(candidate, i) == false && query(i, candidate) == false`\n- `query(candidate, i) == false || query(i, candidate) == false`\n\n4. ④处应填（ ）\n\n{{ select(42) }}\n\n- `count--`\n- `break`\n- `count++`\n- `candidate = i`\n\n5. ⑤处应填（ ）\n\n{{ select(43) }}\n\n- `N - 1`\n- `count`\n- `candidate`\n- `0`",
+    "statement": "## 2. （精明与糊涂）\n\n有 N 个人，分为两类：\n\n1.  **精明人**：永远能正确判断其他人是精明还是糊涂；\n2.  **糊涂人**：判断不可靠，会给出随机的判断。\n\n已知精明人严格占据多数，即如果精明人有 k 个，则满足 k > N/2。\n\n你只能通过函数 `query(i, j)` 让第 i 个人判断第 j 个人：\n\n-   返回 `true` 表示判断结果为“精明人”；\n-   返回 `false` 表示判断结果为“糊涂人”。\n\n目标：通过这些互相判断，找出至少一个 100% 确定的精明人。\n\n提示：可以利用“精明人占多数”的优势，设置一个“消除”的过程，让人们互相判断并进行抵消。经过若干轮抵消后，最终留下的候选者必然属于多数派，即精明人。\n\n例如，假设有三个人 0, 1, 2。\n\n-   如果 0 说 1 是糊涂人，而 1 也说 0 是糊涂人，则 0 和 1 至少有一个是糊涂人。程序将同时淘汰 0 和 1。\n-   由于三人里至少有两个精明人，我们确定 2 是精明人。\n\n试补全程序。\n\n```cpp\n01 #include <iostream>\n02 #include <vector>\n03 using namespace std;\n04\n05 int N;\n06 bool query(int i, int j);\n07\n08 int main() {\n09     cin >> N;\n10     int candidate = 0;\n11     int count = ____①____;\n12\n13     for (int i = 1; i < N; ++i) {\n14         if (____②____) {\n15             candidate = i;\n16             count = 1;\n17         } else {\n18             if (____③____) {\n19                 ____④____;\n20             } else {\n21                 count++;\n22             }\n23         }\n24     }\n25\n26     cout << ____⑤____ << endl;\n27     return 0;\n28 }\n```",
     "questions": [
       {
         "id": "2025-completion-2-1",

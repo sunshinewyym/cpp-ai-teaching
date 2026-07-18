@@ -1,8 +1,11 @@
 #!/usr/bin/env python3
-"""Replace all LaTeX formulas in cspS.js with Unicode characters."""
+"""Replace all LaTeX formulas in a JS file with Unicode characters."""
 import re
+import sys
 
-with open('web/src/data/cspS.js', 'r', encoding='utf-8') as f:
+target_file = sys.argv[1] if len(sys.argv) > 1 else 'web/src/data/cspS.js'
+
+with open(target_file, 'r', encoding='utf-8') as f:
     content = f.read()
 
 # Unicode subscripts and superscripts
@@ -146,7 +149,7 @@ content = content.replace('\\\\rfloor', '⌋')
 content = content.replace('\\\\texttt{', '`')
 content = content.replace('\\\\log', 'log')
 
-with open('web/src/data/cspS.js', 'w', encoding='utf-8') as f:
+with open(target_file, 'w', encoding='utf-8') as f:
     f.write(content)
 
-print('Done! Replaced all LaTeX formulas with Unicode.')
+print(f'Done! Replaced all LaTeX formulas in {target_file} with Unicode.')
