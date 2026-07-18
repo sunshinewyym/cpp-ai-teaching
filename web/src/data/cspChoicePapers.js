@@ -246,7 +246,7 @@ export const cspChoicePapers = {
     {
       "id": "2020-choice-6",
       "number": 6,
-      "question": "设 $A$ 是 $n$ 个实数的数组，考虑下面的递归算法：\n```\nXYZ (A[1..n])\n1.  if n=1 then return A[1]\n2.  else temp ← XYZ (A[1..n-1])\n3.  if temp < A[n]\n4.  then return temp\n5.  else return A[n]\n```\n 请问算法 XYZ 的输出是什么？（）。",
+      "question": "设 A 是 n 个实数的数组，考虑下面的递归算法：\n```\nXYZ (A[1..n])\n1.  if n=1 then return A[1]\n2.  else temp ← XYZ (A[1..n-1])\n3.      if temp < A[n]\n4.      then return temp\n5.      else return A[n]\n```\n请问算法 XYZ 的输出是什么？（ ）。",
       "options": {
         "A": "A 数组的平均",
         "B": "A 数组的最小值",
