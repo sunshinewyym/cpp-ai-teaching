@@ -88,7 +88,7 @@ export const csp2025ChoicePapers = {
     {
       "id": "2025-choice-8",
       "number": 8,
-      "question": "已知 f[0] = 1, f[1] = 1，并且对于所有 n \≥ 2 有\n\n    f[n] = (f[n-1] + f[n-2]) \\% 7\n\n    那么 f[2025] 的值是多少？（ ）",
+      "question": "已知 f[0] = 1, f[1] = 1，并且对于所有 n ≥ 2 有 `f[n] = (f[n-1] + f[n-2]) % 7`，那么 f[2025] 的值是多少？（ ）",
       "options": {
         "A": "`2`",
         "B": "`4`",
@@ -353,10 +353,10 @@ export const csp2025ProgramProblems = [
         "number": 4,
         "text": "假设输入的 a 数组和 k 均为正整数，执行第 18 行代码时，一定满足的条件不包括（ ）",
         "options": {
-          "A": "j < i",
-          "B": "a[i] - a[j] > k",
-          "C": "j <= n",
-          "D": "a[j] ≤ a[i]"
+          "A": "j<=i",
+          "B": "a[i]-a[j]>k",
+          "C": "j<=n",
+          "D": "a[j]<a[i]"
         },
         "answers": [
           "B"
