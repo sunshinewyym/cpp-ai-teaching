@@ -2178,7 +2178,7 @@ export const cspProgramProblems = [
       {
         "id": "2023-reading-2-1",
         "number": 1,
-        "text": "`f` 函数的返回值小于等于 $\\min\\{n,m\\}$。（）",
+        "text": "`f` 函数的返回值小于等于 $min\\(n,m\\)$。（）",
         "options": {
           "A": "正确",
           "B": "错误"
@@ -2281,7 +2281,7 @@ export const cspProgramProblems = [
     "number": 3,
     "title": "阅读程序第 3 题",
     "description": "## 3.\n```cpp\n01 #include <iostream>\n02 #include <cmath>\n03 using namespace std;\n04 \n05 int solve1(int n) {\n06     return n * n;\n07 }\n08 \n09 int solve2(int n) {\n10     int sum = 0;\n11     for (int i = 1; i <= sqrt(n); i++) {\n12         if (n % i == 0) {\n13             if (n / i == i) {\n14                 sum += i * i;\n15             } else {\n16                 sum += i * i + (n / i) * (n / i);\n17             }\n18         }\n19     }\n20     return sum;\n21 }\n22 int main() {\n23     int n;\n24     cin >> n;\n25     cout << solve2(solve1(n)) << \" \" << solve1(solve2(n)) << endl;\n26     return 0;\n27 }\n```\n假设输入的 $n$ 是绝对值不超过 $1000$ 的整数，完成下面的判断题和单选题。\n\n### 判断题\n\n1. 如果输入的 $n$ 为正整数，`solve2` 函数的作用是计算 $n$ 所有的因子的平方和（ ）\n\n2. 第 $13\\sim 14$ 行的作用是避免 $n$ 的平方根因子 $i$（或 $n/i$ ）进入第 $16$ 行而被计算两次（ ）\n\n3. 如果输入的 $n$ 为质数，`solve2(n)` 的返回值为 $n^2+1$（ ）\n\n### 单选题\n\n4. （4分）如果输入的 $n$ 为质数 $p$ 的平方，那么 `solve2(n)` 的返回值为（ ）\n\n5. 当输入为正整数时，第一项减去第二项的差值一定（ ）\n\n6. 当输入为 `5` 时，输出为（ ）",
-    "statement": "## 3.\n```cpp\n01 #include <iostream>\n02 #include <cmath>\n03 using namespace std;\n04 \n05 int solve1(int n) {\n06     return n * n;\n07 }\n08 \n09 int solve2(int n) {\n10     int sum = 0;\n11     for (int i = 1; i <= sqrt(n); i++) {\n12         if (n % i == 0) {\n13             if (n / i == i) {\n14                 sum += i * i;\n15             } else {\n16                 sum += i * i + (n / i) * (n / i);\n17             }\n18         }\n19     }\n20     return sum;\n21 }\n22 int main() {\n23     int n;\n24     cin >> n;\n25     cout << solve2(solve1(n)) << \" \" << solve1(solve2(n)) << endl;\n26     return 0;\n27 }\n```",
+    "statement": "## 3.\n```cpp\n01 #include <iostream>\n02 #include <cmath>\n03 using namespace std;\n04 \n05 int solve1(int n) {\n06     return n * n;\n07 }\n08 \n09 int solve2(int n) {\n10     int sum = 0;\n11     for (int i = 1; i <= sqrt(n); i++) {\n12         if (n % i == 0) {\n13             if (n / i == i) {\n14                 sum += i * i;\n15             } else {\n16                 sum += i * i + (n / i) * (n / i);\n17             }\n18         }\n19     }\n20     return sum;\n21 }\n22 int main() {\n23     int n;\n24     cin >> n;\n25     cout << solve2(solve1(n)) << \" \" << solve1(solve2(n)) << endl;\n26     return 0;\n27 }\n```\n假设输入的 n 是绝对值不超过 1000 的整数，完成下面的判断题和单选题：",
     "questions": [
       {
         "id": "2023-reading-3-1",
