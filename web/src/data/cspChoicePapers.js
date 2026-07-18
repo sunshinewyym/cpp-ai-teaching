@@ -500,7 +500,7 @@ export const cspChoicePapers = {
     {
       "id": "2021-choice-12",
       "number": 12,
-      "question": "由 $1,1,2,2,3$ 这五个数字组成不同的三位数有（  ）种。",
+      "question": "由 $1, 1, 2, 2, 3$ 这五个数字组成不同的三位数有（  ）种。",
       "options": {
         "A": "18",
         "B": "15",

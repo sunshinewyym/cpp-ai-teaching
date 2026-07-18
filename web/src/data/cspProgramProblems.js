@@ -1142,13 +1142,13 @@ export const cspProgramProblems = [
     "type": "reading",
     "number": 2,
     "title": "阅读程序第 2 题",
-    "description": "## （2）\n\n\n![](/csp-assets/2021-896-1.png)\n\n### 判断题\n\n22. 输出的第二行一定是由小写字母、大写字母、数字和 $\\texttt +$、 $\\texttt /$、$\\texttt =$ 构成的字符串。（ ）\n\n23. 可能存在输入不同，但输出的第二行相同的情形。（ ）\n\n24. 输出的第一行为 $\\texttt -1$。（ ）\n\n### 单选题\n\n25. 设输入字符串长度为 $n$，`decode` 函数的时间复杂度为（ ）\n\n\n26. 当输入为 $\\texttt{Y3Nx}$ 时，输出的第二行为（）。\n\n\n27. （3.5 分）当输入为 $\\texttt{Y2NmIDIwMjE=}$ 时，输出的第二行为（  ）。",
+    "description": "## （2）\n\n\n![](/csp-assets/2021-896-1.png)\n\n### 判断题\n\n22. 输出的第二行一定是由小写字母、大写字母、数字和 $+$、 $\\texttt /$、$\\texttt =$ 构成的字符串。（ ）\n\n23. 可能存在输入不同，但输出的第二行相同的情形。（ ）\n\n24. 输出的第一行为 $\\texttt -1$。（ ）\n\n### 单选题\n\n25. 设输入字符串长度为 $n$，`decode` 函数的时间复杂度为（ ）\n\n\n26. 当输入为 $\\texttt{Y3Nx}$ 时，输出的第二行为（）。\n\n\n27. （3.5 分）当输入为 $\\texttt{Y2NmIDIwMjE=}$ 时，输出的第二行为（  ）。",
     "statement": "## （2）\n\n\n![](/csp-assets/2021-896-1.png)",
     "questions": [
       {
         "id": "2021-reading-2-1",
         "number": 1,
-        "text": "输出的第二行一定是由小写字母、大写字母、数字和 $\\texttt +$、 $\\texttt /$、$\\texttt =$ 构成的字符串。（ ）",
+        "text": "输出的第二行一定是由小写字母、大写字母、数字和 $\ +$、 $\ /$、$\ =$ 构成的字符串。（ ）",
         "options": {
           "A": "正确",
           "B": "错误"
@@ -1178,7 +1178,7 @@ export const cspProgramProblems = [
       {
         "id": "2021-reading-2-3",
         "number": 3,
-        "text": "输出的第一行为 $\\texttt -1$。（ ）",
+        "text": "输出的第一行为 $\ -1$。（ ）",
         "options": {
           "A": "正确",
           "B": "错误"
@@ -1256,7 +1256,7 @@ export const cspProgramProblems = [
       {
         "id": "2021-reading-3-1",
         "number": 1,
-        "text": "若输入不为 $\\texttt 1$，把第 13 行删去**不会**影响输出的结果。（ ）",
+        "text": "若输入不为 $\\texttt {1}$，把第 13 行删去**不会**影响输出的结果。（ ）",
         "options": {
           "A": "正确",
           "B": "错误"
@@ -1271,7 +1271,7 @@ export const cspProgramProblems = [
       {
         "id": "2021-reading-3-2",
         "number": 2,
-        "text": "（2 分） 第 25 行的 `f[i] / c[i * k]`可能存在无法整除而向下取整的情况。 （ ）",
+        "text": "（2 分） 第 25 行的 `f[i] / c[i * k]` 可能存在无法整除而向下取整的情况。 （ ）",
         "options": {
           "A": "正确",
           "B": "错误"
@@ -1358,8 +1358,8 @@ export const cspProgramProblems = [
     "type": "completion",
     "number": 1,
     "title": "完善程序第 1 题",
-    "description": "## 三、完善程序（单选题，每小题 3 分，共计 30 分）\n\n**（1）（Josephus 问题）**  有 $n$ 个人围成一个圈，依次标号 $0$ 至 $n - 1$。从 $0$ 号开始，依次 $0 , 1 , 0 , 1 , \\dots$ 交替报数，报到 $1$ 的人会离开，直至圈中只剩下一个人。求最后剩下人的编号。\n\n试补全模拟程序。\n![](/csp-assets/2021-898-1.png)\n\n34. ①处应填（ ）\nA.`i < n`\nB.`c < n`\nC.`i < n- 1`\nD.`c < n-1`\n\n35. ②处应填（ ）\nA.`i % 2 == 0`\nB.`i % 2 == 1`\nC.`p`\nD.`!p`\n\n36. ③处应填（ ）\nA.`i++  `\nB.`i = (i + 1) % n`\nC.`c++`\nD.`p ^= 1`\n\n37. ④处应填（ ）\nA.`i++  `\nB.`i = (i + 1) % n`\nC.`c++`\nD.`p ^= 1`\n\n38. ⑤处应填（ ）\nA.`i++  `\nB.`i = (i + 1) % n`\nC.`c++`\nD.`p ^= 1`",
-    "statement": "## 三、完善程序（单选题，每小题 3 分，共计 30 分）\n\n**（1）（Josephus 问题）**  有 $n$ 个人围成一个圈，依次标号 $0$ 至 $n - 1$。从 $0$ 号开始，依次 $0 , 1 , 0 , 1 , \\dots$ 交替报数，报到 $1$ 的人会离开，直至圈中只剩下一个人。求最后剩下人的编号。\n\n试补全模拟程序。\n![](/csp-assets/2021-898-1.png)\n\n34. ①处应填（ ）\nA.`i < n`\nB.`c < n`\nC.`i < n- 1`\nD.`c < n-1`\n\n35. ②处应填（ ）\nA.`i % 2 == 0`\nB.`i % 2 == 1`\nC.`p`\nD.`!p`\n\n36. ③处应填（ ）\nA.`i++  `\nB.`i = (i + 1) % n`\nC.`c++`\nD.`p ^= 1`\n\n37. ④处应填（ ）\nA.`i++  `\nB.`i = (i + 1) % n`\nC.`c++`\nD.`p ^= 1`\n\n38. ⑤处应填（ ）\nA.`i++  `\nB.`i = (i + 1) % n`\nC.`c++`\nD.`p ^= 1`",
+    "description": "## 三、完善程序（单选题，每小题 3 分，共计 30 分）\n\n**（1）（Josephus 问题）**  有 n 个人围成一个圈，依次标号 0 至 n - 1。从 0 号开始，依次 0, 1, 0, 1, ... 交替报数，报到 1 的人会离开，直至圈中只剩下一个人。求最后剩下人的编号。\n\n试补全模拟程序。\n![](/csp-assets/2021-898-1.png)",
+    "statement": "## 三、完善程序（单选题，每小题 3 分，共计 30 分）\n\n**（1）（Josephus 问题）**  有 n 个人围成一个圈，依次标号 0 至 n - 1。从 0 号开始，依次 0, 1, 0, 1, ... 交替报数，报到 1 的人会离开，直至圈中只剩下一个人。求最后剩下人的编号。\n\n试补全模拟程序。\n![](/csp-assets/2021-898-1.png)",
     "questions": [
       {
         "id": "2021-completion-1-1",
@@ -1455,8 +1455,8 @@ export const cspProgramProblems = [
     "type": "completion",
     "number": 2,
     "title": "完善程序第 2 题",
-    "description": "**（ 2 ） （矩形计数）** 平面上有 $n$ 个关键点，求有多少个四条边都和 $x$ 轴或者 $y$ 轴平行的矩形，满足四个顶点都是关键点。给出的关键点可能有重复，但完全重合的矩形只计一 次。\n![](/csp-assets/2021-899-1.webp)\n试补全枚举算法。\n\n39. ①处应填 ( )\nA. `a.x != b.x ? a.x < b.x : a.id < b.id`\nB. `a.x != b.x ? a.x < b.x : a.y < b.y`\nC. `equals(a, b) ? a.id < b.id : a.x < b.x`\nD. `equals(a, b) ? a.id < b.id : (a.x != b.x ? a.x < b.x : a.y < b.y)`\n\n40. ②处应填 ( )\nA. `i == 0 || cmp(A[i], A[i - 1])`\nB. `t == 0 || equals(A[i], A[t - 1])`\nC. `i == 0 || !cmp(A[i], A[i - 1])`\nD. `t == 0 || !equals(A[i], A[t - 1])`\n41. ③处应填 ( )\nA. `b - (b - a) / 2 + 1`\nB. `a + b + 1) >> 1`\nC. `(a + b) >> 1`\nD. `a + (b - a + 1) / 2`\n42. ④处应填 ( )\nA. `!cmp(A[mid], p)`\nB. `cmp(A[mid], p)`\nC. `cmp(p, A[mid])`\nD. `!cmp(p, A[mid])`\n43. ⑤处应填 ( )\nA. `A[i].x == A[j].x`\nB. `A[i].id < A[j].id`\nC. `A[i].x == A[j].x && A[i].id < A[j].id`\nD. `A[i].x < A[j].x && A[i].y < A[j].y`",
-    "statement": "**（ 2 ） （矩形计数）** 平面上有 $n$ 个关键点，求有多少个四条边都和 $x$ 轴或者 $y$ 轴平行的矩形，满足四个顶点都是关键点。给出的关键点可能有重复，但完全重合的矩形只计一 次。\n![](/csp-assets/2021-899-1.webp)\n试补全枚举算法。\n\n39. ①处应填 ( )\nA. `a.x != b.x ? a.x < b.x : a.id < b.id`\nB. `a.x != b.x ? a.x < b.x : a.y < b.y`\nC. `equals(a, b) ? a.id < b.id : a.x < b.x`\nD. `equals(a, b) ? a.id < b.id : (a.x != b.x ? a.x < b.x : a.y < b.y)`\n\n40. ②处应填 ( )\nA. `i == 0 || cmp(A[i], A[i - 1])`\nB. `t == 0 || equals(A[i], A[t - 1])`\nC. `i == 0 || !cmp(A[i], A[i - 1])`\nD. `t == 0 || !equals(A[i], A[t - 1])`\n41. ③处应填 ( )\nA. `b - (b - a) / 2 + 1`\nB. `a + b + 1) >> 1`\nC. `(a + b) >> 1`\nD. `a + (b - a + 1) / 2`\n42. ④处应填 ( )\nA. `!cmp(A[mid], p)`\nB. `cmp(A[mid], p)`\nC. `cmp(p, A[mid])`\nD. `!cmp(p, A[mid])`\n43. ⑤处应填 ( )\nA. `A[i].x == A[j].x`\nB. `A[i].id < A[j].id`\nC. `A[i].x == A[j].x && A[i].id < A[j].id`\nD. `A[i].x < A[j].x && A[i].y < A[j].y`",
+    "description": "**（2）（矩形计数）** 平面上有 n 个关键点，求有多少个四条边都和 x 轴或者 y 轴平行的矩形，满足四个顶点都是关键点。给出的关键点可能有重复，但完全重合的矩形只计一次。\n![](/csp-assets/2021-899-1.webp)\n试补全枚举算法。",
+    "statement": "**（2）（矩形计数）** 平面上有 n 个关键点，求有多少个四条边都和 x 轴或者 y 轴平行的矩形，满足四个顶点都是关键点。给出的关键点可能有重复，但完全重合的矩形只计一次。\n![](/csp-assets/2021-899-1.webp)\n试补全枚举算法。",
     "questions": [
       {
         "id": "2021-completion-2-1",
