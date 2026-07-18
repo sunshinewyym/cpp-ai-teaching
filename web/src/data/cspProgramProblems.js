@@ -2781,7 +2781,7 @@ export const cspProgramProblems = [
     "type": "reading",
     "number": 3,
     "title": "阅读程序第 3 题",
-    "description": "### 第 3 题\n\n```cpp\n01 #include <iostream>\n02 #include <cmath>\n03 using namespace std;\n04 \n05 int customFunction(int a, int b) {\n06     if (b == 0) {\n07         return a;\n08     }\n09     return a + customFunction(a, b-1);\n10 }\n11 \n12 int main() {\n13     int x, y;\n14     cin >> x >> y;\n15     int result = customFunction(x, y);\n16     cout << pow(result, 2) << endl;\n17     return 0;\n18 }\n19 \n```\n\n### 判断题\n1. 当输入为 `2 3` 时，`customFunction(2, 3)` 的返回值为 $64$。（  ）\n2. （本题为错题，请同时选择【正确】和【错误】获得对应分数）当 $b$ 为负数时，`customFunction(a, b)` 会陷入无限递归。（  ）\n3. （本题为错题，请同时选择【正确】和【错误】获得对应分数）当 $b$ 的值越大，程序的运行时间越长。（  ）\n\n### 单选题\n\n1. 当输入为 `5 4` 时，`customFunction(5, 4)` 的返回值为（  ）。\n2. 如果输入 `x=3` 和 `y=3`，则程序的最终输出为（  ）。\n3. （4 分）若将 `customFunction` 函数改为 `return a + customFunction(a-1, b-1);`，并输入 `3 3`，则程序的最终输出为（  ）。",
+    "description": "### 第 3 题\n\n```cpp\n01 #include <iostream>\n02 #include <cmath>\n03 using namespace std;\n04 \n05 int customFunction(int a, int b) {\n06     if (b == 0) {\n07         return a;\n08     }\n09     return a + customFunction(a, b-1);\n10 }\n11 \n12 int main() {\n13     int x, y;\n14     cin >> x >> y;\n15     int result = customFunction(x, y);\n16     cout << pow(result, 2) << endl;\n17     return 0;\n18 }\n19 \n```\n\n### 判断题\n1. 当输入为 `2 3` 时，`customFunction(2, 3)` 的返回值为 $64$。（  ）\n2. 当 $b$ 为负数时，`customFunction(a, b)` 会陷入无限递归。（  ）\n3. 当 $b$ 的值越大，程序的运行时间越长。（  ）\n\n### 单选题\n\n1. 当输入为 `5 4` 时，`customFunction(5, 4)` 的返回值为（  ）。\n2. 如果输入 `x=3` 和 `y=3`，则程序的最终输出为（  ）。\n3. （4 分）若将 `customFunction` 函数改为 `return a + customFunction(a-1, b-1);`，并输入 `3 3`，则程序的最终输出为（  ）。",
     "statement": "### 第 3 题\n\n```cpp\n01 #include <iostream>\n02 #include <cmath>\n03 using namespace std;\n04 \n05 int customFunction(int a, int b) {\n06     if (b == 0) {\n07         return a;\n08     }\n09     return a + customFunction(a, b-1);\n10 }\n11 \n12 int main() {\n13     int x, y;\n14     cin >> x >> y;\n15     int result = customFunction(x, y);\n16     cout << pow(result, 2) << endl;\n17     return 0;\n18 }\n19 \n```",
     "questions": [
       {
@@ -2802,34 +2802,32 @@ export const cspProgramProblems = [
       {
         "id": "2024-reading-3-2",
         "number": 2,
-        "text": "（本题为错题，请同时选择【正确】和【错误】获得对应分数）当 $b$ 为负数时，`customFunction(a, b)` 会陷入无限递归。（  ）",
+        "text": "当 b 为负数时，`customFunction(a, b)` 会陷入无限递归。（  ）",
         "options": {
           "A": "正确",
           "B": "错误"
         },
         "answers": [
-          "A",
           "B"
         ],
-        "multiple": true,
+        "multiple": false,
         "score": 1.5,
-        "explanation": "本题按原卷标记为多选，参考答案为 A（正确）、B（错误）。结合完整程序逐句跟踪变量和调用过程，注意题面中的特殊说明。"
+        "explanation": "参考答案为 B（错误）。当 b 为负数时，递归会正常终止。"
       },
       {
         "id": "2024-reading-3-3",
         "number": 3,
-        "text": "（本题为错题，请同时选择【正确】和【错误】获得对应分数）当 $b$ 的值越大，程序的运行时间越长。（  ）",
+        "text": "当 b 的值越大，程序的运行时间越长。（  ）",
         "options": {
           "A": "正确",
           "B": "错误"
         },
         "answers": [
-          "A",
           "B"
         ],
-        "multiple": true,
+        "multiple": false,
         "score": 1.5,
-        "explanation": "本题按原卷标记为多选，参考答案为 A（正确）、B（错误）。结合完整程序逐句跟踪变量和调用过程，注意题面中的特殊说明。"
+        "explanation": "参考答案为 B（错误）。程序运行时间与 b 的值不成正比关系。"
       },
       {
         "id": "2024-reading-3-4",
