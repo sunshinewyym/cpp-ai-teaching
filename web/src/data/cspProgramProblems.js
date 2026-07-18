@@ -949,10 +949,10 @@ export const cspProgramProblems = [
         "number": 1,
         "text": "①处应填（ ）",
         "options": {
-          "A": "`A[j].b>A[j-1].b`",
-          "B": "`A[j].a<A[j-1].a`",
-          "C": "`A[j].a>A[j-1].a`",
-          "D": "`A[j].b<A[j-1].b`"
+          "A": "`A[j].b > A[j-1].b`",
+          "B": "`A[j].a < A[j-1].a`",
+          "C": "`A[j].a > A[j-1].a`",
+          "D": "`A[j].b < A[j-1].b`"
         },
         "answers": [
           "B"
@@ -966,10 +966,10 @@ export const cspProgramProblems = [
         "number": 2,
         "text": "②处应填（ ）",
         "options": {
-          "A": "`A[j+1]=A[j];A[j]=t;`",
-          "B": "`A[j-1]=A[j];A[j]=t;`",
-          "C": "`A[j]=A[j+1];A[j+1]=t;`",
-          "D": "`A[j]=A[j-1];A[j-1]=t;`"
+          "A": "`A[j+1] = A[j]; A[j] = t;`",
+          "B": "`A[j-1] = A[j]; A[j] = t;`",
+          "C": "`A[j] = A[j+1]; A[j+1] = t;`",
+          "D": "`A[j] = A[j-1]; A[j-1] = t;`"
         },
         "answers": [
           "D"
@@ -983,10 +983,10 @@ export const cspProgramProblems = [
         "number": 3,
         "text": "③处应填（ ）",
         "options": {
-          "A": "`A[i].b>A[p-1].b`",
-          "B": "`A[i].b<A[i-1].b`",
-          "C": "`A[i].b>A[i-1].b`",
-          "D": "`A[i].b<A[p-1].b`"
+          "A": "`A[i].b > A[p-1].b`",
+          "B": "`A[i].b < A[i-1].b`",
+          "C": "`A[i].b > A[i-1].b`",
+          "D": "`A[i].b < A[p-1].b`"
         },
         "answers": [
           "A"
@@ -1000,10 +1000,10 @@ export const cspProgramProblems = [
         "number": 4,
         "text": "④处应填（ ）",
         "options": {
-          "A": "`q+1<n&&A[q+1].a<=r`",
-          "B": "`q+1<n&&A[q+1].b<=r`",
-          "C": "`q<n&&A[q].a<=r`",
-          "D": "`q<n&&A[q].b<=r`"
+          "A": "`q + 1 < n && A[q+1].a <= r`",
+          "B": "`q + 1 < n && A[q+1].b <= r`",
+          "C": "`q < n && A[q].a <= r`",
+          "D": "`q < n && A[q].b <= r`"
         },
         "answers": [
           "A"
@@ -1017,9 +1017,9 @@ export const cspProgramProblems = [
         "number": 5,
         "text": "⑤处应填（ ）",
         "options": {
-          "A": "`r=max(r,A[q+1].b)`",
-          "B": "`r=max(r,A[q].b)`",
-          "C": "`r=max(r,A[q+1].a)`",
+          "A": "`r = max(r, A[q+1].b)`",
+          "B": "`r = max(r, A[q].b)`",
+          "C": "`r = max(r, A[q+1].a)`",
           "D": "`q++`"
         },
         "answers": [
