@@ -2413,10 +2413,10 @@ export const cspProgramProblems = [
         "number": 2,
         "text": "②处应填（ ）",
         "options": {
-          "A": "`left=mid+1`",
-          "B": "`right=mid-1`",
-          "C": "`right=mid`",
-          "D": "`left=mid`"
+          "A": "`left = mid + 1`",
+          "B": "`right = mid - 1`",
+          "C": "`right = mid`",
+          "D": "`left = mid`"
         },
         "answers": [
           "A"
@@ -2430,10 +2430,10 @@ export const cspProgramProblems = [
         "number": 3,
         "text": "③处应填（ ）",
         "options": {
-          "A": "`left=mid+1`",
-          "B": "`right=mid-1`",
-          "C": "`right=mid`",
-          "D": "`left=mid`"
+          "A": "`left = mid + 1`",
+          "B": "`right = mid - 1`",
+          "C": "`right = mid`",
+          "D": "`left = mid`"
         },
         "answers": [
           "C"
@@ -2447,10 +2447,10 @@ export const cspProgramProblems = [
         "number": 4,
         "text": "④处应填（ ）",
         "options": {
-          "A": "`left+nums[0]`",
-          "B": "`right+nums[0]`",
-          "C": "`mid+nums[0]`",
-          "D": "`right+1`"
+          "A": "`left + nums[0]`",
+          "B": "`right + nums[0]`",
+          "C": "`mid + nums[0]`",
+          "D": "`right + 1`"
         },
         "answers": [
           "A"
@@ -2464,10 +2464,10 @@ export const cspProgramProblems = [
         "number": 5,
         "text": "⑤处应填（ ）",
         "options": {
-          "A": "`nums[0]+n`",
-          "B": "`nums[0]+n-1`",
-          "C": "`nums[0]+n+1`",
-          "D": "`nums[n-1]`"
+          "A": "`nums[0] + n`",
+          "B": "`nums[0] + n - 1`",
+          "C": "`nums[0] + n + 1`",
+          "D": "`nums[n - 1]`"
         },
         "answers": [
           "D"
@@ -2527,10 +2527,10 @@ export const cspProgramProblems = [
         "number": 3,
         "text": "③处应填（ ）",
         "options": {
-          "A": "`str1[i-1]==str2[j-1]`",
-          "B": "`str1[i]==str2[j]`",
-          "C": "`str1[i-1]!=str2[j-1]`",
-          "D": "`str1[i]!=str2[j]`"
+          "A": "`str1[i - 1] == str2[j - 1]`",
+          "B": "`str1[i] == str2[j]`",
+          "C": "`str1[i - 1] != str2[j - 1]`",
+          "D": "`str1[i] != str2[j]`"
         },
         "answers": [
           "A"
@@ -2544,10 +2544,10 @@ export const cspProgramProblems = [
         "number": 4,
         "text": "④处应填（ ）",
         "options": {
-          "A": "`dp[i-1][j-1]+1`",
-          "B": "`dp[i-1][j-1]`",
-          "C": "`dp[i-1][j]`",
-          "D": "`dp[i][j-1]`"
+          "A": "`dp[i - 1][j - 1] + 1`",
+          "B": "`dp[i - 1][j - 1]`",
+          "C": "`dp[i - 1][j]`",
+          "D": "`dp[i][j - 1]`"
         },
         "answers": [
           "B"
@@ -2562,8 +2562,8 @@ export const cspProgramProblems = [
         "text": "⑤处应填（ ）",
         "options": {
           "A": "`dp[i][j] + 1`",
-          "B": "`dp[i-1][j-1]+1`",
-          "C": "`dp[i-1][j-1]`",
+          "B": "`dp[i - 1][j - 1] + 1`",
+          "C": "`dp[i - 1][j - 1]`",
           "D": "`dp[i][j]`"
         },
         "answers": [
