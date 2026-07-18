@@ -11,8 +11,7 @@ export const cspChoicePapers = {
         "C": ".chn",
         "D": ".china"
       },
-      "answer": "A",
-      "explanation": "参考答案为 A（.cn）。\n\n**解析：**\n\n中国的国家顶级域名是 .cn，这是国际标准化组织分配给中国的代码。.ch 是瑞士的域名，.chn 和 .china 不是标准的顶级域名后缀。"
+      "answer": "A"
     },
     {
       "id": "2019-choice-2",
@@ -24,8 +23,7 @@ export const cspChoicePapers = {
         "C": "$\\text{01 0010 1000 0001}$",
         "D": "$\\text{01 0010 1000 0011}$"
       },
-      "answer": "D",
-      "explanation": "参考答案为 D（01 0010 1000 0011）。\n\n**解析：**\n\n按位与运算规则：两个二进制位都为 1 时结果才为 1，否则为 0。逐位计算得出结果。"
+      "answer": "D"
     },
     {
       "id": "2019-choice-3",
@@ -37,8 +35,7 @@ export const cspChoicePapers = {
         "C": "4",
         "D": "8"
       },
-      "answer": "C",
-      "explanation": "参考答案为 C（4）。\n\n**解析：**\n\n32 位整型变量占用 32 个二进制位，即 32 ÷ 8 = 4 个字节。"
+      "answer": "C"
     },
     {
       "id": "2019-choice-4",
@@ -50,8 +47,7 @@ export const cspChoicePapers = {
         "C": "`s = s - c;`",
         "D": "`s = b - c;`"
       },
-      "answer": "A",
-      "explanation": "参考答案为 A（s = a - c）。\n\n**解析：**\n\n程序段先令 s = a，然后循环 c 次，每次 s 减 1。循环结束后 s = a - c。"
+      "answer": "A"
     },
     {
       "id": "2019-choice-5",
@@ -63,8 +59,7 @@ export const cspChoicePapers = {
         "C": "6",
         "D": "8"
       },
-      "answer": "A",
-      "explanation": "参考答案为 A（7）。\n\n**解析：**\n\n折半查找的最大比较次数为 ⌊log₂n⌋ + 1。当 n = 100 时，log₂100 ≈ 6.64，所以最大比较次数为 7 次。"
+      "answer": "A"
     },
     {
       "id": "2019-choice-6",
@@ -76,8 +71,7 @@ export const cspChoicePapers = {
         "C": "所需空间与线性表长度成正比",
         "D": "可随机访问任一元素"
       },
-      "answer": "D",
-      "explanation": "参考答案为 D（可随机访问任一元素）。\n\n**解析：**\n\n链表不支持随机访问，必须从头节点开始逐个遍历才能访问指定位置的元素。"
+      "answer": "D"
     },
     {
       "id": "2019-choice-7",
@@ -89,8 +83,7 @@ export const cspChoicePapers = {
         "C": "18",
         "D": "20"
       },
-      "answer": "C",
-      "explanation": "参考答案为 C（18）。\n\n**解析：**\n\n将 8 个相同的球放入 5 个相同的袋子，即求整数 8 拆分为不超过 5 个部分的方案数，共 18 种。"
+      "answer": "C"
     },
     {
       "id": "2019-choice-8",
@@ -102,8 +95,7 @@ export const cspChoicePapers = {
         "C": "15",
         "D": "12"
       },
-      "answer": "C",
-      "explanation": "参考答案为 C（15）。\n\n**解析：**\n\n顺序存储二叉树时，根节点下标为 1，左孩子为 2i，右孩子为 2i+1。最深层的节点下标可达 15。"
+      "answer": "C"
     },
     {
       "id": "2019-choice-9",
@@ -115,8 +107,7 @@ export const cspChoicePapers = {
         "C": "91",
         "D": "93"
       },
-      "answer": "B",
-      "explanation": "参考答案为 B（97）。\n\n**解析：**\n\n100 以内的最大素数是 97。注意 91 = 7 × 13 不是素数。"
+      "answer": "B"
     },
     {
       "id": "2019-choice-10",
@@ -128,8 +119,7 @@ export const cspChoicePapers = {
         "C": "29",
         "D": "31"
       },
-      "answer": "C",
-      "explanation": "参考答案为 C（29）。\n\n**解析：**\n\n使用辗转相除法：377 ÷ 319 = 1 余 58，319 ÷ 58 = 5 余 29，58 ÷ 29 = 2 余 0。所以 gcd(319, 377) = 29。"
+      "answer": "C"
     },
     {
       "id": "2019-choice-11",
@@ -141,8 +131,7 @@ export const cspChoicePapers = {
         "C": "2400",
         "D": "2520"
       },
-      "answer": "C",
-      "explanation": "参考答案为 C（2400）。\n\n**解析：**\n\n最优方案：3天方案二（15公里，1800千卡）+ 2天方案一（6公里，600千卡）= 21公里，2400千卡。"
+      "answer": "C"
     },
     {
       "id": "2019-choice-12",
@@ -154,8 +143,7 @@ export const cspChoicePapers = {
         "C": "3",
         "D": "5"
       },
-      "answer": "A",
-      "explanation": "参考答案为 A（4）。\n\n**解析：**\n\n鸽巢原理：52 张牌分 4 种花色，抽 13 张牌时，至少有一个花色有 ⌈13/4⌉ = 4 张牌。"
+      "answer": "A"
     },
     {
       "id": "2019-choice-13",
@@ -167,8 +155,7 @@ export const cspChoicePapers = {
         "C": "75",
         "D": "100"
       },
-      "answer": "C",
-      "explanation": "参考答案为 C（75）。\n\n**解析：**\n\n能颠倒后仍是数字的有 0,1,8,6,9。5 位车牌要颠倒后不变：第 3 位有 3 种选择，第 1-5 位和第 2-4 位各有 5 种配对，共 5×5×3 = 75。"
+      "answer": "C"
     },
     {
       "id": "2019-choice-14",
@@ -180,8 +167,7 @@ export const cspChoicePapers = {
         "C": "$\\texttt{ABDEGJHCFI}$",
         "D": "$\\texttt{ABDEGHJFIC}$"
       },
-      "answer": "B",
-      "explanation": "参考答案为 B（ABDEGHJCFI）。\n\n**解析：**\n\n根据后序和中序遍历可以唯一确定二叉树，然后求前序遍历。"
+      "answer": "B"
     },
     {
       "id": "2019-choice-15",
@@ -193,8 +179,7 @@ export const cspChoicePapers = {
         "C": "诺贝尔奖",
         "D": "普利策奖"
       },
-      "answer": "A",
-      "explanation": "参考答案为 A（图灵奖）。\n\n**解析：**\n\n图灵奖是计算机科学领域最崇高的荣誉，被誉为计算机科学的诺贝尔奖。"
+      "answer": "A"
     }
   ],
   "2020": [
