@@ -622,7 +622,7 @@ export const cspChoicePapers = {
     {
       "id": "2022-choice-7",
       "number": 7,
-      "question": "假设字母表 $\\{a,b,c,d,e\\}$ 在字符串出现的频率分别为 $10\\%$，$15\\%$，$30\\%$，$16\\%$，$29\\%$。若使用哈夫曼编码方式对字母进行不定长的二进制编码，字母 $d$ 的编码长度（ ）位。",
+      "question": "假设字母表 $\\{a, b, c, d, e\\}$ 在字符串出现的频率分别为 $10\\%$，$15\\%$，$30\\%$，$16\\%$，$29\\%$。若使用哈夫曼编码方式对字母进行不定长的二进制编码，字母 $d$ 的编码长度（ ）位。",
       "options": {
         "A": "$1$",
         "B": "$2$",
@@ -670,12 +670,12 @@ export const cspChoicePapers = {
     {
       "id": "2022-choice-11",
       "number": 11,
-      "question": "以下哪组操作能完成在双向循环链表结点 $p$ 之后插入结点 $s$ 的效果（其中，`next` 域为结点的直接后继，`prev` 域为结点的直接前驱）：（ ）。",
+      "question": "以下哪组操作能完成在双向循环链表结点 p 之后插入结点 s 的效果（其中，next 域为结点的直接后继，prev 域为结点的直接前驱）：（ ）。",
       "options": {
-        "A": "`p->next->prev=s; s->prev=p; p->next=s; s->next=p->next;`",
-        "B": "`p->next->prev=s; p->next=s; s->prev=p; s->next=p->next;`",
-        "C": "`s->prev=p; s->next=p->next; p->next=s; p->next->prev=s;`",
-        "D": "`s->next=p->next; p->next->prev=s; s->prev=p; p->next=s;`"
+        "A": "`p->next->prev = s;`\n` s->prev = p;`\n` p->next = s;`\n` s->next = p->next;`",
+        "B": "`p->next->prev = s;`\n` p->next = s;`\n` s->prev = p;`\n` s->next = p->next;`",
+        "C": "`s->prev = p;`\n` s->next = p->next;`\n` p->next = s;`\n` p->next->prev = s;`",
+        "D": "`s->next = p->next;`\n` p->next->prev = s;`\n` s->prev = p;`\n` p->next = s;`"
       },
       "answer": "D"
     },
@@ -706,7 +706,7 @@ export const cspChoicePapers = {
     {
       "id": "2022-choice-14",
       "number": 14,
-      "question": "一个字符串中任意个连续的字符组成的子序列称为该字符串的子串，则字符串 $\\tt abcab$ 有（ ）个内容互不相同的子串。",
+      "question": "一个字符串中任意个连续的字符组成的子序列称为该字符串的子串，则字符串 $abcab$ 有（ ）个内容互不相同的子串。",
       "options": {
         "A": "$12$",
         "B": "$13$",
