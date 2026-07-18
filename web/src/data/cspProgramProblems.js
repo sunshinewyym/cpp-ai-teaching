@@ -1552,8 +1552,8 @@ export const cspProgramProblems = [
     "type": "reading",
     "number": 1,
     "title": "阅读程序第 1 题",
-    "description": "## 二、阅读程序（程序输入不超过数组或字符串定义的范围；判断题正确填 √，错误填 ⨉ ；除特殊说明外，判断题 1.5 分，选择题 3 分，共计 40 分）\n\n### (1)\n\n```cpp\n01 #include <iostream>\n02\n03 using namespace std；\n04\n05 int main()\n06 {\n07     unsigned short x, y；\n08     cin >> x >> y；\n09     x = (x | x << 2)& 0x33；\n10     x = (x | x << 1)& 0x55；\n11     y = (y | y << 2)& 0x33；\n12     y = (y | y << 1)& 0x55；\n13     unsigned short z = x | y << 1；\n14     cout << z << endl；\n15     return 0；\n16 }\n```\n\n**假设输入的 $x,y$ 均是不超过 $15$ 的自然数，完成下面的判断题和单选题：**\n\n**判断题**\n\n1. 删去第 $7$ 行与第 $13$ 行的 unsigned，程序行为不变。\n2. 将第 $7$ 行与第 $13$ 行的 short 均改为 char，程序行为不变。\n3. 程序总是输出一个整数“0”。\n4. 当输入为 `2 2` 时，输出为 `10`。\n5. 当输入为 `2 2` 时，输出为 `59`。\n\n**单选题**\n\n6. 当输入为 `13 8` 时，输出为（ ）。",
-    "statement": "## 二、阅读程序（程序输入不超过数组或字符串定义的范围；判断题正确填 √，错误填 ⨉ ；除特殊说明外，判断题 1.5 分，选择题 3 分，共计 40 分）\n\n### (1)\n\n```cpp\n01 #include <iostream>\n02\n03 using namespace std；\n04\n05 int main()\n06 {\n07     unsigned short x, y；\n08     cin >> x >> y；\n09     x = (x | x << 2)& 0x33；\n10     x = (x | x << 1)& 0x55；\n11     y = (y | y << 2)& 0x33；\n12     y = (y | y << 1)& 0x55；\n13     unsigned short z = x | y << 1；\n14     cout << z << endl；\n15     return 0；\n16 }\n```",
+    "description": "## 二、阅读程序（程序输入不超过数组或字符串定义的范围；判断题正确填 √，错误填 ⨉ ；除特殊说明外，判断题 1.5 分，选择题 3 分，共计 40 分）\n\n### (1)\n\n```cpp\n01 #include <iostream>\n02\n03 using namespace std；\n04\n05 int main()\n06 {\n07     unsigned short x, y；\n08     cin >> x >> y；\n09     x = (x | x << 2) & 0x33；\n10     x = (x | x << 1) & 0x55；\n11     y = (y | y << 2) & 0x33；\n12     y = (y | y << 1) & 0x55；\n13     unsigned short z = x | y << 1；\n14     cout << z << endl；\n15     return 0；\n16 }\n```\n\n**假设输入的 $x,y$ 均是不超过 $15$ 的自然数，完成下面的判断题和单选题：**\n\n**判断题**\n\n1. 删去第 $7$ 行与第 $13$ 行的 unsigned，程序行为不变。\n2. 将第 $7$ 行与第 $13$ 行的 short 均改为 char，程序行为不变。\n3. 程序总是输出一个整数“0”。\n4. 当输入为 `2 2` 时，输出为 `10`。\n5. 当输入为 `2 2` 时，输出为 `59`。\n\n**单选题**\n\n6. 当输入为 `13 8` 时，输出为（ ）。",
+    "statement": "## 二、阅读程序（程序输入不超过数组或字符串定义的范围；判断题正确填 √，错误填 ⨉ ；除特殊说明外，判断题 1.5 分，选择题 3 分，共计 40 分）\n\n### (1)\n\n```cpp\n01 #include <iostream>\n02\n03 using namespace std；\n04\n05 int main()\n06 {\n07     unsigned short x, y；\n08     cin >> x >> y；\n09     x = (x | x << 2) & 0x33；\n10     x = (x | x << 1) & 0x55；\n11     y = (y | y << 2) & 0x33；\n12     y = (y | y << 1) & 0x55；\n13     unsigned short z = x | y << 1；\n14     cout << z << endl；\n15     return 0；\n16 }\n```",
     "questions": [
       {
         "id": "2022-reading-1-1",
@@ -1588,7 +1588,7 @@ export const cspProgramProblems = [
       {
         "id": "2022-reading-1-3",
         "number": 3,
-        "text": "程序总是输出一个整数“0”。",
+        "text": "程序总是输出一个整数 0。",
         "options": {
           "A": "正确",
           "B": "错误"
@@ -1657,7 +1657,7 @@ export const cspProgramProblems = [
     "number": 2,
     "title": "$4$ 分",
     "description": "### （2）\n```\n1  #include <algorithm>\n2  #include <iostream>\n3  #include <limits>\n4\n5  using namespace std;\n6\n7  const int MAXN = 105;\n8  const int MAXK = 105;\n9\n10 int h[MAXN][MAXK];\n11\n12 int f(int n, int m)\n13 {\n14     if (m == 1) return n;\n15     if (n == 0) return 0;\n16\n17     int ret = numeric_limits<int>::max();\n18     for (int i = 1; i <= n; i++)\n19         ret = min(ret, max(f(n - i,m), f(i - 1, m - 1)) + 1);\n20     return ret;\n21 }\n22\n23 int g(int n, int m)\n24 {\n25     for (int i = 1;i <= n; i++)\n26         h[i][1]= i;\n27     for (int j = 1;j<= m; j++)\n28         h[0][j]= 0;\n29\n30     for (int i= 1; i <= n; i++){\n31         for (int j= 2; j <= m; j++){\n32             h[i][j] = numeric_limits<int>::max();\n33             for (int k = 1;k <= i;k++)\n34             h[i][j]= min(\n35                 h[i][j],\n36                 max(h[i - k][j],h[k - 1][j - 1]) +1);\n37         }\n38     }\n39\n40     return h[n][m];\n41 }\n42\n43 int main()\n44 {\n45     int n,m;\n46     cin >> n>> m;\n47     cout << f(n, m) << endl << g(n, m)<< endl;\n48     return 0;\n49 }\n```\n**假设输入的n、m均是不超过100 的正整数，完成下面的判断题和单选题：**\n\n**判断题**\n\n1. 当输入为 `7 3` 时，第 $19$ 行用来取最小值的 `min` 函数执行了 $449$ 次。\n2. 输出的两行整数总是相同的。\n3. 当 $m$ 为 $1$ 时，输出的第一行总为 $n$。\n\n**单选题**\n\n4. 算法 $g(n,m)$ 最为准确的时间复杂度分析结果为（ ）。\n5. 当输入为 `20 2` 时，输出的第一行为（ ）。\n6. **（$4$ 分）** 当输入 `100 100` 时，输出的第一行为（ ）。",
-    "statement": "### （2）\n```\n1  #include <algorithm>\n2  #include <iostream>\n3  #include <limits>\n4\n5  using namespace std;\n6\n7  const int MAXN = 105;\n8  const int MAXK = 105;\n9\n10 int h[MAXN][MAXK];\n11\n12 int f(int n, int m)\n13 {\n14     if (m == 1) return n;\n15     if (n == 0) return 0;\n16\n17     int ret = numeric_limits<int>::max();\n18     for (int i = 1; i <= n; i++)\n19         ret = min(ret, max(f(n - i,m), f(i - 1, m - 1)) + 1);\n20     return ret;\n21 }\n22\n23 int g(int n, int m)\n24 {\n25     for (int i = 1;i <= n; i++)\n26         h[i][1]= i;\n27     for (int j = 1;j<= m; j++)\n28         h[0][j]= 0;\n29\n30     for (int i= 1; i <= n; i++){\n31         for (int j= 2; j <= m; j++){\n32             h[i][j] = numeric_limits<int>::max();\n33             for (int k = 1;k <= i;k++)\n34             h[i][j]= min(\n35                 h[i][j],\n36                 max(h[i - k][j],h[k - 1][j - 1]) +1);\n37         }\n38     }\n39\n40     return h[n][m];\n41 }\n42\n43 int main()\n44 {\n45     int n,m;\n46     cin >> n>> m;\n47     cout << f(n, m) << endl << g(n, m)<< endl;\n48     return 0;\n49 }\n```",
+    "statement": "### （2）\n```\n1  #include <algorithm>\n2  #include <iostream>\n3  #include <limits>\n4\n5  using namespace std;\n6\n7  const int MAXN = 105;\n8  const int MAXK = 105;\n9\n10 int h[MAXN][MAXK];\n11\n12 int f(int n, int m)\n13 {\n14     if (m == 1) return n;\n15     if (n == 0) return 0;\n16\n17     int ret = numeric_limits<int>::max();\n18     for (int i = 1; i <= n; i++)\n19         ret = min(ret, max(f(n - i,m), f(i - 1, m - 1)) + 1);\n20     return ret;\n21 }\n22\n23 int g(int n, int m)\n24 {\n25     for (int i = 1;i <= n; i++)\n26         h[i][1]= i;\n27     for (int j = 1;j<= m; j++)\n28         h[0][j]= 0;\n29\n30     for (int i= 1; i <= n; i++){\n31         for (int j= 2; j <= m; j++){\n32             h[i][j] = numeric_limits<int>::max();\n33             for (int k = 1;k <= i;k++)\n34             h[i][j]= min(\n35                 h[i][j],\n36                 max(h[i - k][j],h[k - 1][j - 1]) +1);\n37         }\n38     }\n39\n40     return h[n][m];\n41 }\n42\n43 int main()\n44 {\n45     int n,m;\n46     cin >> n>> m;\n47     cout << f(n, m) << endl << g(n, m)<< endl;\n48     return 0;\n49 }\n```\n假设输入的 n、m 均是不超过 100 的正整数，完成下面的判断题和单选题：",
     "questions": [
       {
         "id": "2022-reading-2-1",
@@ -2061,9 +2061,9 @@ export const cspProgramProblems = [
         "text": "⑤ 处应填（ ）",
         "options": {
           "A": "`queue.push(p)`",
-          "B": "`queue. push (pt)`",
+          "B": "`queue.push (pt)`",
           "C": "`queue.push(cur)`",
-          "D": "`queue. push(Point (ROWS, COLS))`"
+          "D": "`queue.push(Point (ROWS, COLS))`"
         },
         "answers": [
           "A"
