@@ -336,7 +336,7 @@ export const cspProgramProblems = [
         "number": 1,
         "text": "① 处应填（ ）",
         "options": {
-          "A": "`n%2`",
+          "A": "`n % 2`",
           "B": "`0`",
           "C": "`t`",
           "D": "`1`"
@@ -353,10 +353,10 @@ export const cspProgramProblems = [
         "number": 2,
         "text": "② 处应填（ ）",
         "options": {
-          "A": "`x-step,y-step`",
-          "B": "`x,y-step`",
-          "C": "`x-step,y`",
-          "D": "`x,y`"
+          "A": "`x - step, y - step`",
+          "B": "`x, y - step`",
+          "C": "`x - step, y`",
+          "D": "`x, y`"
         },
         "answers": [
           "D"
@@ -370,10 +370,10 @@ export const cspProgramProblems = [
         "number": 3,
         "text": "③ 处应填（ ）",
         "options": {
-          "A": "`x-step,y-step`",
-          "B": "`x+step,y+step`",
-          "C": "`x-step,y`",
-          "D": "`x,y-step`"
+          "A": "`x - step, y - step`",
+          "B": "`x + step, y + step`",
+          "C": "`x - step, y`",
+          "D": "`x, y - step`"
         },
         "answers": [
           "B"
@@ -387,10 +387,10 @@ export const cspProgramProblems = [
         "number": 4,
         "text": "④ 处应填（ ）",
         "options": {
-          "A": "`n-1,n%2`",
-          "B": "`n,0`",
-          "C": "`n,n%2`",
-          "D": "`n-1,0`"
+          "A": "`n - 1, n % 2`",
+          "B": "`n, 0`",
+          "C": "`n, n % 2`",
+          "D": "`n - 1, 0`"
         },
         "answers": [
           "B"
@@ -404,10 +404,10 @@ export const cspProgramProblems = [
         "number": 5,
         "text": "⑤ 处应填（ ）",
         "options": {
-          "A": "`1<<(n+1)`",
-          "B": "`1<<n`",
-          "C": "`n+1`",
-          "D": "`1<<(n-1)`"
+          "A": "`1 << (n + 1)`",
+          "B": "`1 << n`",
+          "C": "`n + 1`",
+          "D": "`1 << (n - 1)`"
         },
         "answers": [
           "B"
