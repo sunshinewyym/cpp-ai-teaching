@@ -68,7 +68,21 @@ COACH_MODEL_RETRIES=0
 COACH_MAX_ROUNDS=16
 ```
 
-如需切换到其他 OpenAI 兼容模型服务，可设置 `AI_PROVIDER`、`AI_BASE_URL`、`AI_MODEL` 和 `AI_API_KEY`。这些变量优先于 `DEEPSEEK_*`；留空时继续使用现有 DeepSeek 配置。
+如需切换到其他 OpenAI 兼容模型服务，可设置 `AI_PROVIDER`、`AI_BASE_URL`、`AI_MODEL` 和 `AI_API_KEY`。通用的 `AI_*` 配置优先于对应服务商的配置；留空时使用当前服务商的配置。
+
+切换到 MiMo 时，在 `server/.env` 中填写：
+
+```env
+AI_PROVIDER=mimo
+MIMO_API_KEY=你的_MiMo_API_Key
+MIMO_BASE_URL=https://token-plan-cn.xiaomimimo.com/v1
+MIMO_MODEL=mimo-v2.5
+
+# 保持为空，使用上面的 MIMO_API_KEY
+AI_API_KEY=
+AI_BASE_URL=
+AI_MODEL=
+```
 
 Windows PowerShell 可以使用：
 

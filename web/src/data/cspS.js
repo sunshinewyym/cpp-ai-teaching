@@ -968,7 +968,7 @@ export const cspSChoicePapers = {
         "C": "12",
         "D": "13"
       },
-      "answer": "C",
+      "answer": "B",
       "explanation": "????? C?12??????????????????????????????"
     },
     {
@@ -981,7 +981,7 @@ export const cspSChoicePapers = {
         "C": "O(log n)",
         "D": "O(n log n)"
       },
-      "answer": "C",
+      "answer": "A",
       "explanation": "参考答案为 C（O(log n)）。\\n\\n**解析：**\\n\\n该代码实现了快速幂算法（binary exponentiation）：\\n\\n```\\nquick_power(x, n) = quick_power(x, n/2)² × (x if n odd else 1)\\n```\\n\\n每次递归将指数 n 减半，递归深度为 O(log n)。每次递归中的乘法运算为 O(1)，因此总时间复杂度为 O(log n)。\\n\\n虽然代码中调用了两次 quick_power(x, n/2)，看似效率较低（应缓存结果），但渐近复杂度仍为 O(log n)。"
     }
   ],

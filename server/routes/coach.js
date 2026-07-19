@@ -3,6 +3,8 @@ const {
   handleCreateSession,
   handleDeleteSession,
   handleGetSession,
+  handleGenerateGuide,
+  handleGenerateArticle,
   handlePrefetchNext,
   handleSubmitProblem,
   handleSubmitTurn,
@@ -10,6 +12,8 @@ const {
 
 const router = express.Router();
 
+router.post('/guide', handleGenerateGuide);
+router.post('/article', handleGenerateArticle);
 router.post('/sessions', handleCreateSession);
 router.post('/sessions/:id/problem', handleSubmitProblem);
 router.post('/sessions/:id/turns', handleSubmitTurn);

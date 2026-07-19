@@ -6,15 +6,17 @@
   "scripts": {
     "start": "node app.js",
     "dev": "node --watch app.js",
+    "test:ai-provider": "node services/deepseek.test.js",
     "test:copy-style": "node services/copyStyle.test.js",
-    "test:debug-hint": "node controllers/teachingController.test.js",
-    "test:coach": "node coach/engine.test.js"
+    "test:debug-hint": "node controllers/teachingController.test.js && node debug/guide.test.js",
+    "test:coach": "node coach/engine.test.js && node coach/guide.test.js && node coach/article.test.js"
   },
   "dependencies": {
-    "express": "^4.18.2",
     "axios": "^1.6.0",
-    "dotenv": "^16.3.1",
     "cors": "^2.8.5",
+    "dotenv": "^16.3.1",
+    "express": "^4.18.2",
+    "jsonrepair": "^3.13.1",
     "marked": "^11.0.0"
   }
 }

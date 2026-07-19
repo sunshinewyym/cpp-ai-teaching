@@ -4,21 +4,31 @@ const { applyCopyStyle } = require('./copyStyle');
 const PROVIDER = process.env.AI_PROVIDER || 'deepseek';
 const DEFAULT_BASE_URLS = {
   deepseek: 'https://api.deepseek.com',
+  mimo: 'https://token-plan-cn.xiaomimimo.com/v1',
   openai: 'https://api.openai.com',
 };
 const BASE_URL = process.env.AI_BASE_URL
-  || process.env.DEEPSEEK_BASE_URL
+  || (PROVIDER === 'mimo' ? process.env.MIMO_BASE_URL : process.env.DEEPSEEK_BASE_URL)
   || DEFAULT_BASE_URLS[PROVIDER]
   || DEFAULT_BASE_URLS.deepseek;
-const API_KEY = process.env.AI_API_KEY || process.env.DEEPSEEK_API_KEY;
-const MODEL = process.env.AI_MODEL || process.env.DEEPSEEK_MODEL || 'deepseek-chat';
+const API_KEY = process.env.AI_API_KEY
+  || (PROVIDER === 'mimo' ? process.env.MIMO_API_KEY : process.env.DEEPSEEK_API_KEY);
+const MODEL = process.env.AI_MODEL
+  || (PROVIDER === 'mimo' ? process.env.MIMO_MODEL || 'mimo-v2.5' : process.env.DEEPSEEK_MODEL || 'deepseek-chat');
+
+function buildChatCompletionsUrl(baseUrl) {
+  const normalized = baseUrl.replace(/\/+$/, '');
+  return `${normalized.endsWith('/v1') ? normalized : `${normalized}/v1`}/chat/completions`;
+}
+
+const CHAT_COMPLETIONS_URL = buildChatCompletionsUrl(BASE_URL);
 
 /**
  * Non-streaming chat completion
  */
 async function chat(messages, options = {}) {
   const resp = await axios.post(
-    `${BASE_URL}/v1/chat/completions`,
+    CHAT_COMPLETIONS_URL,
     {
       model: options.model || MODEL,
       messages: applyCopyStyle(messages),
@@ -44,7 +54,7 @@ async function chat(messages, options = {}) {
  */
 async function chatStream(messages, options = {}) {
   const resp = await axios.post(
-    `${BASE_URL}/v1/chat/completions`,
+    CHAT_COMPLETIONS_URL,
     {
       model: options.model || MODEL,
       messages: applyCopyStyle(messages),
@@ -59,9 +69,10 @@ async function chatStream(messages, options = {}) {
       },
       responseType: 'stream',
       responseEncoding: 'utf-8',
+      timeout: options.timeout ?? 60000,
     }
   );
   return resp;
 }
 
-module.exports = { chat, chatStream };
+module.exports = { chat, chatStream, buildChatCompletionsUrl };
