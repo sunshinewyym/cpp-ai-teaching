@@ -154,8 +154,8 @@
             <summary>题目设置</summary>
             <div class="hint-tool-card">
               <div class="module-note">
-                <strong>先指出关键点，再引导学生自己完成</strong>
-                <span>教练会根据题目难度安排提示层数。简单题直接讲清关键思路，复杂题逐层展开；只在确有必要时用一个例子检验理解。</span>
+                <strong>从题目本身出发，完整讲清解题思路</strong>
+                <span>一次生成题意翻译、直观做法、关键突破、样例推演、实现步骤和迁移规律，不连续追问，也不提供可直接提交的完整代码。</span>
               </div>
               <div class="input-row">
                 <input
@@ -172,84 +172,25 @@
               <p class="helper-text" v-if="hintProblemFetchMessage">{{ hintProblemFetchMessage }}</p>
               <textarea v-model="hintProblem" placeholder="也可以直接粘贴题目描述" rows="9"></textarea>
               <button @click="startAlgorithmCoach" :disabled="loading || !hintProblem">
-                {{ loading ? '准备中……' : '🧭 开始算法教练' }}
+                {{ loading ? '整理中……' : '🧭 生成解题思路讲义' }}
               </button>
             </div>
           </details>
 
           <p v-if="coachError" class="coach-error">{{ coachError }}</p>
-          <div v-if="coachHistory.length || coachResponse" class="coach-shell">
-            <header class="coach-header">
+          <article v-if="coachMarkdown" class="coach-article">
+            <header class="coach-article-toolbar">
               <div>
-                <span class="coach-stage">{{ coachStageLabel(coachResponse?.stage) }}</span>
-                <strong>{{ coachResponse?.focus }}</strong>
+                <span>解题思路讲义</span>
+                <small>{{ loading ? '正在继续整理……' : '已生成完整讲义' }}</small>
               </div>
-              <div class="coach-header-actions">
-                <span>提示层 {{ Math.max(1, coachHistory.length) }}</span>
-                <button type="button" @click="resetAlgorithmCoach">重新开始</button>
-              </div>
+              <button type="button" @click="resetAlgorithmCoach">换一道题</button>
             </header>
-
-            <section class="coach-key-route" aria-label="关键提示路线">
-              <header>
-                <strong>关键提示路线</strong>
-                <span>已整理 {{ coachHistory.length }} 条</span>
-              </header>
-              <ol>
-                <li
-                  v-for="(turn, index) in coachHistory"
-                  :key="`hint-${index}`"
-                  :class="{ current: index === coachHistory.length - 1 }"
-                >
-                  <b>{{ index + 1 }}</b>
-                  <div>
-                    <strong>{{ turn.response.focus }}</strong>
-                    <p>{{ turn.response.key_hint }}</p>
-                  </div>
-                </li>
-              </ol>
-            </section>
-
-            <div class="coach-history" aria-live="polite">
-              <article v-for="(turn, index) in coachHistory.slice(-1)" :key="index" class="coach-turn-card">
-                <p v-if="turn.student" class="coach-student"><strong>学生：</strong>{{ turn.student }}</p>
-                <div class="coach-thinking">
-                  <strong>这一层怎么想</strong>
-                  <p>{{ turn.response.coach_message }}</p>
-                </div>
-              </article>
-            </div>
-
-            <div v-if="coachResponse && coachResponse.stage !== 'COMPLETE'" class="coach-next">
-              <template v-if="coachResponse.choices?.length">
-                <h3>{{ coachResponse.question }}</h3>
-                <div class="coach-choices">
-                  <button
-                    v-for="choice in coachResponse.choices"
-                    :key="choice.id"
-                    type="button"
-                    class="coach-choice"
-                    :disabled="loading"
-                    @click="sendCoachTurn('', choice)"
-                  >
-                    <b>{{ choice.id }}</b>
-                    <span>{{ choice.text }}</span>
-                  </button>
-                </div>
-              </template>
-              <button
-                v-else
-                type="button"
-                class="coach-continue"
-                :disabled="loading"
-                @click="continueAlgorithmCoach"
-              >
-                {{ loading ? '正在整理下一层提示……' : '看下一层提示' }}
-              </button>
-            </div>
-          </div>
+            <div class="coach-article-content" v-html="renderMd(coachMarkdown)"></div>
+            <div v-if="loading" class="coach-streaming-status"><i></i>AI 正在继续生成后面的内容……</div>
+          </article>
         </section>
-        <div v-if="loading && !result" class="loading-card compact">
+        <div v-if="loading && !result && !coachMarkdown" class="loading-card compact">
           <div class="loading-orbit"><span></span><span></span><span></span></div>
           <div class="loading-copy">
             <strong>AI 正在整理课堂节奏……</strong>
@@ -339,7 +280,7 @@
         <div v-if="loading" class="loading-card compact">
           <div class="loading-orbit"><span></span><span></span><span></span></div>
           <div class="loading-copy">
-            <strong>{{ debugHintLoading ? 'AI 正在准备进一步提示……' : (debugGeneratingEdges ? 'AI 正在设计边界测试点……' : 'AI 正在检查 Bug……') }}</strong>
+            <strong>{{ debugHintLoading ? 'AI 正在准备进一步提示……' : 'AI 正在结合题目和代码整理调试路线……' }}</strong>
             <div class="tip-window"><div class="tip-track"><p v-for="tip in loadingTips" :key="tip">{{ tip }}</p></div></div>
           </div>
         </div>
@@ -349,20 +290,6 @@
           </button>
           <span>提示会更具体，但不会提供完整代码或直接答案。</span>
         </div>
-        <section v-if="debugEdgeCases.length" class="debug-edge-output">
-          <h3>边界盲盒测试点</h3>
-          <div class="edge-case-grid">
-            <article v-for="(item, index) in debugEdgeCases" :key="index" class="edge-case-card">
-              <h4>{{ item.title || `测试点 ${index + 1}` }}</h4>
-              <p class="edge-tag">{{ item.boundaryType }}</p>
-              <div class="io-grid">
-                <div><strong>测试点输入</strong><pre>{{ item.testInput }}</pre></div>
-                <div><strong>测试点输出</strong><pre>{{ item.expectedOutput }}</pre></div>
-              </div>
-              <p class="edge-reason">{{ item.reason }}</p>
-            </article>
-          </div>
-        </section>
       </div>
     </div>
   </div>
@@ -416,11 +343,9 @@ const debugCode = ref('');
 const debugProblem = ref('');
 const debugProblemId = ref('');
 const debugSamples = ref([]);
-const debugEdgeCases = ref([]);
 const fetchingDebugProblem = ref(false);
 const debugProblemFetchMessage = ref('');
 const debugInputsCollapsed = ref(false);
-const debugGeneratingEdges = ref(false);
 const debugHintLoading = ref(false);
 const debugCanAskMore = ref(false);
 const debugHintCache = ref(null);
@@ -433,10 +358,7 @@ const hintProblemFetchMessage = ref('');
 const hintProblemTitle = ref('');
 const hintSamples = ref([]);
 const hintInputsCollapsed = ref(false);
-const coachSessionId = ref('');
-const coachResponse = ref(null);
-const coachHistory = ref([]);
-const coachMessage = ref('');
+const coachMarkdown = ref('');
 const coachError = ref('');
 const teachingAction = ref('');
 const newsTips = ref([]);
@@ -474,7 +396,6 @@ function switchTool(tool) {
   quizAnswers.value = {};
   quizRegenerating.value = {};
   teachingAction.value = '';
-  debugGeneratingEdges.value = false;
   debugHintLoading.value = false;
   debugCanAskMore.value = false;
   debugHintCache.value = null;
@@ -482,9 +403,7 @@ function switchTool(tool) {
   debugHintPrefetchPromise.value = null;
   fetchingHintProblem.value = false;
   hintInputsCollapsed.value = false;
-  coachResponse.value = null;
-  coachHistory.value = [];
-  coachMessage.value = '';
+  coachMarkdown.value = '';
   coachError.value = '';
 }
 
@@ -771,6 +690,8 @@ async function handleTeachingAction(action) {
     quizAnswers.value = {};
     quizRegenerating.value = {};
     coachError.value = '';
+    coachMarkdown.value = '';
+    hintInputsCollapsed.value = false;
     return;
   }
   if (!courseTopic.value) {
@@ -810,128 +731,38 @@ async function handleTeachingAction(action) {
   loading.value = false;
 }
 
-async function coachRequest(url, options = {}) {
-  const response = await fetch(url, {
-    method: options.method || 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: options.body ? JSON.stringify(options.body) : undefined,
-  });
-  if (response.status === 204) return null;
-  const raw = await response.text();
-  let data = {};
-  if (raw) {
-    try {
-      data = JSON.parse(raw);
-    } catch (error) {
-      throw new Error('算法教练返回内容暂时无法解析，请重试。');
-    }
-  }
-  if (!response.ok) throw new Error(data.error || '算法教练请求失败。');
-  if (!raw) throw new Error('算法教练没有返回内容，请重试。');
-  return data;
-}
-
-function coachStageLabel(stage) {
-  return {
-    INGEST: '核对题面',
-    EXPLORE: '关键提示',
-    MODEL: '拆解问题',
-    VALIDATE: '例子检验',
-    PLAN: '连成思路',
-    COMPLETE: '迁移总结',
-  }[stage] || '准备开始';
-}
-
 async function startAlgorithmCoach() {
   if (!hintProblem.value || loading.value) return;
-  if (coachSessionId.value) {
-    fetch(`/api/coach/sessions/${coachSessionId.value}`, { method: 'DELETE' }).catch(() => {});
-  }
   teachingAction.value = 'algorithm-coach';
   hintInputsCollapsed.value = true;
   loading.value = true;
   result.value = '';
   coachError.value = '';
-  coachResponse.value = null;
-  coachHistory.value = [];
-  coachMessage.value = '';
-  try {
-    const created = await coachRequest('/api/coach/sessions', { body: { student: {} } });
-    coachSessionId.value = created.session.session_id;
-    const data = await coachRequest(`/api/coach/sessions/${coachSessionId.value}/problem`, {
-      body: {
-        problem: {
-          title: hintProblemTitle.value || `${hintProblemId.value || '自定义'} 题`,
-          text: hintProblem.value,
-          samples: hintSamples.value,
-        },
-      },
-    });
-    coachResponse.value = data.response;
-    coachHistory.value = [{ student: '', response: data.response }];
-    prefetchNextCoachLayer(data.response);
-  } catch (error) {
-    coachError.value = error.message;
+  coachMarkdown.value = '';
+  let streamError = '';
+  await streamPost('/api/coach/article', {
+    problem: {
+      title: hintProblemTitle.value || `${hintProblemId.value || '自定义'} 题`,
+      text: hintProblem.value,
+      samples: hintSamples.value,
+    },
+  }, (chunk) => {
+    if (chunk.includes('⚠️')) {
+      streamError = chunk.replace(/\n|⚠️|错误：|错误:|网络错误：|网络错误:/g, '').trim();
+    } else {
+      coachMarkdown.value += chunk;
+    }
+  });
+  if (streamError) coachError.value = streamError;
+  if (!coachMarkdown.value) {
     hintInputsCollapsed.value = false;
-  } finally {
-    loading.value = false;
+    if (!coachError.value) coachError.value = '算法教练没有返回内容，请重新生成。';
   }
-}
-
-async function sendCoachTurn(message = '', choice = null) {
-  const studentText = choice?.text || String(message || '').trim();
-  if (!coachSessionId.value || !studentText || loading.value) return;
-  loading.value = true;
-  coachError.value = '';
-  try {
-    const data = await coachRequest(`/api/coach/sessions/${coachSessionId.value}/turns`, {
-      body: {
-        message: choice ? '' : studentText,
-        selected_choice_id: choice?.id || null,
-      },
-    });
-    coachResponse.value = data.response;
-    coachHistory.value.push({ student: studentText, response: data.response });
-    coachMessage.value = '';
-    prefetchNextCoachLayer(data.response);
-  } catch (error) {
-    coachError.value = error.message;
-  } finally {
-    loading.value = false;
-  }
-}
-
-async function continueAlgorithmCoach() {
-  if (!coachSessionId.value || loading.value) return;
-  loading.value = true;
-  coachError.value = '';
-  try {
-    const data = await coachRequest(`/api/coach/sessions/${coachSessionId.value}/turns`, {
-      body: { action: 'continue' },
-    });
-    coachResponse.value = data.response;
-    coachHistory.value.push({ student: '', response: data.response });
-    prefetchNextCoachLayer(data.response);
-  } catch (error) {
-    coachError.value = error.message;
-  } finally {
-    loading.value = false;
-  }
-}
-
-function prefetchNextCoachLayer(response) {
-  if (!coachSessionId.value || response?.stage === 'COMPLETE') return;
-  coachRequest(`/api/coach/sessions/${coachSessionId.value}/prefetch`, { body: {} }).catch(() => {});
+  loading.value = false;
 }
 
 function resetAlgorithmCoach() {
-  if (coachSessionId.value) {
-    fetch(`/api/coach/sessions/${coachSessionId.value}`, { method: 'DELETE' }).catch(() => {});
-  }
-  coachSessionId.value = '';
-  coachResponse.value = null;
-  coachHistory.value = [];
-  coachMessage.value = '';
+  coachMarkdown.value = '';
   coachError.value = '';
   hintInputsCollapsed.value = false;
 }
@@ -1029,40 +860,18 @@ async function debugCodeAction() {
   debugInputsCollapsed.value = true;
   loading.value = true;
   result.value = '';
-  debugEdgeCases.value = [];
   debugCanAskMore.value = false;
   debugHintCache.value = null;
   debugHintPrefetching.value = false;
   debugHintPrefetchPromise.value = null;
-  let nextAction = '';
   await streamPost('/api/debug-code', {
     code: debugCode.value,
     samples: debugSamples.value,
     problem: debugProblem.value,
   }, (chunk) => {
     result.value += chunk;
-  }, (event) => {
-    nextAction = event.nextAction || nextAction;
   });
   loading.value = false;
-
-  if (nextAction === 'generate-edge-cases') {
-    result.value += '\n\n### 正在生成边界测试点……';
-    loading.value = true;
-    debugGeneratingEdges.value = true;
-    let raw = '';
-    await streamPost('/api/edge-case', { problem: debugProblem.value, code: debugCode.value }, (chunk) => {
-      raw += chunk;
-    });
-    debugEdgeCases.value = parseEdgeCasePayload(raw);
-    if (!debugEdgeCases.value.length) {
-      result.value = buildEdgeCaseAdvice('样例通过了，但边界测试点暂时没有生成成功');
-    } else {
-      result.value = result.value.replace('### 正在生成边界测试点……', '### 边界测试点检查完成');
-    }
-    debugGeneratingEdges.value = false;
-    loading.value = false;
-  }
   debugCanAskMore.value = Boolean(result.value);
   if (debugCanAskMore.value) prefetchDebugHint(result.value);
 }
@@ -1072,7 +881,6 @@ function debugHintCacheKey(previousAdvice) {
     code: debugCode.value,
     problem: debugProblem.value,
     previousAdvice,
-    edgeCases: debugEdgeCases.value,
   });
 }
 
@@ -1082,7 +890,6 @@ async function requestDebugHint(previousAdvice) {
     code: debugCode.value,
     problem: debugProblem.value,
     previousAdvice,
-    edgeCases: debugEdgeCases.value,
   }, (chunk) => {
     hint += chunk;
   });
@@ -1373,200 +1180,389 @@ body {
   border-radius: 8px;
 }
 
-.coach-shell {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
+.coach-article {
+  width: 100%;
+  margin-top: 18px;
+  overflow: hidden;
+  color: #1e293b;
+  background: #fff;
+  border: 1px solid #dbe2ea;
+  border-radius: 8px;
 }
 
-.coach-header {
+.coach-article-toolbar {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 16px;
-  padding: 12px 0;
-  border-bottom: 1px solid #dbe4f0;
+  gap: 18px;
+  padding: 15px 22px;
+  background: #f8fafc;
+  border-bottom: 1px solid #e2e8f0;
 }
 
-.coach-header > div {
+.coach-article-toolbar > div {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
 }
 
-.coach-stage {
-  padding: 4px 10px;
+.coach-article-toolbar span {
   color: #3730a3;
-  background: #eef2ff;
-  border: 1px solid #c7d2fe;
-  border-radius: 999px;
-  font-size: 13px;
-  font-weight: 700;
+  font-size: 17px;
+  font-weight: 800;
 }
 
-.coach-header-actions {
+.coach-article-toolbar small {
   color: #64748b;
-  font-size: 13px;
+  font-size: 14px;
 }
 
-.tool-panel .coach-header-actions button {
-  padding: 7px 11px;
-  color: #475569;
+.tool-panel .coach-article-toolbar button {
+  width: auto;
+  flex: 0 0 auto;
+  padding: 8px 14px;
+  color: #334155;
   background: #fff;
   border: 1px solid #cbd5e1;
 }
 
-.coach-history {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
+.coach-article-content {
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 30px 42px 46px;
+  font-size: 18px;
+  line-height: 1.9;
 }
 
-.coach-key-route {
-  padding: 2px 4px;
+.coach-article-content h1 {
+  margin: 0 0 20px;
+  color: #172033;
+  font-size: 30px;
+  line-height: 1.35;
 }
 
-.coach-key-route > header {
+.coach-article-content h2 {
+  margin: 34px 0 14px;
+  padding-top: 26px;
+  color: #172033;
+  font-size: 23px;
+  line-height: 1.45;
+  border-top: 1px solid #e2e8f0;
+}
+
+.coach-article-content p {
+  margin: 10px 0;
+}
+
+.coach-article-content blockquote {
+  margin: 18px 0 24px;
+  padding: 15px 18px;
+  color: #312e81;
+  background: #eef2ff;
+  border-left: 5px solid #4f46e5;
+}
+
+.coach-article-content blockquote p {
+  margin: 0;
+  font-weight: 700;
+}
+
+.coach-article-content ol,
+.coach-article-content ul {
+  margin: 12px 0;
+  padding-left: 30px;
+}
+
+.coach-article-content li {
+  margin: 8px 0;
+}
+
+.coach-article-content code {
+  padding: 2px 6px;
+  color: #312e81;
+  background: #eef2ff;
+  border-radius: 4px;
+}
+
+.coach-article-content pre {
+  overflow: auto;
+  padding: 18px;
+  color: #e2e8f0;
+  background: #111827;
+  border-radius: 6px;
+}
+
+.coach-article-content pre code {
+  padding: 0;
+  color: inherit;
+  background: transparent;
+}
+
+.coach-article-content details {
+  margin-top: 14px;
+  padding: 12px 15px;
+  background: #f8fafc;
+  border: 1px solid #dbe2ea;
+  border-radius: 6px;
+}
+
+.coach-article-content summary {
+  color: #3730a3;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.coach-streaming-status {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  margin-bottom: 12px;
-  color: #334155;
+  justify-content: center;
+  gap: 9px;
+  padding: 13px 20px;
+  color: #4f46e5;
+  background: #f8fafc;
+  border-top: 1px solid #e2e8f0;
 }
 
-.coach-key-route > header span {
-  color: #64748b;
-  font-size: 13px;
-}
-
-.coach-key-route ol {
-  display: grid;
-  gap: 10px;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
-.coach-key-route li {
-  display: grid;
-  grid-template-columns: 30px minmax(0, 1fr);
-  gap: 12px;
-  align-items: start;
-  padding-left: 2px;
-  border-left: 3px solid #cbd5e1;
-}
-
-.coach-key-route li.current {
-  border-left-color: #4f46e5;
-}
-
-.coach-key-route li > b {
-  display: grid;
-  width: 24px;
-  height: 24px;
-  place-items: center;
-  color: #475569;
-  background: #eef2ff;
+.coach-streaming-status i {
+  width: 9px;
+  height: 9px;
+  background: #4f46e5;
   border-radius: 50%;
-  font-size: 12px;
+  animation: coach-pulse 1.2s ease-in-out infinite;
 }
 
-.coach-key-route li.current > b {
+@keyframes coach-pulse {
+  50% {
+    opacity: 0.35;
+    transform: scale(0.75);
+  }
+}
+
+.coach-guide {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  width: 100%;
+  color: #172033;
+}
+
+.coach-guide-hero {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 26px 30px;
+  color: #fff;
+  background: #172033;
+  border-radius: 8px 8px 0 0;
+}
+
+.coach-guide-hero span {
+  color: #a5b4fc;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.coach-guide-hero h3 {
+  margin: 7px 0 8px;
+  color: #fff;
+  font-size: 28px;
+  letter-spacing: 0;
+}
+
+.coach-guide-hero p {
+  max-width: 980px;
+  color: #dbe4f0;
+  font-size: 17px;
+  line-height: 1.75;
+}
+
+.tool-panel .coach-guide-hero button {
+  width: auto;
+  flex: 0 0 auto;
+  padding: 9px 14px;
+  color: #172033;
+  background: #fff;
+}
+
+.coach-guide-core {
+  padding: 22px 30px;
+  background: #eef2ff;
+  border: 1px solid #c7d2fe;
+  border-top: 0;
+}
+
+.coach-guide-core strong {
+  display: block;
+  margin-bottom: 6px;
+  color: #4338ca;
+  font-size: 15px;
+}
+
+.coach-guide-core p {
+  color: #1e293b;
+  font-size: 19px;
+  font-weight: 700;
+  line-height: 1.7;
+}
+
+.coach-guide-sections {
+  padding: 8px 30px 0;
+  background: #fff;
+  border-right: 1px solid #dbe4f0;
+  border-left: 1px solid #dbe4f0;
+}
+
+.coach-guide-section {
+  display: grid;
+  grid-template-columns: 54px minmax(0, 1fr);
+  gap: 16px;
+  padding: 26px 0;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.coach-section-index {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  border-right: 3px solid #c7d2fe;
+}
+
+.coach-section-index b {
+  display: grid;
+  width: 32px;
+  height: 32px;
+  place-items: center;
   color: #fff;
   background: #4f46e5;
+  border-radius: 50%;
 }
 
-.coach-key-route li strong {
+.coach-section-index span {
+  font-size: 20px;
+}
+
+.coach-section-body h3 {
+  margin: 0 0 12px;
   color: #3730a3;
-  font-size: 14px;
+  font-size: 22px;
 }
 
-.coach-key-route li p {
-  margin-top: 4px;
-  color: #1e293b;
-  font-size: 16px;
-  line-height: 1.65;
-  white-space: pre-wrap;
+.coach-section-summary p,
+.coach-step-list p,
+.coach-example,
+.coach-note {
+  color: #26344a;
+  font-size: 17px;
+  line-height: 1.85;
 }
 
-.coach-turn-card {
-  padding: 16px;
-  background: #fff;
+.coach-section-summary p + p {
+  margin-top: 10px;
+}
+
+.coach-step-list {
+  display: grid;
+  gap: 10px;
+  margin: 18px 0 0;
+  padding-left: 24px;
+}
+
+.coach-step-list b {
+  color: #172033;
+}
+
+.coach-example {
+  margin-top: 18px;
+  padding: 18px 20px;
+  background: #f8fafc;
   border: 1px solid #dbe4f0;
   border-radius: 8px;
 }
 
-.coach-student {
+.coach-example header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
   margin-bottom: 12px;
-  padding: 10px 12px;
-  color: #334155;
-  background: #f8fafc;
-  border-left: 3px solid #94a3b8;
-  line-height: 1.6;
 }
 
-.coach-thinking {
-  display: grid;
-  grid-template-columns: 110px minmax(0, 1fr);
-  gap: 12px;
-  align-items: start;
-}
-
-.coach-thinking {
-  padding: 0 14px;
-}
-
-.coach-thinking strong {
-  font-size: 14px;
-}
-
-.coach-thinking p {
+.coach-example code {
+  padding: 5px 9px;
   color: #1e293b;
-  font-size: 17px;
-  line-height: 1.75;
+  background: #e2e8f0;
+  border-radius: 4px;
+}
+
+.coach-example ol {
+  display: grid;
+  gap: 8px;
+  margin: 0 0 12px;
+  padding-left: 24px;
+}
+
+.coach-snippet {
+  margin-top: 18px;
+  padding: 18px 20px;
+  overflow: auto;
+  color: #dbeafe;
+  background: #101827;
+  border-radius: 8px;
+  font-size: 16px;
+  line-height: 1.7;
   white-space: pre-wrap;
 }
 
-.coach-next {
-  padding-top: 4px;
+.coach-note {
+  margin-top: 16px;
+  padding: 12px 14px;
+  background: #fffbeb;
+  border-left: 4px solid #f59e0b;
 }
 
-.coach-next h3 {
-  margin-bottom: 10px;
-  color: #334155;
-  font-size: 15px;
+.coach-checkpoint {
+  padding: 26px 30px 30px;
+  background: #fff;
+  border: 1px solid #dbe4f0;
+  border-top: 0;
+  border-radius: 0 0 8px 8px;
 }
 
-.coach-choices {
+.coach-checkpoint header span {
+  color: #4f46e5;
+  font-weight: 700;
+}
+
+.coach-checkpoint h3 {
+  margin: 6px 0 14px;
+  font-size: 20px;
+}
+
+.coach-check-choices {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 10px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
 }
 
-.tool-panel .coach-choice {
-  min-height: 58px;
+.tool-panel .coach-check-choices button {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
+  min-height: 62px;
   padding: 12px 14px;
-  color: #334155;
+  color: #26344a;
   background: #fff;
   border: 1px solid #cbd5e1;
   text-align: left;
 }
 
-.tool-panel .coach-choice:hover:not(:disabled) {
-  opacity: 1;
-  color: #3730a3;
-  background: #eef2ff;
-  border-color: #818cf8;
-}
-
-.coach-choice b {
+.coach-check-choices button b {
+  display: grid;
   width: 28px;
   height: 28px;
-  display: grid;
   place-items: center;
   flex: 0 0 auto;
   color: #4338ca;
@@ -1574,23 +1570,95 @@ body {
   border-radius: 50%;
 }
 
-.tool-panel .coach-continue {
-  width: auto;
-  min-width: 180px;
-  padding: 12px 20px;
-  background: #4f46e5;
+.tool-panel .coach-check-choices button.selected {
+  border-color: #818cf8;
+  box-shadow: inset 0 0 0 1px #818cf8;
+}
+
+.tool-panel .coach-check-choices button.correct {
+  color: #14532d;
+  background: #dcfce7;
+  border-color: #22c55e;
+}
+
+.tool-panel .coach-check-choices button.wrong {
+  color: #7f1d1d;
+  background: #fee2e2;
+  border-color: #ef4444;
+}
+
+.coach-check-result {
+  margin-top: 14px;
+  padding: 14px 16px;
+  color: #7f1d1d;
+  background: #fff;
+  border-left: 4px solid #ef4444;
+}
+
+.coach-check-result.success {
+  color: #14532d;
+  border-left-color: #22c55e;
+}
+
+.coach-check-result p {
+  margin-top: 5px;
+  color: #334155;
+  line-height: 1.7;
+}
+
+@media (max-width: 760px) {
+  .coach-article-toolbar {
+    align-items: flex-start;
+    padding: 13px 16px;
+  }
+
+  .coach-article-toolbar > div {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .coach-article-content {
+    padding: 22px 18px 34px;
+    font-size: 16px;
+  }
+
+  .coach-article-content h1 {
+    font-size: 25px;
+  }
+
+  .coach-article-content h2 {
+    font-size: 20px;
+  }
+
+  .coach-guide-hero {
+    padding: 22px 18px;
+  }
+
+  .coach-guide-hero h3 {
+    font-size: 23px;
+  }
+
+  .coach-guide-sections,
+  .coach-checkpoint {
+    padding-right: 18px;
+    padding-left: 18px;
+  }
+
+  .coach-guide-section {
+    grid-template-columns: 40px minmax(0, 1fr);
+    gap: 10px;
+  }
+
+  .coach-check-choices {
+    grid-template-columns: 1fr;
+  }
 }
 
 .edge-case-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 14px;
-}
-
-.debug-edge-output {
-  margin-top: 20px;
-  padding-top: 18px;
-  border-top: 2px solid #c7d2fe;
 }
 
 .debug-hint-action {
@@ -1610,12 +1678,6 @@ body {
 .debug-hint-action span {
   color: #64748b;
   font-size: 14px;
-}
-
-.debug-edge-output h3 {
-  margin-bottom: 14px;
-  color: #4f46e5;
-  font-size: 20px;
 }
 
 .edge-case-card {
@@ -2221,15 +2283,9 @@ body {
   .quick-card-grid,
   .edge-case-grid,
   .io-grid,
-  .quiz-options,
-  .coach-choices,
-  .coach-header {
+  .quiz-options {
     align-items: flex-start;
     flex-direction: column;
-  }
-
-  .coach-thinking {
-    grid-template-columns: 1fr;
   }
 
   .quiz-header {

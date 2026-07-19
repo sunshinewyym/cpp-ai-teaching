@@ -4,6 +4,7 @@ const { augmentWithKnowledge } = require('../services/knowledge');
 const { setupSSE, sendSSE, endSSE } = require('../utils/stream');
 const { verifyCpp } = require('../services/codeRunner');
 const { sanitizeChatContent } = require('./chatController');
+const { createDebugGuideStream } = require('../debug/guide');
 
 /**
  * POST /api/generate-example
@@ -185,61 +186,49 @@ ${String(problem).slice(0, 20000)}
   endSSE(res);
 }
 
-/**
- * POST /api/debug-code
- * Analyze and debug C++ code
- */
-async function handleDebugCodeLegacy(req, res) {
-  const { code, problem = '', errorMessage = '' } = req.body;
+async function streamDebugGuide(res, context) {
+  try {
+    const response = await createDebugGuideStream(context);
+    await new Promise((resolve) => {
+      let buffer = '';
+      let ended = false;
+      const finish = () => {
+        if (ended) return;
+        ended = true;
+        endSSE(res);
+        resolve();
+      };
 
-  if (!code) {
-    return res.status(400).json({ error: '请粘贴学生 C++ 代码。' });
+      response.data.on('data', (chunk) => {
+        buffer += chunk.toString();
+        const lines = buffer.split('\n');
+        buffer = lines.pop();
+        for (const line of lines) {
+          if (!line.startsWith('data: ')) continue;
+          const data = line.slice(6).trim();
+          if (data === '[DONE]') return finish();
+          try {
+            const content = JSON.parse(data).choices?.[0]?.delta?.content;
+            if (content) sendSSE(res, { content: content.replace(/\$/g, '') });
+          } catch {}
+        }
+      });
+      response.data.on('end', finish);
+      response.data.on('error', (error) => {
+        console.error('[Debug Guide Stream]', error.message);
+        sendSSE(res, { error: '调试讲义生成中断，请重新分析。' });
+        finish();
+      });
+    });
+  } catch (error) {
+    console.error('[Debug Guide Error]', error.message);
+    sendSSE(res, {
+      error: /timeout|ECONNABORTED/i.test(`${error.code || ''} ${error.message}`)
+        ? '连接 AI 超时，请重新分析。'
+        : 'AI 调试讲义暂时无法生成，请稍后重试。',
+    });
+    endSSE(res);
   }
-
-  const prompt = `你是一位 C++ 代码调试专家。请分析以下代码，引导学生定位并修改问题。
-
-## 学生代码
-\`\`\`cpp
-${code}
-\`\`\`
-
-${problem ? `## 题目要求\n${problem}\n` : ''}
-${errorMessage ? `## 错误信息\n${errorMessage}\n` : ''}
-
-## 分析要求
-1. **语法错误**：编译能否通过
-2. **逻辑错误**：算法是否正确
-3. **边界问题**：数组越界、溢出等
-4. **效率问题**：是否会出现 TLE
-5. **代码风格**：可读性建议
-
-## 输出格式
-### 🔍 问题诊断
-（列出所有发现的问题）
-
-### ✅ 修复方案
-（给出排查顺序和修改方向，不提供完整解题代码）
-
-### 💡 学习建议
-（给学生的改进建议）
-
-请分析：`;
-
-  await streamResponse(res, prompt, 0.4, 3000);
-}
-
-function buildNoRunnableSampleGuide(problem) {
-  const manualTrace = '先准备一个最小的手工过程：每进入一层时记录「当前层数」「准备尝试的选择」「已保存的状态」，每返回一层时再检查这些状态是否恢复。';
-
-  if (/\u516b\u7687\u540e|\u7687\u540e|\u68cb\u76d8/.test(problem)) {
-    return `### 无输入回溯题调试清单\n\n这道题没有可运行的样例输入，不能自动对拍。${manualTrace}\n\n请按下面顺序逐项核对：\n\n1. **递归终点**：放完第 8 个皇后后，是记录一个完整答案，还是又继续进入下一层？\n2. **冲突判断**：每次尝试新位置时，是否和所有已经放好的皇后都比较了行、列和两条对角线？\n3. **回溯还原**：一次尝试结束返回上一层后，棋盘或标记数组是否恢复到了尝试前的状态？\n4. **搜索范围**：每一层是否把本层所有可选位置都尝试过，而不是提前跳过或重复尝试？\n5. **输出检查**：答案编号、每行的空格、换行以及解的顺序是否与题目示例一致？\n\n建议先在纸上只跟踪前两层递归，不要一次观察整棵搜索树。这里不会直接给出错误位置或解题代码。`;
-  }
-
-  if (/\u9012\u5f52|\u56de\u6eaf|\u5168\u6392\u5217|\u7ec4\u5408/.test(problem)) {
-    return `### 无输入递归题调试清单\n\n这道题没有可运行的样例输入，不能自动对拍。${manualTrace}\n\n依次检查：递归终点是否恰好记录一次结果；每层的候选是否完整遍历；返回上一层时的数组、标记或计数器是否恢复；输出顺序和格式是否严格符合题意。\n\n这里不会直接给出错误位置或解题代码。`;
-  }
-
-  return `### 编译通过，但无法自动运行样例\n\n这道题没有提供可运行的样例输入，因此无法进行自动对拍。${manualTrace}\n\n请先用一组很小的数据或手算过程，逐步记录关键变量的变化；再检查循环或递归的起点、终点、每次变化以及输出格式是否符合题意。\n\n这里不会直接给出解题代码或错误位置。`;
 }
 
 async function handleDebugCode(req, res) {
@@ -266,21 +255,48 @@ async function handleDebugCode(req, res) {
       const runtime = failed.timedOut
         ? '程序运行超时。请手动跟踪循环或递归是否能停下来。'
         : (failed.runtimeError || '输出与期望输出不同。');
-      sendSSE(res, { content: `### 样例 ${failed.index} 未通过\n\n**样例输入：**\n\`\`\`text\n${failed.input}\n\`\`\`\n\n**期望输出：**\n\`\`\`text\n${failed.expectedOutput}\n\`\`\`\n\n**你的输出：**\n\`\`\`text\n${failed.actualOutput || '（没有输出）'}\n\`\`\`\n\n${runtime}\n\n请不要急着重写：先用这组数据逐步记录关键变量的变化，再检查输入、循环次数和输出格式是否与题意一致。\n\n可以按顺序自问：循环的起点、结束条件和每次变化是否都符合题意？每个等号是在保存新值，还是在进行条件判断？输出的时机和格式是否与样例一致？\n\n这里不会直接指出哪一行需要修改，也不会提供解题代码。` });
-      return endSSE(res);
+      sendSSE(res, { content: `## 本地验证结果\n\n### 样例 ${failed.index} 未通过\n\n**样例输入：**\n\`\`\`text\n${failed.input}\n\`\`\`\n\n**期望输出：**\n\`\`\`text\n${failed.expectedOutput}\n\`\`\`\n\n**你的输出：**\n\`\`\`text\n${failed.actualOutput || '（没有输出）'}\n\`\`\`\n\n${runtime}\n\n---\n\n` });
+      return streamDebugGuide(res, {
+        code,
+        problem,
+        verification: {
+          status: failed.timedOut ? 'sample_timeout' : 'sample_failed',
+          sample: {
+            index: failed.index,
+            input: failed.input,
+            expectedOutput: failed.expectedOutput,
+            actualOutput: failed.actualOutput,
+            runtimeError: failed.runtimeError,
+          },
+        },
+      });
     }
 
     if (!runnable.length) {
-      sendSSE(res, { content: buildNoRunnableSampleGuide(problem) });
-      return endSSE(res);
+      sendSSE(res, { content: '## 本地验证结果\n\n### 编译通过，但没有可运行样例\n\n题面没有提供可自动运行的样例输入。下面会直接结合题意和代码，用一组合法小数据整理调试路线。\n\n---\n\n' });
+      return streamDebugGuide(res, {
+        code,
+        problem,
+        verification: { status: 'no_runnable_samples' },
+      });
     }
 
     const skipped = verification.results.filter((item) => item.skipped).length;
-    sendSSE(res, {
-      content: `### 样例验证通过\n\n已通过 ${runnable.length} 个可运行样例，正在生成边界测试点继续验证。`,
-      nextAction: 'generate-edge-cases',
+    sendSSE(res, { content: `## 本地验证结果\n\n### 样例验证通过\n\n已通过 ${runnable.length} 个可运行样例${skipped ? `，另有 ${skipped} 个样例因缺少输入而跳过` : ''}。下面会直接比较题目要求和代码中的假设，继续整理调试路线。\n\n---\n\n` });
+    return streamDebugGuide(res, {
+      code,
+      problem,
+      verification: {
+        status: 'samples_passed',
+        runnableCount: runnable.length,
+        skippedCount: skipped,
+        samples: runnable.slice(0, 3).map((item) => ({
+          input: item.input,
+          expectedOutput: item.expectedOutput,
+          actualOutput: item.actualOutput,
+        })),
+      },
     });
-    endSSE(res);
   } catch (err) {
     console.error('[Debug Verify Error]', err.message);
     sendSSE(res, { error: '代码验证失败，请检查本机 C++ 编译环境后重试。' });
@@ -292,17 +308,17 @@ function sanitizeDebugHint(content) {
   const sanitized = sanitizeChatContent(String(content || ''));
   const looksLikeSolution = /#include|using\s+namespace|\bmain\s*\(|\b(?:void|int|long\s+long|auto)\s+\w+\s*\([^)]*\)\s*\{|\bcin\s*>>|\bcout\s*<</.test(sanitized);
   if (!looksLikeSolution) return sanitized;
-  return `### 进一步提示
+  return `### 更进一步
 
-这次回答包含了过多实现细节，已被系统拦截。请先锁定一个最小测试数据，逐步记录循环变量、数组下标和关键状态的变化，再检查它们第一次偏离预期的位置。`;
+这次生成的内容包含了可直接使用的完整实现，系统已经隐藏。请继续沿上一层调试路线，只追踪其中最可疑的变量或条件：把失败样例逐步代入，记录它每次变化后的值，找到它第一次与题意不一致的时刻。`;
 }
 
 async function handleDebugHint(req, res) {
-  const { code, problem = '', previousAdvice = '', edgeCases = [] } = req.body;
+  const { code, problem = '', previousAdvice = '' } = req.body;
   if (!code) return res.status(400).json({ error: '请先粘贴学生代码。' });
 
   setupSSE(res);
-  const prompt = `你是一位耐心但不会直接给答案的 C++ 竞赛调试老师。学生已经看过第一轮提示，但仍然无法定位问题。请给出比上一轮更具体的第二层提示。
+  const prompt = `你是一位经验丰富的 C++ 竞赛调试老师。学生已经看过一份基于当前题目和代码的调试路线，但仍然无法定位问题。请沿着上一层路线给出更具体的一层提示，不要重新从头检查。
 
 ## 题目
 ${problem || '未提供题目描述'}
@@ -312,20 +328,19 @@ ${problem || '未提供题目描述'}
 ${code.slice(0, 20000)}
 \`\`\`
 
-## 第一轮提示
+## 已有调试路线
 ${previousAdvice.slice(-6000) || '无'}
 
-## 已生成的边界测试点
-${JSON.stringify(Array.isArray(edgeCases) ? edgeCases.slice(0, 4) : []).slice(0, 5000)}
-
 ## 输出要求
-- 只根据题目、学生代码和已有提示分析，不要假设题目中没有出现的算法或数据结构。
-- 指出最值得追踪的变量、条件、循环或状态，以及为什么值得检查。
-- 给一个很小的手算数据，告诉学生每一步应该记录什么，不直接说出最终错误位置。
-- 可以给伪代码或关键定义语句，但代码块最多 8 行。
+- 只根据当前题目、学生代码和已有路线分析，不要假设题目中没有出现的算法或数据结构。
+- 从已有路线中选择一个最可疑的变量、条件、循环或状态继续深入，不要重复上一层内容。
+- 使用已有失败样例，或给一个合法小数据，连续手算 3～5 步，写清每一步的状态变化。
+- 必须点名学生代码中的具体变量或表达式，并说明学生应该观察到什么现象。
+- 不输出 C++ 代码块。需要引用变量或表达式时使用行内代码，只解释它应满足的关系，不写替换后的完整语句。
 - 绝不能给完整程序、完整函数、main、头文件、完整输入输出框架或可直接提交的解题代码。
 - 不要重写学生代码，不要直接给最终修改答案。
-- 使用中文，标题为“### 进一步提示”，内容简洁、具体、适合学生阅读。`;
+- 不生成边界测试点，不建议跳转到其他模块。
+- 使用中文，标题为“### 更进一步”，内容具体、适合学生阅读，约 500～800 个汉字。`;
 
   try {
     const content = await chat([{ role: 'user', content: prompt }], {

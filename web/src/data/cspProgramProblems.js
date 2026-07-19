@@ -2808,11 +2808,11 @@ export const cspProgramProblems = [
           "B": "错误"
         },
         "answers": [
-          "B"
+          "A"
         ],
         "multiple": false,
         "score": 1.5,
-        "explanation": "参考答案为 B（错误）。当 b 为负数时，递归会正常终止。"
+        "explanation": "参考答案为 A（正确）。当 b 为负数时，b 会不断减小，永远无法到达递归出口 b == 0。"
       },
       {
         "id": "2024-reading-3-3",
@@ -2823,11 +2823,11 @@ export const cspProgramProblems = [
           "B": "错误"
         },
         "answers": [
-          "B"
+          "A"
         ],
         "multiple": false,
         "score": 1.5,
-        "explanation": "参考答案为 B（错误）。程序运行时间与 b 的值不成正比关系。"
+        "explanation": "参考答案为 A（正确）。对非负 b，递归深度为 b + 1，时间复杂度为 O(b)。"
       },
       {
         "id": "2024-reading-3-4",

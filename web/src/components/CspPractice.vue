@@ -44,7 +44,7 @@
               <div class="options">
                 <button v-for="(text,key) in q.options" :key="key" :class="programClass(q,key)" :disabled="programSetSubmitted" @click="selectProgram(q,key)"><b>{{ key }}</b><span v-html="renderInline(text)"></span></button>
               </div>
-              <AnswerAnalysis v-if="programSetSubmitted" :correct="isCorrect(q)" :answer="q.answers.join('、')" :text="q.explanation" />
+              <AnswerAnalysis v-if="programSetSubmitted" :correct="isCorrect(q)" :answer="q.answers.join('、')" :text="programExplanation(q)" />
             </article>
             <section class="set-submit compact-submit">
               <div v-if="programSetSubmitted"><b>本题得分：{{ programScore }}/{{ programTotal }} 分</b><span>所有小题解析已展开。</span></div>
@@ -66,6 +66,8 @@ import { cspChoicePapers, cspYearSources } from '../data/cspChoicePapers';
 import { cspProgramProblems } from '../data/cspProgramProblems';
 import { csp2025ChoicePapers, csp2025ProgramProblems, csp2025YearSource } from '../data/csp2025';
 import { cspSChoicePapers, cspSProgramProblems, cspSYearSources } from '../data/cspS';
+import { buildLegacyChoiceExplanation, buildLegacyProgramExplanation } from '../data/cspLegacyAnalysis';
+import { buildSChoiceExplanation, buildSProgramExplanation } from '../data/cspSAnalysis';
 
 const YearTabs=defineComponent({props:{items:Array,value:String,showStatus:Boolean},emits:['change'],setup(props,{emit}){return()=>h('div',{class:'filters'},[h('b','选择年份'),...props.items.map(item=>h('button',{class:{on:props.value===item.year},onClick:()=>emit('change',item.year)},[item.year,props.showStatus&&item.status!=='已导入'?h('small','校对中'):null]))])}});
 const AnswerAnalysis=defineComponent({props:{correct:Boolean,answer:String,text:String},setup(props){return()=>h('div',{class:'analysis'},[h('strong',{class:props.correct?'good':'bad'},props.correct?'回答正确':`回答错误，正确答案是 ${props.answer}`),h('div',{class:'explanation-text',innerHTML:'<b>题目解析：</b>'+renderMd(props.text||'')})])}});
@@ -200,7 +202,10 @@ function applyCspS2025CompletionMarkers(value){
   const statement=replacements.reduce((text,[from,to])=>text.replace(from,to),value.statement);
   return {...value,statement};
 }
-const displayPaper=computed(()=>paper.value.map(item=>{if(level.value!=='S')return item;const correction=(year.value==='2024'?cspS2024ChoiceCorrections:item.year==='2023'?cspSChoiceCorrections[`${year.value}-${item.number}`]:null);return correction?{...item,...correction}:item}));
+const verifiedSChoiceText={
+  '2023-choice-14':'若 n=Σ(i=0..k)16^i·x_i，定义 f(n)=Σx_i。反复令 n=f(n)，直到得到不动点。问在 100₁₆ 到 1A0₁₆ 中，关于 f 的不动点为 9 的自然数有多少个？'
+};
+const displayPaper=computed(()=>paper.value.map(item=>verifiedSChoiceText[item.id]?{...item,question:verifiedSChoiceText[item.id]}:item));
 const problem=computed(()=>{const value=problems.value[index.value];if(!value)return value;return level.value==='S'&&year.value==='2025'&&type.value==='completion'?applyCspS2025CompletionMarkers(value):value});
 const typeLabel=computed(()=>type.value==='reading'?'阅读程序题':'完善程序题');
 const choiceSetKey=computed(()=>`choice-${year.value}`),choiceSetSubmitted=computed(()=>Boolean(submittedSets.value[choiceSetKey.value]));
@@ -280,7 +285,8 @@ function cleanPlainText(value){return cleanMathText(value).replace(/<\/?(?:sub|s
 function cleanMarkdown(value){return String(value||'').split('```').map((part,i)=>i%2?part:cleanMathText(part)).join('```')}
 function renderMd(value){return marked.parse(cleanMarkdown(value))} function renderInline(value){return marked.parseInline(cleanMathText(value))}
 function choiceClass(q,key){const answer=choiceAnswers.value[q.id];if(!choiceSetSubmitted.value)return{selected:answer===key};return{correct:key===q.answer,wrong:answer===key&&key!==q.answer}}
-function choiceExplanation(q){if(q.explanation&&q.explanation.length>50)return q.explanation;return `参考答案为 ${q.answer}（${cleanPlainText(q.options[q.answer])}）。请按题干的定义、计算顺序或程序执行过程逐项核对。`}
+function choiceExplanation(q){if(level.value==='S')return buildSChoiceExplanation(q);if(/^20(1[9]|2[0-4])-choice-/.test(q.id))return buildLegacyChoiceExplanation(q);if(q.explanation&&q.explanation.length>50)return q.explanation;return `参考答案为 ${q.answer}（${cleanPlainText(q.options[q.answer])}）。请按题干的定义、计算顺序或程序执行过程逐项核对。`}
+function programExplanation(q){if(level.value==='S'&&problem.value)return buildSProgramExplanation(q,problem.value);if(problem.value&&+problem.value.year>=2019&&+problem.value.year<=2024)return buildLegacyProgramExplanation(q,problem.value);return q.explanation}
 function selectProgram(q,key){const current=programAnswers.value[q.id]||[];if(q.multiple)programAnswers.value[q.id]=current.includes(key)?current.filter(x=>x!==key):[...current,key];else programAnswers.value[q.id]=[key]}
 function isCorrect(q){return [...(programAnswers.value[q.id]||[])].sort().join('')===[...q.answers].sort().join('')}
 function programClass(q,key){const picked=(programAnswers.value[q.id]||[]).includes(key);if(!programSetSubmitted.value)return{selected:picked};return{correct:q.answers.includes(key),wrong:picked&&!q.answers.includes(key)}}
