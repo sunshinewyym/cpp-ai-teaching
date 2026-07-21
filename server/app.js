@@ -9,6 +9,9 @@ const edgeCaseRouter = require('./routes/edgeCase');
 const teachingRouter = require('./routes/teaching');
 const newsRouter = require('./routes/news');
 const coachRouter = require('./routes/coach');
+const authRouter = require('./routes/auth');
+const practiceRouter = require('./routes/practice');
+const feedbackRouter = require('./routes/feedback');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -31,6 +34,9 @@ app.use('/api/edge-case', edgeCaseRouter);
 app.use('/api', teachingRouter);
 app.use('/api/news', newsRouter);
 app.use('/api/coach', coachRouter);
+app.use('/api/auth', authRouter);
+app.use('/api/practice', practiceRouter);
+app.use('/api/feedback', feedbackRouter);
 
 // Error handler
 app.use((err, req, res, next) => {

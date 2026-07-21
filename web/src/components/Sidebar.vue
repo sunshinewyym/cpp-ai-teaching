@@ -17,20 +17,33 @@
       </button>
     </nav>
 
-    <div class="sidebar-footer">
+    <div class="sidebar-footer" v-if="isLoggedIn">
+      <div class="user-info">
+        <div class="user-name-wrap">
+          <span class="user-name">{{ currentUser?.name }}</span>
+          <span class="user-username">@{{ currentUser?.username }}</span>
+        </div>
+        <span class="user-role">{{ isTeacher ? '老师' : '学生' }}</span>
+      </div>
+      <button class="logout-btn" @click="$emit('logout')">退出登录</button>
+    </div>
+    <div class="sidebar-footer" v-else>
       <div class="version">v1.0.0</div>
     </div>
   </div>
 </template>
 
 <script setup>
-defineProps({
+import { computed } from 'vue';
+import { isTeacher, isLoggedIn, isAdmin, currentUser } from '../utils/auth';
+
+const props = defineProps({
   activeTool: String,
 });
 
-defineEmits(['select-tool']);
+defineEmits(['select-tool', 'logout']);
 
-const tools = [
+const baseTools = [
   { id: 'chat', icon: '💬', label: 'AI 对话' },
   { id: 'syntax-visualizer', icon: '🧩', label: '语法可视化' },
   { id: 'opener', icon: '⚡', label: '算法速懂卡' },
@@ -40,6 +53,30 @@ const tools = [
   { id: 'edge-case', icon: '🧨', label: '边界盲盒' },
   { id: 'teaching', icon: '🧑‍🏫', label: '教学工具' },
 ];
+
+const tools = computed(() => {
+  const list = [];
+  for (const t of baseTools) {
+    list.push(t);
+    // 老师账号下，把「课后反馈」排在「教学工具」正下方（与其他菜单项对齐）
+    if (t.id === 'teaching' && isLoggedIn.value && isTeacher.value) {
+      list.push({ id: 'class-feedback', icon: '📝', label: '课后反馈' });
+    }
+  }
+  if (isLoggedIn.value) {
+    if (isTeacher.value) {
+      list.push({ id: 'teacher-dashboard', icon: '📋', label: '学生记录' });
+      list.push({ id: 'student-manage', icon: '👥', label: '学生管理' });
+      if (isAdmin.value) {
+        list.push({ id: 'teacher-manage', icon: '🧑‍🏫', label: '教师管理' });
+      }
+    } else {
+      list.push({ id: 'my-records', icon: '📊', label: '我的记录' });
+      list.push({ id: 'wrong-questions', icon: '📕', label: '错题集' });
+    }
+  }
+  return list;
+});
 </script>
 
 <style scoped>
@@ -116,5 +153,59 @@ const tools = [
   font-size: 11px;
   color: #94a3b8;
   text-align: center;
+}
+
+.user-info {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.user-name-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+
+.user-username {
+  font-size: 11px;
+  color: #94a3b8;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.user-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: #1e293b;
+}
+
+.user-role {
+  font-size: 11px;
+  padding: 2px 8px;
+  background: #eef2ff;
+  color: #4f46e5;
+  border-radius: 10px;
+}
+
+.logout-btn {
+  width: 100%;
+  padding: 7px;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  background: #fff;
+  color: #64748b;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.logout-btn:hover {
+  background: #fee2e2;
+  color: #dc2626;
+  border-color: #fca5a5;
 }
 </style>

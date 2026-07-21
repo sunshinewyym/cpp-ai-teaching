@@ -1,8 +1,10 @@
 <template>
-  <div class="app-container">
+  <LoginPanel v-if="!isLoggedIn" @login-success="onLoginSuccess" />
+  <div v-else class="app-container">
     <Sidebar
       :activeTool="activeTool"
       @select-tool="switchTool"
+      @logout="handleLogout"
     />
     <div class="main-content">
       <header class="app-header">
@@ -90,6 +92,18 @@
       <SyntaxVisualizer v-else-if="activeTool === 'syntax-visualizer'" />
 
       <CspPractice v-else-if="activeTool === 'csp-practice'" />
+
+      <MyRecords v-else-if="activeTool === 'my-records'" />
+
+      <WrongQuestions v-else-if="activeTool === 'wrong-questions'" />
+
+      <TeacherDashboard v-else-if="activeTool === 'teacher-dashboard'" />
+
+      <StudentManage v-else-if="activeTool === 'student-manage'" />
+
+      <TeacherManage v-else-if="activeTool === 'teacher-manage'" />
+
+      <ClassFeedback v-else-if="activeTool === 'class-feedback'" />
 
       <!-- Edge case mode -->
       <div v-else-if="activeTool === 'edge-case'" class="tool-panel">
@@ -308,7 +322,15 @@ import SyntaxVisualizer from './components/SyntaxVisualizer.vue';
 import CspPractice from './components/CspPractice.vue';
 import ProblemList from './components/ProblemList.vue';
 import PromptButtons from './components/PromptButtons.vue';
+import LoginPanel from './components/LoginPanel.vue';
+import MyRecords from './components/MyRecords.vue';
+import WrongQuestions from './components/WrongQuestions.vue';
+import TeacherDashboard from './components/TeacherDashboard.vue';
+import StudentManage from './components/StudentManage.vue';
+import TeacherManage from './components/TeacherManage.vue';
+import ClassFeedback from './components/ClassFeedback.vue';
 import { streamPost } from './utils/api';
+import { isLoggedIn, isTeacher, clearAuth } from './utils/auth';
 
 const markdownRenderer = new marked.Renderer();
 markdownRenderer.code = (code, infoString) => {
@@ -405,6 +427,15 @@ function switchTool(tool) {
   hintInputsCollapsed.value = false;
   coachMarkdown.value = '';
   coachError.value = '';
+}
+
+function onLoginSuccess() {
+  activeTool.value = 'chat';
+}
+
+function handleLogout() {
+  clearAuth();
+  activeTool.value = 'chat';
 }
 
 const algorithmCardSections = computed(() => {

@@ -68,11 +68,13 @@ import { csp2025ChoicePapers, csp2025ProgramProblems, csp2025YearSource } from '
 import { cspSChoicePapers, cspSProgramProblems, cspSYearSources } from '../data/cspS';
 import { buildLegacyChoiceExplanation, buildLegacyProgramExplanation } from '../data/cspLegacyAnalysis';
 import { buildSChoiceExplanation, buildSProgramExplanation } from '../data/cspSAnalysis';
+import { isLoggedIn, authFetch } from '../utils/auth';
 
 const YearTabs=defineComponent({props:{items:Array,value:String,showStatus:Boolean},emits:['change'],setup(props,{emit}){return()=>h('div',{class:'filters'},[h('b','选择年份'),...props.items.map(item=>h('button',{class:{on:props.value===item.year},onClick:()=>emit('change',item.year)},[item.year,props.showStatus&&item.status!=='已导入'?h('small','校对中'):null]))])}});
 const AnswerAnalysis=defineComponent({props:{correct:Boolean,answer:String,text:String},setup(props){return()=>h('div',{class:'analysis'},[h('strong',{class:props.correct?'good':'bad'},props.correct?'回答正确':`回答错误，正确答案是 ${props.answer}`),h('div',{class:'explanation-text',innerHTML:'<b>题目解析：</b>'+renderMd(props.text||'')})])}});
 const types=[{id:'choice',label:'选择题'},{id:'reading',label:'阅读程序题'},{id:'completion',label:'完善程序题'}];
 const level=ref('J'),type=ref('choice'),year=ref('2025'),index=ref(0),choiceAnswers=ref({}),programAnswers=ref({}),submittedSets=ref({});
+const practiceStartTime=ref(Date.now());
 const allChoicePapers={...cspChoicePapers,...csp2025ChoicePapers},allYearSources={...cspYearSources,...csp2025YearSource},allProgramProblems=[...cspProgramProblems,...csp2025ProgramProblems],allSProgramProblems=cspSProgramProblems||[];
 const choiceYears=computed(()=>Object.entries(allYearSources).map(([itemYear,source])=>({year:String(itemYear),...source})).sort((a,b)=>+b.year-+a.year));
 const sChoiceYears=computed(()=>Object.entries(cspSYearSources).map(([itemYear,source])=>({year:String(itemYear),...source})).sort((a,b)=>+b.year-+a.year));
@@ -290,10 +292,28 @@ function programExplanation(q){if(level.value==='S'&&problem.value)return buildS
 function selectProgram(q,key){const current=programAnswers.value[q.id]||[];if(q.multiple)programAnswers.value[q.id]=current.includes(key)?current.filter(x=>x!==key):[...current,key];else programAnswers.value[q.id]=[key]}
 function isCorrect(q){return [...(programAnswers.value[q.id]||[])].sort().join('')===[...q.answers].sort().join('')}
 function programClass(q,key){const picked=(programAnswers.value[q.id]||[]).includes(key);if(!programSetSubmitted.value)return{selected:picked};return{correct:q.answers.includes(key),wrong:picked&&!q.answers.includes(key)}}
-function submitChoiceSet(){if(answered.value===paper.value.length)submittedSets.value={...submittedSets.value,[choiceSetKey.value]:true}}
-function submitProgramSet(){if(programReady.value)submittedSets.value={...submittedSets.value,[problem.value.id]:true}}
-function resetChoiceSet(){const next={...choiceAnswers.value};paper.value.forEach(q=>delete next[q.id]);choiceAnswers.value=next;submittedSets.value={...submittedSets.value,[choiceSetKey.value]:false}}
-function resetProgramSet(){const next={...programAnswers.value};problem.value.questions.forEach(q=>delete next[q.id]);programAnswers.value=next;submittedSets.value={...submittedSets.value,[problem.value.id]:false}}
+function submitChoiceSet(){
+  if(answered.value!==paper.value.length)return;
+  submittedSets.value={...submittedSets.value,[choiceSetKey.value]:true};
+  saveRecord('choice',choiceScore.value,choiceTotal.value,paper.value.map(q=>({id:q.id,number:q.number,user_answer:choiceAnswers.value[q.id]||'',correct_answer:q.answer,correct:choiceAnswers.value[q.id]===q.answer,score:choiceAnswers.value[q.id]===q.answer?2:0})));
+}
+function submitProgramSet(){
+  if(!programReady.value)return;
+  submittedSets.value={...submittedSets.value,[problem.value.id]:true};
+  const p=problem.value;
+  saveRecord(type.value,programScore.value,programTotal.value,p.questions.map(q=>({id:q.id,number:q.number,user_answer:(programAnswers.value[q.id]||[]).join(','),correct_answer:q.answers.join(','),correct:isCorrect(q),score:isCorrect(q)?Number(q.score||0):0})));
+}
+function resetChoiceSet(){const next={...choiceAnswers.value};paper.value.forEach(q=>delete next[q.id]);choiceAnswers.value=next;submittedSets.value={...submittedSets.value,[choiceSetKey.value]:false};practiceStartTime.value=Date.now()}
+
+async function saveRecord(questionType,totalScore,maxScore,questions){
+  if(!isLoggedIn.value)return;
+  const duration=Math.round((Date.now()-practiceStartTime.value)/1000);
+  practiceStartTime.value=Date.now();
+  try{
+    await authFetch('/api/practice/submit',{method:'POST',body:JSON.stringify({level:'CSP-'+level.value,year:Number(year.value),question_type:questionType,total_score:totalScore,max_score:maxScore,answers:{questions},duration_seconds:duration})});
+  }catch(e){console.warn('保存练习记录失败:',e.message)}
+}
+function resetProgramSet(){const next={...programAnswers.value};problem.value.questions.forEach(q=>delete next[q.id]);programAnswers.value=next;submittedSets.value={...submittedSets.value,[problem.value.id]:false};practiceStartTime.value=Date.now()}
 </script>
 
 <style scoped>
