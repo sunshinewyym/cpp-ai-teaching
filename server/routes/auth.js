@@ -58,7 +58,16 @@ router.post('/teachers', auth, requireAdmin, (req, res) => {
 
 // 获取老师列表
 router.get('/teachers', auth, requireAdmin, (req, res) => {
-  const teachers = db.prepare('SELECT id, username, name, created_at FROM users WHERE role = ? ORDER BY created_at').all('teacher');
+  const teachers = db.prepare(`
+    SELECT u.id, u.username, u.name, u.created_at,
+      CASE WHEN tc.active = 1 THEN 1 ELSE 0 END AS has_training_course,
+      CASE WHEN tc.active = 1 THEN tc.variant ELSE NULL END AS training_variant,
+      CASE WHEN tc.active = 1 THEN tc.title ELSE NULL END AS training_title
+    FROM users u
+    LEFT JOIN training_courses tc ON tc.teacher_id = u.id
+    WHERE u.role = ?
+    ORDER BY u.created_at
+  `).all('teacher');
   res.json(teachers);
 });
 

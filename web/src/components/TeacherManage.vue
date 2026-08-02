@@ -8,19 +8,43 @@
     <div v-if="message" class="msg" :class="msgType">{{ message }}</div>
 
     <table class="students-table">
-      <thead><tr><th>用户名</th><th>姓名</th><th>创建时间</th><th>操作</th></tr></thead>
+      <thead><tr><th>用户名</th><th>姓名</th><th>创建时间</th><th>集训课程</th><th>账号操作</th></tr></thead>
       <tbody>
         <tr v-for="t in teachers" :key="t.id">
           <td>{{ t.username }}</td>
           <td><b>{{ t.name }}</b><span v-if="t.username === 'admin'" class="admin-tag">管理员</span></td>
           <td>{{ formatTime(t.created_at) }}</td>
+          <td>
+            <span v-if="t.username === 'admin'" class="muted">负责分配</span>
+            <div v-else class="course-action">
+              <span class="course-status" :class="{ assigned: t.has_training_course }">
+                {{ t.has_training_course ? `已分配 · ${variantLabel(t.training_variant)}` : '未分配' }}
+              </span>
+              <select v-model="variantDraft[t.id]" :disabled="courseBusy[t.id]" aria-label="集训课程版本">
+                <option value="advanced">高阶组</option>
+                <option value="progress">进阶组</option>
+              </select>
+              <button
+                :disabled="courseBusy[t.id]"
+                @click="assignTrainingCourse(t)"
+              >{{ courseBusy[t.id] ? '处理中…' : (t.has_training_course
+                ? (variantDraft[t.id] === (t.training_variant || 'advanced') ? '更新模板' : '切换版本')
+                : '分配课程') }}</button>
+              <button
+                v-if="t.has_training_course"
+                class="danger"
+                :disabled="courseBusy[t.id]"
+                @click="removeTrainingCourse(t)"
+              >取消分配</button>
+            </div>
+          </td>
           <td class="actions" v-if="t.username !== 'admin'">
             <button @click="resetPwd(t)">重置密码</button>
             <button class="danger" @click="removeTeacher(t)">删除</button>
           </td>
           <td v-else class="actions"><span class="muted">-</span></td>
         </tr>
-        <tr v-if="!teachers.length"><td colspan="4" class="empty-cell">暂无老师账号</td></tr>
+        <tr v-if="!teachers.length"><td colspan="5" class="empty-cell">暂无老师账号</td></tr>
       </tbody>
     </table>
 
@@ -48,6 +72,12 @@ const showAdd = ref(false);
 const message = ref('');
 const msgType = ref('ok');
 const form = ref({ username: '', password: '', name: '' });
+const courseBusy = ref({});
+const variantDraft = ref({});
+
+function variantLabel(value) {
+  return value === 'progress' ? '进阶组' : '高阶组';
+}
 
 function formatTime(t) { return t ? t.replace('T', ' ').slice(0, 16) : ''; }
 function showMsg(text, type = 'ok') { message.value = text; msgType.value = type; setTimeout(() => message.value = '', 4000); }
@@ -55,7 +85,13 @@ function showMsg(text, type = 'ok') { message.value = text; msgType.value = type
 async function loadTeachers() {
   try {
     const resp = await authFetch('/api/auth/teachers');
-    teachers.value = await resp.json();
+    const data = await resp.json();
+    teachers.value = Array.isArray(data) ? data : [];
+    const next = { ...variantDraft.value };
+    teachers.value.forEach(item => {
+      next[item.id] = item.training_variant || next[item.id] || 'advanced';
+    });
+    variantDraft.value = next;
   } catch (e) { teachers.value = []; }
 }
 
@@ -80,6 +116,53 @@ async function resetPwd(t) {
     await authFetch(`/api/auth/teachers/${t.id}/reset-password`, { method: 'POST', body: JSON.stringify({}) });
     showMsg(`${t.name} 密码已重置为 123456`);
   } catch (e) { showMsg(e.message, 'err'); }
+}
+
+async function assignTrainingCourse(t) {
+  const selectedVariant = variantDraft.value[t.id] || t.training_variant || 'advanced';
+  const sameVariant = Boolean(t.has_training_course)
+    && selectedVariant === (t.training_variant || 'advanced');
+  const actionText = t.has_training_course ? (sameVariant ? '更新模板' : '切换版本') : '分配';
+  const versionText = variantLabel(selectedVariant);
+  const warning = sameVariant
+    ? '会重新应用最新模板；已作答题目会保留，未作答的自定义题目会被模板替换。'
+    : '';
+  if (!confirm(`确定${actionText} ${t.name} 的${versionText}集训课程？${warning}`)) return;
+  courseBusy.value = { ...courseBusy.value, [t.id]: true };
+  try {
+    const resp = await authFetch(`/api/training-courses/assign/${t.id}`, {
+      method: 'POST',
+      body: JSON.stringify({ variant: selectedVariant }),
+    });
+    const data = await resp.json();
+    if (!resp.ok) throw new Error(data.error || `${actionText}失败`);
+    showMsg(data.message);
+    await loadTeachers();
+  } catch (e) {
+    showMsg(e.message, 'err');
+  } finally {
+    const next = { ...courseBusy.value };
+    delete next[t.id];
+    courseBusy.value = next;
+  }
+}
+
+async function removeTrainingCourse(t) {
+  if (!confirm(`确定取消分配 ${t.name} 的集训课程吗？教师修改的内容会保留。`)) return;
+  courseBusy.value = { ...courseBusy.value, [t.id]: true };
+  try {
+    const resp = await authFetch(`/api/training-courses/assign/${t.id}`, { method: 'DELETE' });
+    const data = await resp.json();
+    if (!resp.ok) throw new Error(data.error || '取消分配失败');
+    showMsg(data.message);
+    await loadTeachers();
+  } catch (e) {
+    showMsg(e.message, 'err');
+  } finally {
+    const next = { ...courseBusy.value };
+    delete next[t.id];
+    courseBusy.value = next;
+  }
 }
 
 async function removeTeacher(t) {
@@ -114,6 +197,14 @@ onMounted(loadTeachers);
 .actions button:hover { background: #f1f5f9; }
 .actions button.danger { color: #dc2626; border-color: #fca5a5; }
 .actions button.danger:hover { background: #fee2e2; }
+.course-action { display: flex; align-items: center; gap: 9px; }
+.course-action select { min-width: 82px; padding: 5px 7px; border: 1px solid #cbd5e1; border-radius: 6px; background: #fff; color: #334155; font-size: 12px; }
+.course-action select:disabled { opacity: .55; }
+.course-action button { padding: 6px 11px; border: 1px solid #c7d2fe; border-radius: 6px; background: #eef2ff; color: #4338ca; cursor: pointer; }
+.course-action button.danger { border-color: #fca5a5; background: #fff; color: #dc2626; }
+.course-action button:disabled { opacity: .55; cursor: not-allowed; }
+.course-status { min-width: 48px; color: #94a3b8; font-size: 12px; }
+.course-status.assigned { color: #15803d; font-weight: 700; }
 .modal-mask { position: fixed; inset: 0; background: rgba(0,0,0,0.4); display: flex; align-items: center; justify-content: center; z-index: 100; }
 .modal { width: 400px; padding: 28px; background: #fff; border-radius: 14px; box-shadow: 0 20px 60px rgba(0,0,0,0.2); }
 .modal h3 { margin: 0 0 18px; color: #1e293b; }

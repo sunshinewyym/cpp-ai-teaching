@@ -130,6 +130,16 @@ if [ -z "$CURRENT_KEY" ] || echo "$CURRENT_KEY" | grep -Eq '^sk-x+$'; then
 else
     log_info "server/.env 已配置，保留现有模型密钥。"
 fi
+
+if grep -q '^CODE_RUNNER_MODE=' server/.env; then
+    sed -i 's|^CODE_RUNNER_MODE=.*|CODE_RUNNER_MODE=runner|' server/.env
+else
+    printf '\nCODE_RUNNER_MODE=runner\n' >> server/.env
+fi
+if ! grep -q '^RUNNER_SOCKET_PATH=' server/.env; then
+    printf 'RUNNER_SOCKET_PATH=/run/cpp-runner/runner.sock\n' >> server/.env
+fi
+log_info "生产代码执行模式已设置为 runner 隔离容器。"
 chmod 600 server/.env
 
 PUBLIC_IP=$(curl -fsS --connect-timeout 5 https://ifconfig.me 2>/dev/null || true)
@@ -157,17 +167,24 @@ log_step "5/7 构建并启动容器"
 compose config --quiet
 compose up -d --build
 
-log_info "等待后端健康检查，最长 90 秒。"
+log_info "等待代码执行 runner 和后端健康检查，最长 90 秒。"
+RUNNER_HEALTH=unknown
 SERVER_HEALTH=unknown
 for _ in $(seq 1 18); do
+    RUNNER_HEALTH=$(docker inspect --format='{{.State.Health.Status}}' ppt-ai-runner 2>/dev/null || echo unknown)
     SERVER_HEALTH=$(docker inspect --format='{{.State.Health.Status}}' ppt-ai-server 2>/dev/null || echo unknown)
-    if [ "$SERVER_HEALTH" = healthy ]; then
+    if [ "$RUNNER_HEALTH" = healthy ] && [ "$SERVER_HEALTH" = healthy ]; then
         break
     fi
     sleep 5
 done
 
 compose ps
+if [ "$RUNNER_HEALTH" != healthy ]; then
+    log_error "代码执行 runner 健康检查失败，最近日志如下："
+    compose logs --tail=80 runner
+    exit 1
+fi
 if [ "$SERVER_HEALTH" != healthy ]; then
     log_error "后端健康检查失败，最近日志如下："
     compose logs --tail=80 server
@@ -179,7 +196,7 @@ if echo "$API_HEALTH" | grep -q '"status":"ok"'; then
     log_info "API 健康检查通过。"
 else
     log_error "Nginx 无法访问 API，请执行 Compose 日志命令排查。"
-    compose logs --tail=80 web server
+    compose logs --tail=80 web server runner
     exit 1
 fi
 

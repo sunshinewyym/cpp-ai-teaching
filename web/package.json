@@ -8,6 +8,8 @@
     "build": "vite build",
     "preview": "vite preview",
     "test:problem-index": "node scripts/verify-problem-index.mjs",
+    "test:gesp-practice": "node scripts/verify-gesp-practice.mjs",
+    "test:training-course": "node scripts/verify-training-course.mjs",
     "test:syntax-visualizer": "node scripts/verify-syntax-visualizer.mjs"
   },
   "dependencies": {

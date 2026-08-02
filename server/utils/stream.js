@@ -10,12 +10,21 @@ function setupSSE(res) {
 }
 
 function sendSSE(res, data) {
-  res.write(`data: ${JSON.stringify(data)}\n\n`);
+  if (res.writableEnded || res.destroyed) return false;
+  try {
+    res.write(`data: ${JSON.stringify(data)}\n\n`);
+    return true;
+  } catch {
+    return false;
+  }
 }
 
 function endSSE(res) {
-  res.write('data: [DONE]\n\n');
-  res.end();
+  if (res.writableEnded || res.destroyed) return;
+  try {
+    res.write('data: [DONE]\n\n');
+    res.end();
+  } catch {}
 }
 
 module.exports = { setupSSE, sendSSE, endSSE };

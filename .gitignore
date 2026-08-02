@@ -6,6 +6,7 @@ web/node_modules/
 # Build output
 dist/
 web/dist/
+exports/gesp-visual-audit/
 
 # Environment & secrets
 .env
@@ -16,6 +17,8 @@ ssl/
 # Logs
 *.log
 logs/
+server/data/*.db-shm
+server/data/*.db-wal
 
 # OS
 .DS_Store

@@ -8,6 +8,9 @@ logs
 .DS_Store
 .env
 server/.env
+server/data
+server/*.log
+server/*.err.log
 docker/docker-compose*.yml
 office-addin
 dist

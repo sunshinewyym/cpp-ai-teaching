@@ -30,7 +30,7 @@
         <YearTabs :items="level === 'S' ? sProgramYears : programYears" :value="year" @change="selectYear" />
         <header class="problem-nav">
           <div><b>{{ year }} 年{{ typeLabel }}</b><span>共 {{ problems.length }} 道大题，每次练习一题</span></div>
-          <div class="problem-buttons"><button v-for="(item,i) in problems" :key="item.id" :class="{ on:index===i }" @click="index=i">第 {{ item.number }} 题</button></div>
+          <div class="problem-buttons"><button v-for="(item,i) in problems" :key="item.id" :class="{ on:index===i }" @click="selectProblem(i)">第 {{ item.number }} 题</button></div>
         </header>
 
         <article v-if="problem" class="original-problem">
@@ -53,7 +53,7 @@
               <button v-else class="secondary" @click="resetProgramSet">重新作答</button>
             </section>
           </section>
-          <footer><button @click="index--" :disabled="index===0">上一题</button><strong>第 {{ index+1 }}/{{ problems.length }} 题</strong><button @click="index++" :disabled="index===problems.length-1">下一题</button></footer>
+          <footer><button @click="selectProblem(index-1)" :disabled="index===0">上一题</button><strong>第 {{ index+1 }}/{{ problems.length }} 题</strong><button @click="selectProblem(index+1)" :disabled="index===problems.length-1">下一题</button></footer>
         </article>
       </section>
   </main>
@@ -61,7 +61,6 @@
 
 <script setup>
 import { computed, defineComponent, h, ref } from 'vue';
-import { marked } from 'marked';
 import { cspChoicePapers, cspYearSources } from '../data/cspChoicePapers';
 import { cspProgramProblems } from '../data/cspProgramProblems';
 import { csp2025ChoicePapers, csp2025ProgramProblems, csp2025YearSource } from '../data/csp2025';
@@ -69,6 +68,13 @@ import { cspSChoicePapers, cspSProgramProblems, cspSYearSources } from '../data/
 import { buildLegacyChoiceExplanation, buildLegacyProgramExplanation } from '../data/cspLegacyAnalysis';
 import { buildSChoiceExplanation, buildSProgramExplanation } from '../data/cspSAnalysis';
 import { isLoggedIn, authFetch } from '../utils/auth';
+import {
+  cleanCspText as cleanText,
+  cleanCspMathText as cleanMathText,
+  cleanCspPlainText as cleanPlainText,
+  renderCspMarkdown as renderMd,
+  renderCspInline as renderInline,
+} from '../utils/cspMarkdown';
 
 const YearTabs=defineComponent({props:{items:Array,value:String,showStatus:Boolean},emits:['change'],setup(props,{emit}){return()=>h('div',{class:'filters'},[h('b','选择年份'),...props.items.map(item=>h('button',{class:{on:props.value===item.year},onClick:()=>emit('change',item.year)},[item.year,props.showStatus&&item.status!=='已导入'?h('small','校对中'):null]))])}});
 const AnswerAnalysis=defineComponent({props:{correct:Boolean,answer:String,text:String},setup(props){return()=>h('div',{class:'analysis'},[h('strong',{class:props.correct?'good':'bad'},props.correct?'回答正确':`回答错误，正确答案是 ${props.answer}`),h('div',{class:'explanation-text',innerHTML:'<b>题目解析：</b>'+renderMd(props.text||'')})])}});
@@ -216,76 +222,10 @@ const programAnswered=computed(()=>problem.value?problem.value.questions.filter(
 const programReady=computed(()=>Boolean(problem.value&&programAnswered.value===problem.value.questions.length));
 const programTotal=computed(()=>problem.value?problem.value.questions.reduce((sum,q)=>sum+Number(q.score||0),0):0);
 const programScore=computed(()=>problem.value?problem.value.questions.reduce((sum,q)=>sum+(isCorrect(q)?Number(q.score||0):0),0):0);
-function switchLevel(value){level.value=value;type.value='choice';year.value=value==='S'?'2025':'2025';index.value=0;choiceAnswers.value={};programAnswers.value={};submittedSets.value={}}
-function setType(value){type.value=value;year.value=level.value==='S'?(value==='choice'?'2025':'2025'):'2025';index.value=0} function selectYear(value){year.value=value;index.value=0}
-function cleanText(value){return cleanMathText(stripPdfNoise(String(value||''))).trim()}
-function stripPdfNoise(text){
-  return String(text||'')
-    .replace(/CCF\s+CSP-[JS]\s*\d{4}[^\n]*第\s*\d+\s*页[，,]\s*共\s*\d+\s*页/gi,'')
-    .replace(/CCF\s+CSP-[JS]\s*\d{4}[^\n]*/gi,'')
-    .replace(/第\s*\d+\s*页[，,]\s*共\s*\d+\s*页/g,'')
-}
-function cleanMathText(value){
-  let text=String(value||'')
-    .replace(/\\texttt\s*\{([^{}]*)\}/g,'`$1`')
-    .replace(/\\text\s*\{([^{}]*)\}/g,'$1')
-    .replace(/\\mathrm\s*\{([^{}]*)\}/g,'$1')
-    .replace(/\\leqslant/g,'≤').replace(/\\geqslant/g,'≥')
-    .replace(/\\leq/g,'≤').replace(/\\geq/g,'≥')
-    .replace(/\\times/g,'×').replace(/\\cdot/g,'·').replace(/\\sum/g,'∑')
-    .replace(/\\in/g,'∈').replace(/\\cdots/g,'⋯').replace(/\\dots/g,'…')
-    .replace(/\\sim/g,'∼').replace(/\\to/g,'→').replace(/\\rightarrow/g,'→').replace(/⁡/g,'')
-    .replace(/\\\{/g,'{').replace(/\\\}/g,'}')
-  const code=[]
-  text=text.replace(/`([^`\n]*)`/g,(_,content)=>{const token=`@@CSPCODE${code.length}@@`;code.push(content);return token})
-  text=normalizeExtractedText(text).replace(/\$/g,'').replace(/（\s*[)）]/g,'（ ）').replace(/\(\s*[)）]/g,'（ ）')
-    .replace(/\\frac\s*\{([^{}]+)\}\s*\{([^{}]+)\}/g,'<span class="math-fraction"><span>$1</span><span>$2</span></span>')
-    .replace(/\\sqrt\s*\{([^{}]+)\}/g,'<span class="math-radical">√<span>$1</span></span>')
-    .replace(/\\sqrt\s+([A-Za-z0-9]+)/g,'<span class="math-radical">√<span>$1</span></span>')
-    .replace(/\\log/g,'log').replace(/\\Theta/g,'Θ').replace(/\\alpha/g,'α').replace(/\\left\\lfloor/g,'⌊').replace(/\\lfloor/g,'⌊').replace(/\\left\\rfloor/g,'⌋').replace(/\\rfloor/g,'⌋').replace(/\\cdot/g,'·').replace(/\\times/g,'×').replace(/\\neq/g,'≠')
-    .replace(/([A-Za-z0-9)\]])_\{([^{}]+)\}/g,'$1<sub>$2</sub>')
-    .replace(/([0-9A-Z])_([0-9]+)/g,'$1<sub>$2</sub>')
-    .replace(/([A-Za-z0-9)\]])\^\{([^{}]+)\}/g,'$1<sup>$2</sup>')
-    .replace(/([A-Za-z0-9)\]])\^\(([^()]+)\)/g,'$1<sup>$2</sup>')
-    .replace(/([A-Za-z0-9)\]])\^([A-Za-z0-9]+)/g,'$1<sup>$2</sup>')
-  return text.replace(/@@CSPCODE(\d+)@@/g,(_,index)=>`\`${code[Number(index)]}\``)
-}
-function normalizeRepeatedExtractedUnit(value){
-  const text=String(value||'');
-  if(text.length%3===0){const unit=text.slice(0,text.length/3);if(unit.repeat(3)===text)return unit}
-  return text
-}
-function collapseRepeatedChunkRuns(text){
-  return text;
-}
-function normalizeDelimitedRun(value,delimiter=','){
-  const parts=String(value||'').split(delimiter).map(item=>item.trim());
-  for(let size=1;size<=Math.floor(parts.length/3);size++){
-    if(parts.length%size===0){
-      const unit=parts.slice(0,size);
-      if(unit.join(delimiter).repeat(parts.length/size)===parts.join(delimiter))return unit.join(', ')
-    }
-  }
-  return value
-}
-function normalizeExtractedText(value){
-  let text=String(value||'');
-  text=text.replace(/(?:\d+\s*,\s*){4,}\d+/g,token=>normalizeDelimitedRun(token));
-  text=collapseRepeatedChunkRuns(text);
-  text=text.replace(/\b([A-Za-z]\([^()\n]{1,16}\))\1{2,}\b/g,'$1');
-  text=text.replace(/\bf\(f\(x\)\)=10f\(f\(x\)\)=10f\(f\(x\)\)=10/g,'f(f(x))=10');
-  text=text.replace(/\\d?frac\s*\{([^{}]+)\}\s*\{([^{}]+)\}/g,'<span class="math-fraction"><span>$1</span><span>$2</span></span>');
-  const complexityRepeat=/(?:O|Θ|\\Theta)\([^()\n]*\)(?:\s*)(?:O|Θ|\\Theta)\([^()\n]*\)(?:\s*)(?:O|Θ|\\Theta)\([^()\n]*\)/g;
-  text=text.replace(complexityRepeat,token=>{
-    const parts=token.match(/(?:O|Θ|\\Theta)\([^()\n]*\)/g)||[];
-    return parts.sort((x,y)=>(y.includes('\\')?1:0)-(x.includes('\\')?1:0)||y.length-x.length)[0]||token;
-  });
-  text=text.replace(/([A-Za-z]\s*=\s*(?:Θ|\\Theta)\([^()\n]*\))(?:\s*)\1(?:\s*)\1/g,'$1');
-  return text;
-}
-function cleanPlainText(value){return cleanMathText(value).replace(/<\/?(?:sub|sup)>/g,'')}
-function cleanMarkdown(value){return String(value||'').split('```').map((part,i)=>i%2?part:cleanMathText(part)).join('```')}
-function renderMd(value){return marked.parse(cleanMarkdown(value))} function renderInline(value){return marked.parseInline(cleanMathText(value))}
+function restartTimer(){practiceStartTime.value=Date.now()}
+function switchLevel(value){level.value=value;type.value='choice';year.value=value==='S'?'2025':'2025';index.value=0;choiceAnswers.value={};programAnswers.value={};submittedSets.value={};restartTimer()}
+function setType(value){type.value=value;year.value=level.value==='S'?(value==='choice'?'2025':'2025'):'2025';index.value=0;restartTimer()} function selectYear(value){year.value=value;index.value=0;restartTimer()}
+function selectProblem(value){index.value=value;restartTimer()}
 function choiceClass(q,key){const answer=choiceAnswers.value[q.id];if(!choiceSetSubmitted.value)return{selected:answer===key};return{correct:key===q.answer,wrong:answer===key&&key!==q.answer}}
 function choiceExplanation(q){if(level.value==='S')return buildSChoiceExplanation(q);if(/^20(1[9]|2[0-4])-choice-/.test(q.id))return buildLegacyChoiceExplanation(q);if(q.explanation&&q.explanation.length>50)return q.explanation;return `参考答案为 ${q.answer}（${cleanPlainText(q.options[q.answer])}）。请按题干的定义、计算顺序或程序执行过程逐项核对。`}
 function programExplanation(q){if(level.value==='S'&&problem.value)return buildSProgramExplanation(q,problem.value);if(problem.value&&+problem.value.year>=2019&&+problem.value.year<=2024)return buildLegacyProgramExplanation(q,problem.value);return q.explanation}

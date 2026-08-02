@@ -41,6 +41,67 @@ db.exec(`
 `);
 
 db.exec(`
+  CREATE TABLE IF NOT EXISTS training_courses (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    teacher_id INTEGER NOT NULL UNIQUE REFERENCES users(id) ON DELETE CASCADE,
+    title TEXT NOT NULL,
+    content_json TEXT NOT NULL,
+    variant TEXT NOT NULL DEFAULT 'advanced',
+    active INTEGER NOT NULL DEFAULT 1,
+    assigned_by INTEGER REFERENCES users(id),
+    assigned_at TEXT DEFAULT (datetime('now','localtime')),
+    updated_at TEXT DEFAULT (datetime('now','localtime'))
+  )
+`);
+
+db.exec(`
+  CREATE TABLE IF NOT EXISTS training_day_assignments (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    course_id INTEGER NOT NULL REFERENCES training_courses(id) ON DELETE CASCADE,
+    teacher_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    day_number INTEGER NOT NULL,
+    student_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    assigned_at TEXT DEFAULT (datetime('now','localtime')),
+    UNIQUE(course_id, day_number, student_id)
+  )
+`);
+
+db.exec(`
+  CREATE TABLE IF NOT EXISTS training_question_submissions (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    assignment_id INTEGER NOT NULL REFERENCES training_day_assignments(id) ON DELETE CASCADE,
+    question_id TEXT NOT NULL,
+    answers_json TEXT NOT NULL,
+    score REAL NOT NULL,
+    max_score REAL NOT NULL,
+    duration_seconds INTEGER,
+    submitted_at TEXT DEFAULT (datetime('now','localtime')),
+    UNIQUE(assignment_id, question_id)
+  )
+`);
+
+db.exec(`
+  CREATE TABLE IF NOT EXISTS training_question_attempts (
+    assignment_id INTEGER NOT NULL REFERENCES training_day_assignments(id) ON DELETE CASCADE,
+    question_id TEXT NOT NULL,
+    started_at TEXT DEFAULT (datetime('now','localtime')),
+    PRIMARY KEY (assignment_id, question_id)
+  )
+`);
+
+db.exec(`
+  CREATE TABLE IF NOT EXISTS training_question_releases (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    course_id INTEGER NOT NULL REFERENCES training_courses(id) ON DELETE CASCADE,
+    day_number INTEGER NOT NULL,
+    question_id TEXT NOT NULL,
+    released_by INTEGER NOT NULL REFERENCES users(id),
+    released_at TEXT DEFAULT (datetime('now','localtime')),
+    UNIQUE(course_id, day_number, question_id)
+  )
+`);
+
+db.exec(`
   CREATE TABLE IF NOT EXISTS feedback_records (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     teacher_id INTEGER NOT NULL REFERENCES users(id),
@@ -70,6 +131,18 @@ if (!colNames.includes('feedback_style')) {
   console.log('[DB] 迁移: 添加 feedback_style 字段');
 }
 
+const submissionColumns = db.prepare("PRAGMA table_info(training_question_submissions)").all();
+if (!submissionColumns.some(column => column.name === 'duration_seconds')) {
+  db.exec('ALTER TABLE training_question_submissions ADD COLUMN duration_seconds INTEGER');
+  console.log('[DB] 迁移: 添加集训题答题用时字段');
+}
+
+const trainingCourseColumns = db.prepare("PRAGMA table_info(training_courses)").all();
+if (!trainingCourseColumns.some(column => column.name === 'variant')) {
+  db.exec("ALTER TABLE training_courses ADD COLUMN variant TEXT NOT NULL DEFAULT 'advanced'");
+  console.log('[DB] 迁移: 添加集训课程 variant 字段');
+}
+
 // 确保 admin 账号拥有管理员权限（兼容旧数据）
 db.exec("UPDATE users SET is_admin = 1 WHERE username = 'admin' AND role = 'teacher' AND is_admin = 0");
 
@@ -78,6 +151,11 @@ db.exec('CREATE INDEX IF NOT EXISTS idx_records_created ON practice_records(crea
 db.exec('CREATE INDEX IF NOT EXISTS idx_users_created_by ON users(created_by)');
 db.exec('CREATE INDEX IF NOT EXISTS idx_feedback_student ON feedback_records(student_id)');
 db.exec('CREATE INDEX IF NOT EXISTS idx_feedback_teacher ON feedback_records(teacher_id)');
+db.exec('CREATE INDEX IF NOT EXISTS idx_training_courses_active ON training_courses(active)');
+db.exec('CREATE INDEX IF NOT EXISTS idx_training_assignments_student ON training_day_assignments(student_id)');
+db.exec('CREATE INDEX IF NOT EXISTS idx_training_assignments_course_day ON training_day_assignments(course_id, day_number)');
+db.exec('CREATE INDEX IF NOT EXISTS idx_training_submissions_assignment ON training_question_submissions(assignment_id)');
+db.exec('CREATE INDEX IF NOT EXISTS idx_training_releases_course_day ON training_question_releases(course_id, day_number)');
 
 // 如果没有老师账号，创建默认 admin
 const bcrypt = require('bcryptjs');

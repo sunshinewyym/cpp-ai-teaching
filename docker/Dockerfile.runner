@@ -1,0 +1,19 @@
+FROM node:24-alpine
+
+RUN apk add --no-cache g++
+
+WORKDIR /runner
+COPY server/package*.json ./
+RUN npm install --omit=dev
+
+COPY server/ ./server/
+RUN addgroup -S runner && adduser -S runner -G runner \
+  && mkdir -p /run/cpp-runner /tmp/cpp-runner \
+  && chown -R runner:runner /run/cpp-runner /tmp/cpp-runner /runner
+
+USER runner
+ENV NODE_ENV=production \
+    RUNNER_SOCKET_PATH=/run/cpp-runner/runner.sock \
+    TMPDIR=/tmp/cpp-runner
+
+CMD ["node", "server/runner/app.js"]

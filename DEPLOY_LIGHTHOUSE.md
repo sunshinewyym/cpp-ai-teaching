@@ -8,4 +8,4 @@ Lighthouse 部署说明已统一维护在 [DEPLOY.md](DEPLOY.md)。
 - 一键部署和手动 Docker Compose 部署；
 - 域名、HTTPS 和证书自动续期；
 - 更新、回滚、备份和常见故障排查；
-- Judge0 CE 的生产安全边界。
+- 代码 runner 容器的生产安全边界。

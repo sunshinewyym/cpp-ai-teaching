@@ -2,6 +2,7 @@ const express = require('express');
 const db = require('../db');
 const { auth, requireTeacher } = require('../middleware/auth');
 const { chatStream } = require('../services/deepseek');
+const { isLeaderboardDurationValid } = require('../leaderboardRules');
 
 const router = express.Router();
 
@@ -12,10 +13,19 @@ router.post('/submit', auth, (req, res) => {
     return res.status(400).json({ error: '缺少必要字段' });
   }
   const answersJson = JSON.stringify(answers);
+  const parsedDuration = Number(duration_seconds);
+  const duration = Number.isFinite(parsedDuration) && parsedDuration >= 0
+    ? Math.round(parsedDuration)
+    : 0;
+  const itemCount = Array.isArray(answers?.questions) ? answers.questions.length : 0;
   const result = db.prepare(
     'INSERT INTO practice_records (user_id, level, year, question_type, total_score, max_score, answers_json, duration_seconds) VALUES (?, ?, ?, ?, ?, ?, ?, ?)'
-  ).run(req.user.id, level, year, question_type, total_score, max_score, answersJson, duration_seconds || null);
-  res.json({ id: Number(result.lastInsertRowid), message: '记录已保存' });
+  ).run(req.user.id, level, year, question_type, total_score, max_score, answersJson, duration);
+  res.json({
+    id: Number(result.lastInsertRowid),
+    message: '记录已保存',
+    leaderboardEligible: isLeaderboardDurationValid(question_type, itemCount, duration),
+  });
 });
 
 // 学生查看自己的历史记录
@@ -119,9 +129,9 @@ router.post('/analyze', auth, async (req, res) => {
 
   const questions = data.answers.questions;
   const wrongQuestions = questions.filter(q => !q.correct);
-  const typeLabel = { choice: '选择题', reading: '阅读程序题', completion: '完善程序题' }[data.question_type] || data.question_type;
+  const typeLabel = { choice: '选择题', judgment: '判断题', reading: '阅读程序题', completion: '完善程序题' }[data.question_type] || data.question_type;
 
-  const prompt = `你是一位经验丰富的 C++ 信息学竞赛教练。请根据以下学生的 CSP 练习答题情况，给出简洁的分析和建议。
+  const prompt = `你是一位经验丰富的 C++ 信息学竞赛教练。请根据以下学生的练习答题情况，给出简洁的分析和建议。
 
 练习信息：
 - 级别：${data.level}

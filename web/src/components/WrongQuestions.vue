@@ -1,7 +1,7 @@
 <template>
   <main class="wrong-page">
     <header class="page-head">
-      <div><h2>📕 选择题错题集</h2><p>自动收集你做错的选择题，支持回顾和重做。</p></div>
+      <div><h2>📕 客观题错题集</h2><p>自动收集你做错的选择题和判断题，支持回顾和重做。</p></div>
       <div class="mode-switch">
         <button :class="{ on: mode === 'review' }" @click="mode = 'review'">回顾错题</button>
         <button :class="{ on: mode === 'redo' }" @click="mode = 'redo'">重做练习</button>
@@ -9,7 +9,7 @@
     </header>
 
     <div class="filters">
-      <select v-model="filterLevel"><option value="">全部级别</option><option value="CSP-J">CSP-J</option><option value="CSP-S">CSP-S</option></select>
+      <select v-model="filterLevel"><option value="">全部级别</option><option value="CSP-J">CSP-J</option><option value="CSP-S">CSP-S</option><option value="GESP-2">GESP C++ 二级</option><option value="GESP-3">GESP C++ 三级</option><option value="GESP-4">GESP C++ 四级</option><option value="GESP-5">GESP C++ 五级</option><option value="GESP-6">GESP C++ 六级</option><option value="GESP-7">GESP C++ 七级</option><option value="GESP-8">GESP C++ 八级</option></select>
       <select v-model="filterYear"><option value="">全部年份</option><option v-for="y in availableYears" :key="y" :value="y">{{ y }} 年</option></select>
       <span class="count">共 {{ filtered.length }} 道错题</span>
     </div>
@@ -17,7 +17,7 @@
     <div v-if="loading" class="empty">加载中……</div>
     <div v-else-if="!filtered.length" class="empty">
       <b>{{ hasAny ? '当前筛选条件下没有错题' : '太棒了，还没有错题！' }}</b>
-      <span>做完选择题提交后，错题会自动收集到这里。</span>
+      <span>做完选择题或判断题提交后，错题会自动收集到这里。</span>
     </div>
 
     <template v-else>
@@ -28,8 +28,8 @@
 
       <article v-for="item in filtered" :key="item.qid" class="card">
         <header class="card-head">
-          <span class="tag" :class="item.level === 'CSP-J' ? 'j' : 's'">{{ item.level }}</span>
-          <b>{{ item.year }} 年 第 {{ item.number }} 题</b>
+          <span class="tag" :class="levelClass(item.level)">{{ levelLabel(item.level) }}</span>
+          <b>{{ item.session || `${item.year} 年` }} · {{ typeLabel(item.questionType) }}第 {{ item.number }} 题</b>
           <span class="wrong-time">做错于 {{ formatTime(item.wrongAt) }}</span>
         </header>
         <div class="question" v-html="renderMd(item.question.question)"></div>
@@ -62,14 +62,16 @@
 </template>
 
 <script setup>
+const labels = ['\u4e00', '\u4e8c', '\u4e09', '\u56db', '\u4e94', '\u516d', '\u4e03', '\u516b'];
 import { ref, computed, onMounted, watch } from 'vue';
-import { marked } from 'marked';
 import { cspChoicePapers } from '../data/cspChoicePapers';
 import { csp2025ChoicePapers } from '../data/csp2025';
 import { cspSChoicePapers } from '../data/cspS';
+import { findGespQuestion } from '../data/gespPapers';
 import { buildLegacyChoiceExplanation } from '../data/cspLegacyAnalysis';
 import { buildSChoiceExplanation } from '../data/cspSAnalysis';
 import { authFetch } from '../utils/auth';
+import { renderCspInline, renderCspMarkdown } from '../utils/cspMarkdown';
 
 const allChoicePapers = { ...cspChoicePapers, ...csp2025ChoicePapers };
 
@@ -80,11 +82,11 @@ const filterYear = ref('');
 const wrongList = ref([]);
 const redoAnswers = ref({});
 
-// 从练习记录中提取选择题错题，按题目 id 去重（保留最近一次）
+// 从练习记录中提取客观题错题，按题目 id 去重（保留最近一次）
 function extractWrongQuestions(records) {
   const map = new Map();
   for (const r of records) {
-    if (r.question_type !== 'choice') continue;
+    if (!['choice', 'judgment'].includes(r.question_type)) continue;
     for (const q of (r.answers?.questions || [])) {
       if (q.correct) continue;
       const qid = `${r.level}-${r.year}-${q.id}`;
@@ -94,6 +96,8 @@ function extractWrongQuestions(records) {
           qid,
           level: r.level,
           year: r.year,
+          session: r.answers?.session || '',
+          questionType: r.question_type,
           id: q.id,
           number: q.number,
           user_answer: q.user_answer,
@@ -109,6 +113,10 @@ function extractWrongQuestions(records) {
 // 匹配题目完整内容
 function attachQuestionContent(items) {
   return items.map(item => {
+    if (item.level.startsWith('GESP-')) {
+      const found = findGespQuestion(item.id);
+      return found ? { ...item, question: found.question } : null;
+    }
     const paper = item.level === 'CSP-S'
       ? (cspSChoicePapers[String(item.year)] || [])
       : (allChoicePapers[String(item.year)] || []);
@@ -131,12 +139,16 @@ const availableYears = computed(() => [...new Set(wrongList.value.map(i => i.yea
 const redoAnswered = computed(() => Object.keys(redoAnswers.value).length);
 const redoCorrect = computed(() => filtered.value.filter(i => redoAnswers.value[i.qid] === i.correct_answer).length);
 
-function renderMd(text) { return marked.parse(String(text || '')); }
-function renderInline(text) { return marked.parseInline(String(text || '')); }
+function renderMd(text) { return renderCspMarkdown(text); }
+function renderInline(text) { return renderCspInline(text); }
+function typeLabel(value) { return value === 'judgment' ? '判断题' : '选择题'; }
+function levelClass(value) { return value === 'CSP-J' ? 'j' : value === 'CSP-S' ? 's' : 'gesp'; }
+function levelLabel(value) { const match = /^GESP-([1-8])$/.exec(value); return match ? `GESP C++ ${labels[Number(match[1]) - 1]}级` : value; }
 function formatTime(t) { return t ? t.replace('T', ' ').slice(0, 16) : ''; }
 
 function explanation(item) {
   const q = item.question;
+  if (item.level.startsWith('GESP-')) return q.explanation;
   if (item.level === 'CSP-S') return buildSChoiceExplanation(q);
   if (/^20(1[9]|2[0-4])-choice-/.test(q.id)) return buildLegacyChoiceExplanation(q);
   if (q.explanation && q.explanation.length > 50) return q.explanation;
@@ -195,6 +207,7 @@ onMounted(loadWrongQuestions);
 .tag { padding: 3px 8px; border-radius: 4px; font-size: 12px; font-weight: 700; }
 .tag.j { background: #dbeafe; color: #1d4ed8; }
 .tag.s { background: #fce7f3; color: #be185d; }
+.tag.gesp { background: #fef3c7; color: #92400e; }
 .question { line-height: 1.7; margin-bottom: 16px; font-size: 15px; }
 .question :deep(p) { margin: 0 0 8px; }
 .question :deep(pre) { margin: 10px 0 0; padding: 14px 16px; border-radius: 6px; background: #0d1117; overflow: auto; }

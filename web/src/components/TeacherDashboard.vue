@@ -5,8 +5,8 @@
       <div class="filters">
         <select v-model="filterStudent"><option value="">全部学生</option><option v-for="s in studentList" :key="s.id" :value="s.id">{{ s.name }}（{{ s.username }}）</option></select>
         <select v-model="filterClass"><option value="">全部班级</option><option v-for="c in classes" :key="c" :value="c">{{ c }}</option></select>
-        <select v-model="filterLevel"><option value="">全部级别</option><option value="CSP-J">CSP-J</option><option value="CSP-S">CSP-S</option></select>
-        <select v-model="filterType"><option value="">全部题型</option><option value="choice">选择题</option><option value="reading">阅读程序</option><option value="completion">完善程序</option></select>
+        <select v-model="filterLevel"><option value="">全部级别</option><option value="CSP-J">CSP-J</option><option value="CSP-S">CSP-S</option><option value="GESP-2">GESP C++ 二级</option><option value="GESP-3">GESP C++ 三级</option><option value="GESP-4">GESP C++ 四级</option><option value="GESP-5">GESP C++ 五级</option><option value="GESP-6">GESP C++ 六级</option><option value="GESP-7">GESP C++ 七级</option><option value="GESP-8">GESP C++ 八级</option></select>
+        <select v-model="filterType"><option value="">全部题型</option><option value="choice">选择题</option><option value="judgment">判断题</option><option value="reading">阅读程序</option><option value="completion">完善程序</option></select>
       </div>
     </header>
 
@@ -21,7 +21,7 @@
     <div v-if="loading" class="loading">加载中……</div>
     <div v-else class="table-wrap">
       <table class="records-table">
-        <thead><tr><th></th><th>学生</th><th>班级</th><th>时间</th><th>级别</th><th>年份</th><th>题型</th><th>得分</th><th>得分率</th></tr></thead>
+        <thead><tr><th></th><th>学生</th><th>班级</th><th>时间</th><th>级别</th><th>考期</th><th>题型</th><th>得分</th><th>得分率</th></tr></thead>
         <tbody>
           <template v-for="r in filteredRecords" :key="r.id">
             <tr class="record-row" @click="toggle(r.id)">
@@ -29,8 +29,8 @@
               <td><b>{{ r.student_name }}</b></td>
               <td>{{ r.class_name || '-' }}</td>
               <td>{{ formatTime(r.created_at) }}</td>
-              <td><span class="tag" :class="r.level === 'CSP-J' ? 'j' : 's'">{{ r.level }}</span></td>
-              <td>{{ r.year }}</td>
+              <td><span class="tag" :class="levelClass(r.level)">{{ levelLabel(r.level) }}</span></td>
+              <td>{{ recordSession(r) }}</td>
               <td>{{ typeLabel(r.question_type) }}</td>
               <td><b>{{ r.total_score }}/{{ r.max_score }}</b></td>
               <td><span :class="rateClass(r)">{{ rate(r) }}%</span></td>
@@ -50,8 +50,8 @@
                     <tbody>
                       <tr v-for="q in (r.answers?.questions || [])" :key="q.id" :class="q.correct ? 'row-correct' : 'row-wrong'">
                         <td>第 {{ q.number || q.id }} 题</td>
-                        <td>{{ q.user_answer || '未作答' }}</td>
-                        <td>{{ q.correct_answer }}</td>
+                        <td>{{ q.user_answer_label || q.user_answer || '未作答' }}</td>
+                        <td>{{ q.correct_answer_label || q.correct_answer }}</td>
                         <td>{{ q.correct ? '✓' : '✗' }}</td>
                         <td>{{ q.score }} 分</td>
                       </tr>
@@ -69,6 +69,7 @@
 </template>
 
 <script setup>
+const labels = ['\u4e00', '\u4e8c', '\u4e09', '\u56db', '\u4e94', '\u516d', '\u4e03', '\u516b'];
 import { ref, computed, onMounted, watch } from 'vue';
 import { marked } from 'marked';
 import { authFetch, authHeaders } from '../utils/auth';
@@ -129,7 +130,10 @@ async function analyzeRecord(r) {
 }
 function rate(r) { return Math.round(r.total_score / r.max_score * 100); }
 function rateClass(r) { const v = rate(r); return v >= 80 ? 'good' : v >= 60 ? 'mid' : 'low'; }
-function typeLabel(t) { return { choice: '选择题', reading: '阅读程序', completion: '完善程序' }[t] || t; }
+function typeLabel(t) { return { choice: '选择题', judgment: '判断题', reading: '阅读程序', completion: '完善程序' }[t] || t; }
+function levelClass(value) { return value === 'CSP-J' ? 'j' : value === 'CSP-S' ? 's' : 'gesp'; }
+function levelLabel(value) { const match = /^GESP-([1-8])$/.exec(value); return match ? `GESP C++ ${labels[Number(match[1]) - 1]}级` : value; }
+function recordSession(record) { return record.answers?.session || String(record.year); }
 function formatTime(t) { return t ? t.replace('T', ' ').slice(0, 16) : ''; }
 function formatDuration(s) { const m = Math.floor(s / 60); return m > 0 ? `${m}分${s % 60}秒` : `${s}秒`; }
 
@@ -191,6 +195,7 @@ onMounted(() => { loadStats(); loadRecords(); loadStudents(); });
 .tag { padding: 3px 8px; border-radius: 4px; font-size: 12px; font-weight: 700; }
 .tag.j { background: #dbeafe; color: #1d4ed8; }
 .tag.s { background: #fce7f3; color: #be185d; }
+.tag.gesp { background: #fef3c7; color: #92400e; }
 .good { color: #16a34a; font-weight: 700; }
 .mid { color: #d97706; font-weight: 700; }
 .low { color: #dc2626; font-weight: 700; }

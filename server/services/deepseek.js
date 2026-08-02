@@ -23,10 +23,28 @@ function buildChatCompletionsUrl(baseUrl) {
 
 const CHAT_COMPLETIONS_URL = buildChatCompletionsUrl(BASE_URL);
 
+function readCompletion(data, fallbackModel) {
+  const choice = data?.choices?.[0] || {};
+  const message = choice.message || {};
+  const content = typeof message.content === 'string' ? message.content : '';
+  const reasoningContent = typeof message.reasoning_content === 'string'
+    ? message.reasoning_content
+    : '';
+
+  return {
+    content,
+    finishReason: choice.finish_reason || null,
+    model: data?.model || fallbackModel,
+    usage: data?.usage || null,
+    reasoningContentLength: reasoningContent.length,
+  };
+}
+
 /**
- * Non-streaming chat completion
+ * Non-streaming chat completion with response metadata.
+ * Keep reasoning content out of the returned value: it is not a student-facing answer.
  */
-async function chat(messages, options = {}) {
+async function chatWithMeta(messages, options = {}) {
   const resp = await axios.post(
     CHAT_COMPLETIONS_URL,
     {
@@ -34,6 +52,7 @@ async function chat(messages, options = {}) {
       messages: applyCopyStyle(messages),
       temperature: options.temperature ?? 0.7,
       max_tokens: options.max_tokens ?? 2048,
+      ...(options.thinking ? { thinking: options.thinking } : {}),
       ...(options.response_format ? { response_format: options.response_format } : {}),
     },
     {
@@ -44,9 +63,18 @@ async function chat(messages, options = {}) {
       timeout: options.timeout ?? 60000,
       responseType: 'json',
       responseEncoding: 'utf-8',
+      signal: options.signal,
     }
   );
-  return resp.data.choices[0].message.content;
+  return readCompletion(resp.data, options.model || MODEL);
+}
+
+/**
+ * Non-streaming chat completion
+ */
+async function chat(messages, options = {}) {
+  const result = await chatWithMeta(messages, options);
+  return result.content;
 }
 
 /**
@@ -61,6 +89,7 @@ async function chatStream(messages, options = {}) {
       temperature: options.temperature ?? 0.7,
       max_tokens: options.max_tokens ?? 2048,
       stream: true,
+      ...(options.thinking ? { thinking: options.thinking } : {}),
     },
     {
       headers: {
@@ -70,9 +99,10 @@ async function chatStream(messages, options = {}) {
       responseType: 'stream',
       responseEncoding: 'utf-8',
       timeout: options.timeout ?? 60000,
+      signal: options.signal,
     }
   );
   return resp;
 }
 
-module.exports = { chat, chatStream, buildChatCompletionsUrl };
+module.exports = { chat, chatWithMeta, chatStream, buildChatCompletionsUrl };

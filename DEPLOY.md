@@ -14,9 +14,11 @@
      -> /api 反向代理到 server:3000
   -> Express server 容器
      -> DeepSeek 或其他 OpenAI 兼容模型接口
+     -> Unix socket 调用 runner 容器
+        -> 无网络、非 root 的 g++ 执行环境
 ```
 
-只有 `80` 和 `443` 对公网开放。不要开放 `3000`、`5174`、`5175`，后续接入 Judge0 时也不要开放 `2358`。
+只有 `80` 和 `443` 对公网开放。不要开放 `3000`、`5174`、`5175` 或 runner 端口。
 
 ## 2. 准备 Lighthouse 实例
 
@@ -96,7 +98,7 @@ bash deploy.sh
 - 创建低内存实例所需的 Swap；
 - 创建 `server/.env` 并读取 DeepSeek API Key；
 - 配置公网 IP 或域名；
-- 构建、启动并检查两个容器；
+- 构建、启动并检查 web、server、runner 三个容器；
 - 可选申请 Let's Encrypt 证书。
 
 部署完成后访问：
@@ -157,6 +159,8 @@ DEEPSEEK_API_KEY=你的真实密钥
 DEEPSEEK_BASE_URL=https://api.deepseek.com
 DEEPSEEK_MODEL=deepseek-chat
 PORT=3000
+CODE_RUNNER_MODE=runner
+RUNNER_SOCKET_PATH=/run/cpp-runner/runner.sock
 ```
 
 算法教练相关默认配置可以直接使用：
@@ -374,30 +378,26 @@ tar czf "/root/cpp-ai-teaching-$(date +%Y%m%d-%H%M).tar.gz" \
 
 算法教练 v1.0 的会话保存在 Node.js 进程内，容器重启后会清空。需要长期保存学习记录时，再接入 Redis 或数据库。
 
-## 11. 代码调试与 Judge0
+## 11. 代码调试 runner
 
-当前生产镜像不会在业务容器中直接运行学生代码，也没有安装 `g++`。因此公网部署后，代码调试模块的本地编译能力不可用，这是安全限制，不是部署故障。
+生产 Compose 会额外启动 `ppt-ai-runner`。业务后端不在 server 容器中直接编译学生代码，而是通过共享 Unix socket 把任务交给 runner。runner 具备以下限制：
 
-正式开放代码调试前，应部署自建 Judge0 CE，并满足：
+- 无网络连接，学生程序不能访问公网；
+- 非 root 用户运行；
+- 容器丢弃 Linux capabilities，并启用 `no-new-privileges`；
+- Compose 限制 CPU、内存、进程数和临时目录；
+- 单次编译、运行、输出、样例数均有上限；
+- 浏览器断开或超时后会终止整个进程树。
 
-- Judge0、PostgreSQL 和 Redis 只加入 Docker 内网；
-- 不向 Lighthouse 公网防火墙开放 `2358`；
-- 业务后端通过内部地址调用 Judge0；
-- 设置时间、内存、输出和并发限制；
-- 保留“不给完整解题代码”的教学守卫。
+开发机不启动 runner 时，可以将 `CODE_RUNNER_MODE` 改为 `local`，但只建议在受控课堂环境使用。生产环境不要把 runner 的 socket 或任何调试接口映射到公网。
 
-建议环境变量：
+部署后检查：
 
-```env
-CODE_RUNNER=judge0
-JUDGE0_URL=http://judge0:2358
-JUDGE0_AUTH_TOKEN=替换为内部令牌
-JUDGE0_CPP_LANGUAGE_ID=54
-JUDGE0_TIME_LIMIT=2
-JUDGE0_MEMORY_LIMIT=128000
+```bash
+docker compose --env-file .env -f docker/docker-compose.yml ps
+docker compose --env-file .env -f docker/docker-compose.yml logs --tail 100 runner
+docker compose --env-file .env -f docker/docker-compose.yml logs --tail 100 server
 ```
-
-业务后端尚未接入 Judge0 客户端前，不要单独启动 Judge0 对公网提供服务。
 
 ## 12. 常见问题
 

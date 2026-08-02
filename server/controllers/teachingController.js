@@ -1,10 +1,37 @@
-const { chat } = require('../services/deepseek');
+const { StringDecoder } = require('node:string_decoder');
+const { randomUUID } = require('node:crypto');
+const { chat, chatWithMeta } = require('../services/deepseek');
 const { routePrompt } = require('../services/promptRouter');
 const { augmentWithKnowledge } = require('../services/knowledge');
 const { setupSSE, sendSSE, endSSE } = require('../utils/stream');
 const { verifyCpp } = require('../services/codeRunner');
 const { sanitizeChatContent } = require('./chatController');
-const { createDebugGuideStream } = require('../debug/guide');
+const { createDebugGuideStream, buildDebugMessages } = require('../debug/guide');
+
+const DEBUG_AI_TOTAL_TIMEOUT_MS = Number(process.env.DEBUG_AI_TOTAL_TIMEOUT_MS || 60000);
+const DEBUG_AI_IDLE_TIMEOUT_MS = Number(process.env.DEBUG_AI_IDLE_TIMEOUT_MS || 20000);
+
+function createRequestAbortSignal(req, res) {
+  const controller = new AbortController();
+  let cleaned = false;
+  const abort = () => {
+    if (!res.writableEnded) controller.abort();
+  };
+  const cleanup = () => {
+    if (cleaned) return;
+    cleaned = true;
+    req.off('aborted', abort);
+    res.off('close', abort);
+    res.off('finish', cleanup);
+  };
+  req.once('aborted', abort);
+  res.once('close', abort);
+  res.once('finish', cleanup);
+  return {
+    signal: controller.signal,
+    cleanup,
+  };
+}
 
 /**
  * POST /api/generate-example
@@ -186,48 +213,253 @@ ${String(problem).slice(0, 20000)}
   endSSE(res);
 }
 
-async function streamDebugGuide(res, context) {
-  try {
-    const response = await createDebugGuideStream(context);
-    await new Promise((resolve) => {
-      let buffer = '';
-      let ended = false;
-      const finish = () => {
-        if (ended) return;
-        ended = true;
-        endSSE(res);
-        resolve();
-      };
+async function streamDebugGuide(res, context, req = null) {
+  req = req || res.req || null;
+  const requestId = randomUUID();
+  const startedAt = Date.now();
+  let upstream;
+  let ended = false;
+  let idleTimer;
+  let totalTimer;
+  let heartbeat;
+  let buffer = '';
+  let resolveStream;
+  const decoder = new StringDecoder('utf8');
 
-      response.data.on('data', (chunk) => {
-        buffer += chunk.toString();
-        const lines = buffer.split('\n');
-        buffer = lines.pop();
-        for (const line of lines) {
-          if (!line.startsWith('data: ')) continue;
-          const data = line.slice(6).trim();
-          if (data === '[DONE]') return finish();
-          try {
-            const content = JSON.parse(data).choices?.[0]?.delta?.content;
-            if (content) sendSSE(res, { content: content.replace(/\$/g, '') });
-          } catch {}
-        }
-      });
-      response.data.on('end', finish);
-      response.data.on('error', (error) => {
-        console.error('[Debug Guide Stream]', error.message);
-        sendSSE(res, { error: '调试讲义生成中断，请重新分析。' });
+  const finish = (errorMessage = '') => {
+    if (ended) return;
+    ended = true;
+    clearTimeout(idleTimer);
+    clearTimeout(totalTimer);
+    clearInterval(heartbeat);
+    if (errorMessage && !res.writableEnded) sendSSE(res, { error: errorMessage });
+    endSSE(res);
+    console.info(`[Debug Guide] ${requestId} status=${errorMessage ? 'failed' : 'completed'} durationMs=${Date.now() - startedAt}`);
+    if (resolveStream) resolveStream();
+  };
+
+  const touchIdleTimer = () => {
+    clearTimeout(idleTimer);
+    idleTimer = setTimeout(() => {
+      if (upstream) upstream.destroy(new Error('AI response idle timeout'));
+      finish('AI 长时间没有返回内容，请稍后重试。');
+    }, DEBUG_AI_IDLE_TIMEOUT_MS);
+  };
+
+  const onClientClose = () => {
+    if (ended || res.writableEnded) return;
+    ended = true;
+    clearTimeout(idleTimer);
+    clearTimeout(totalTimer);
+    clearInterval(heartbeat);
+    if (upstream) upstream.destroy();
+    if (resolveStream) resolveStream();
+  };
+  res.once('close', onClientClose);
+
+  const consume = (flush = false) => {
+    const lines = buffer.split('\n');
+    buffer = flush ? '' : (lines.pop() || '');
+    for (const rawLine of lines) {
+      const line = rawLine.endsWith('\r') ? rawLine.slice(0, -1) : rawLine;
+      if (!line.startsWith('data:')) continue;
+      const data = line.slice(5).trim();
+      if (!data) continue;
+      if (data === '[DONE]') {
         finish();
+        return true;
+      }
+      try {
+        const parsed = JSON.parse(data);
+        const content = parsed.choices?.[0]?.delta?.content;
+        if (content && !ended) sendSSE(res, { content: content.replace(/\$/g, '') });
+      } catch (error) {
+        console.warn(`[Debug Guide Parse] ${requestId}:`, error.message);
+      }
+    }
+    return false;
+  };
+
+  try {
+    sendSSE(res, { type: 'status', status: 'ai_started', requestId });
+    const response = await createDebugGuideStream(context);
+    upstream = response.data;
+    touchIdleTimer();
+    totalTimer = setTimeout(() => {
+      if (upstream) upstream.destroy(new Error('AI response timeout'));
+      finish('AI 讲解生成超时，本地验证结果已保留。');
+    }, DEBUG_AI_TOTAL_TIMEOUT_MS);
+    heartbeat = setInterval(() => {
+      if (!ended && !res.writableEnded) sendSSE(res, { type: 'heartbeat' });
+    }, 10000);
+
+    await new Promise((resolve) => {
+      resolveStream = resolve;
+      upstream.on('data', (chunk) => {
+        touchIdleTimer();
+        buffer += decoder.write(chunk);
+        if (consume() && ended) resolve();
+      });
+      upstream.on('end', () => {
+        buffer += decoder.end();
+        consume(true);
+        finish();
+        resolve();
+      });
+      upstream.on('error', (error) => {
+        if (!ended) {
+          console.error(`[Debug Guide Stream] ${requestId}:`, error.message);
+          finish('AI 讲解生成中断，本地验证结果已保留。');
+        }
+        resolve();
       });
     });
   } catch (error) {
-    console.error('[Debug Guide Error]', error.message);
-    sendSSE(res, {
-      error: /timeout|ECONNABORTED/i.test(`${error.code || ''} ${error.message}`)
-        ? '连接 AI 超时，请重新分析。'
-        : 'AI 调试讲义暂时无法生成，请稍后重试。',
+    console.error(`[Debug Guide Error] ${requestId}:`, error.message);
+    finish(/timeout|ECONNABORTED/i.test(`${error.code || ''} ${error.message}`)
+      ? '连接 AI 超时，本地验证结果已保留。'
+      : 'AI 调试讲义暂时无法生成，本地验证结果已保留。');
+  } finally {
+    res.off('close', onClientClose);
+  }
+}
+
+function getDebugAiErrorMessage(error) {
+  const status = error?.response?.status;
+  if (status === 401 || status === 403) return 'AI 服务鉴权失败，请检查模型服务配置。';
+  if (status === 429) return 'AI 服务当前请求较多，请稍后重试。';
+  if (error?.code === 'ECONNABORTED' || /timeout|超时/i.test(String(error?.message || ''))) {
+    return 'AI 分析超时，本地验证结果已保留。';
+  }
+  return 'AI 分析暂时不可用，本地验证结果已保留。';
+}
+
+function normalizeDebugAnalysis(meta = {}) {
+  const content = sanitizeDebugHint(meta.content).trim();
+  if (content) {
+    return {
+      ok: true,
+      status: 'ready',
+      content,
+      model: meta.model || null,
+      finishReason: meta.finishReason || null,
+    };
+  }
+
+  const truncated = meta.finishReason === 'length';
+  return {
+    ok: false,
+    status: truncated ? 'truncated' : 'empty',
+    message: truncated
+      ? 'AI 在本次分析预算内没有生成可展示的结论，请重试或更换适合短文本的模型。'
+      : 'AI 没有返回可展示的分析，本地验证结果不受影响。',
+    retryable: true,
+    model: meta.model || null,
+    finishReason: meta.finishReason || null,
+  };
+}
+
+async function generateDebugAnalysis({ code, problem = '', verification, signal }) {
+  const options = {
+    temperature: 0.25,
+    // ponytail: one bounded AI call; local verification remains the fallback.
+    max_tokens: Math.min(4000, Math.max(1000, Number(process.env.DEBUG_AI_MAX_TOKENS || 1600))),
+    timeout: Number(process.env.DEBUG_AI_TIMEOUT_MS || 60000),
+    signal,
+  };
+  if (String(process.env.AI_PROVIDER || 'deepseek').toLowerCase() === 'deepseek') {
+    options.thinking = { type: process.env.DEBUG_AI_THINKING || 'disabled' };
+  }
+  if (process.env.DEBUG_AI_MODEL) options.model = process.env.DEBUG_AI_MODEL;
+
+  const meta = await chatWithMeta(
+    buildDebugMessages({ code, problem, verification: verification || { status: 'not_run' } }),
+    options,
+  );
+  return normalizeDebugAnalysis(meta);
+}
+
+async function handleDebugAnalyze(req, res) {
+  const { code, problem = '', verification } = req.body || {};
+  if (!code || typeof code !== 'string') {
+    return res.status(400).json({ error: '请粘贴学生 C++ 代码。' });
+  }
+
+  const requestId = randomUUID();
+  const startedAt = Date.now();
+  const request = createRequestAbortSignal(req, res);
+  try {
+    const analysis = await generateDebugAnalysis({
+      code,
+      problem,
+      verification,
+      signal: request.signal,
     });
+    console.info(`[Debug AI] ${requestId} status=${analysis.status} finish=${analysis.finishReason || 'none'} durationMs=${Date.now() - startedAt}`);
+    if (!res.writableEnded && !res.destroyed) res.json({ ...analysis, requestId });
+  } catch (error) {
+    console.error(`[Debug AI Error] ${requestId}:`, error.message);
+    if (!res.writableEnded && !res.destroyed) {
+      res.json({
+        ok: false,
+        status: 'unavailable',
+        message: getDebugAiErrorMessage(error),
+        retryable: true,
+        requestId,
+      });
+    }
+  } finally {
+    request.cleanup();
+  }
+}
+
+async function handleDebugVerify(req, res) {
+  const { code, samples = [] } = req.body || {};
+  if (!code || typeof code !== 'string') {
+    return res.status(400).json({ error: '请粘贴学生 C++ 代码。' });
+  }
+
+  const requestId = randomUUID();
+  const startedAt = Date.now();
+  const request = createRequestAbortSignal(req, res);
+  try {
+    const verification = await verifyCpp(code, Array.isArray(samples) ? samples : [], { signal: request.signal });
+    console.info(`[Debug Verify] ${requestId} runner=${verification.runner || 'unknown'} compiled=${Boolean(verification.compiled)} durationMs=${Date.now() - startedAt}`);
+    if (!res.writableEnded) res.json({ ...verification, requestId });
+  } catch (error) {
+    console.error(`[Debug Verify Error] ${requestId}:`, error.message);
+    if (!res.writableEnded) res.status(503).json({ error: '代码执行服务暂时不可用，请稍后重试。', requestId });
+  } finally {
+    request.cleanup();
+  }
+}
+
+async function handleDebugExplain(req, res) {
+  const { code, problem = '', verification } = req.body || {};
+  if (!code || typeof code !== 'string') {
+    return res.status(400).json({ error: '请粘贴学生 C++ 代码。' });
+  }
+
+  setupSSE(res);
+  const request = createRequestAbortSignal(req, res);
+  try {
+    const analysis = await generateDebugAnalysis({
+      code,
+      problem,
+      verification,
+      signal: request.signal,
+    });
+    sendSSE(res, analysis);
+  } catch (error) {
+    sendSSE(res, {
+      ok: false,
+      status: 'unavailable',
+      message: getDebugAiErrorMessage(error),
+      retryable: true,
+    });
+  } finally {
     endSSE(res);
+    request.cleanup();
   }
 }
 
@@ -239,9 +471,10 @@ async function handleDebugCode(req, res) {
   }
 
   setupSSE(res);
+  const request = createRequestAbortSignal(req, res);
 
   try {
-    const verification = await verifyCpp(code, Array.isArray(samples) ? samples : []);
+    const verification = await verifyCpp(code, Array.isArray(samples) ? samples : [], { signal: request.signal });
 
     if (!verification.compiled) {
       sendSSE(res, { content: `### 编译未通过\n\n编译器报错如下，请先根据**第一条报错**检查括号、分号、变量名和类型是否一致。\n\n\`\`\`text\n${verification.compilerError}\n\`\`\`\n\n修改后再点击「分析代码」。这里不会提供改好的代码。` });
@@ -318,40 +551,28 @@ async function handleDebugHint(req, res) {
   if (!code) return res.status(400).json({ error: '请先粘贴学生代码。' });
 
   setupSSE(res);
-  const prompt = `你是一位经验丰富的 C++ 竞赛调试老师。学生已经看过一份基于当前题目和代码的调试路线，但仍然无法定位问题。请沿着上一层路线给出更具体的一层提示，不要重新从头检查。
-
-## 题目
-${problem || '未提供题目描述'}
-
-## 学生代码
-\`\`\`cpp
-${code.slice(0, 20000)}
-\`\`\`
-
-## 已有调试路线
-${previousAdvice.slice(-6000) || '无'}
-
-## 输出要求
-- 只根据当前题目、学生代码和已有路线分析，不要假设题目中没有出现的算法或数据结构。
-- 从已有路线中选择一个最可疑的变量、条件、循环或状态继续深入，不要重复上一层内容。
-- 使用已有失败样例，或给一个合法小数据，连续手算 3～5 步，写清每一步的状态变化。
-- 必须点名学生代码中的具体变量或表达式，并说明学生应该观察到什么现象。
-- 不输出 C++ 代码块。需要引用变量或表达式时使用行内代码，只解释它应满足的关系，不写替换后的完整语句。
-- 绝不能给完整程序、完整函数、main、头文件、完整输入输出框架或可直接提交的解题代码。
-- 不要重写学生代码，不要直接给最终修改答案。
-- 不生成边界测试点，不建议跳转到其他模块。
-- 使用中文，标题为“### 更进一步”，内容具体、适合学生阅读，约 500～800 个汉字。`;
-
+  const request = createRequestAbortSignal(req, res);
   try {
-    const content = await chat([{ role: 'user', content: prompt }], {
-      temperature: 0.3,
-      max_tokens: 1800,
-      timeout: 90000,
+    const analysis = await generateDebugAnalysis({
+      code,
+      problem,
+      verification: {
+        status: 'follow_up',
+        previousAdvice: String(previousAdvice || '').slice(-6000),
+      },
+      signal: request.signal,
     });
-    sendSSE(res, { content: sanitizeDebugHint(content) });
+    sendSSE(res, analysis);
   } catch (err) {
     console.error('[Debug Hint Error]', err.message);
-    sendSSE(res, { error: '进一步提示生成失败，请稍后重试。' });
+    sendSSE(res, {
+      ok: false,
+      status: 'unavailable',
+      message: getDebugAiErrorMessage(err),
+      retryable: true,
+    });
+  } finally {
+    request.cleanup();
   }
   endSSE(res);
 }
@@ -414,8 +635,12 @@ module.exports = {
   handleGenerateExercise,
   handleGenerateScript,
   handleGenerateHint,
+  handleDebugVerify,
+  handleDebugAnalyze,
+  handleDebugExplain,
   handleDebugCode,
   handleDebugHint,
+  normalizeDebugAnalysis,
   sanitizeDebugHint,
   sanitizeNoSolutionCode,
 };

@@ -93,6 +93,10 @@
 
       <CspPractice v-else-if="activeTool === 'csp-practice'" />
 
+      <GespPractice v-else-if="activeTool === 'gesp-practice'" />
+
+      <Leaderboard v-else-if="activeTool === 'leaderboard'" />
+
       <MyRecords v-else-if="activeTool === 'my-records'" />
 
       <WrongQuestions v-else-if="activeTool === 'wrong-questions'" />
@@ -104,6 +108,10 @@
       <TeacherManage v-else-if="activeTool === 'teacher-manage'" />
 
       <ClassFeedback v-else-if="activeTool === 'class-feedback'" />
+
+      <TrainingCourse v-else-if="activeTool === 'training-course'" />
+
+      <StudentTraining v-else-if="activeTool === 'student-training'" />
 
       <!-- Edge case mode -->
       <div v-else-if="activeTool === 'edge-case'" class="tool-panel">
@@ -157,12 +165,12 @@
       </div>
 
       <!-- Teaching tools -->
-      <div v-else-if="activeTool === 'teaching'" class="tool-panel">
-        <h2>🧑‍🏫 教学工具箱</h2>
-        <div class="input-row">
+      <div v-else-if="activeTool === 'teaching' || activeTool === 'algorithm-coach'" class="tool-panel">
+        <h2>{{ activeTool === 'algorithm-coach' ? '🧠 算法教练' : '🧑‍🏫 教学工具箱' }}</h2>
+        <div v-if="activeTool === 'teaching'" class="input-row">
           <input v-model="courseTopic" placeholder="课程主题，例如：单调栈、BFS、DP 背包" />
         </div>
-        <PromptButtons @action="handleTeachingAction" :loading="loading" />
+        <PromptButtons v-if="activeTool === 'teaching'" @action="handleTeachingAction" :loading="loading" />
         <section v-if="teachingAction === 'algorithm-coach'" class="coach-tool">
           <details class="coach-inputs" :open="!hintInputsCollapsed" @toggle="hintInputsCollapsed = !$event.target.open">
             <summary>题目设置</summary>
@@ -294,15 +302,16 @@
         <div v-if="loading" class="loading-card compact">
           <div class="loading-orbit"><span></span><span></span><span></span></div>
           <div class="loading-copy">
-            <strong>{{ debugHintLoading ? 'AI 正在准备进一步提示……' : 'AI 正在结合题目和代码整理调试路线……' }}</strong>
+            <strong>{{ debugPhaseText }}</strong>
             <div class="tip-window"><div class="tip-track"><p v-for="tip in loadingTips" :key="tip">{{ tip }}</p></div></div>
           </div>
+          <button type="button" class="debug-cancel" @click="cancelDebugRequest">取消</button>
         </div>
-        <div v-if="debugCanAskMore" class="debug-hint-action">
-          <button @click="requestFurtherDebugHint" :disabled="loading || debugHintLoading">
-            {{ debugHintLoading ? '生成中……' : '💡 获取进一步提示' }}
+        <div v-if="debugCanAnalyze" class="debug-hint-action">
+          <button @click="requestDebugAnalysis" :disabled="loading || debugAnalysisLoading">
+            {{ debugAnalysisLoading ? 'AI 分析中……' : '💡 可选：让 AI 分析调试路径' }}
           </button>
-          <span>提示会更具体，但不会提供完整代码或直接答案。</span>
+          <span>本地验证结果优先；AI 暂时不可用时不会影响本地结果。</span>
         </div>
       </div>
     </div>
@@ -310,7 +319,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue';
+import { ref, computed, onMounted, onUnmounted } from 'vue';
 import html2canvas from 'html2canvas';
 import { marked } from 'marked';
 import hljs from 'highlight.js';
@@ -320,6 +329,8 @@ import ChatPanel from './components/ChatPanel.vue';
 import AlgorithmVisualizer from './components/AlgorithmVisualizer.vue';
 import SyntaxVisualizer from './components/SyntaxVisualizer.vue';
 import CspPractice from './components/CspPractice.vue';
+import GespPractice from './components/GespPractice.vue';
+import Leaderboard from './components/Leaderboard.vue';
 import ProblemList from './components/ProblemList.vue';
 import PromptButtons from './components/PromptButtons.vue';
 import LoginPanel from './components/LoginPanel.vue';
@@ -329,8 +340,10 @@ import TeacherDashboard from './components/TeacherDashboard.vue';
 import StudentManage from './components/StudentManage.vue';
 import TeacherManage from './components/TeacherManage.vue';
 import ClassFeedback from './components/ClassFeedback.vue';
+import TrainingCourse from './components/TrainingCourse.vue';
+import StudentTraining from './components/StudentTraining.vue';
 import { streamPost } from './utils/api';
-import { isLoggedIn, isTeacher, clearAuth } from './utils/auth';
+import { isLoggedIn, isTeacher, clearAuth, authHeaders } from './utils/auth';
 
 const markdownRenderer = new marked.Renderer();
 markdownRenderer.code = (code, infoString) => {
@@ -368,11 +381,12 @@ const debugSamples = ref([]);
 const fetchingDebugProblem = ref(false);
 const debugProblemFetchMessage = ref('');
 const debugInputsCollapsed = ref(false);
-const debugHintLoading = ref(false);
-const debugCanAskMore = ref(false);
-const debugHintCache = ref(null);
-const debugHintPrefetching = ref(false);
-const debugHintPrefetchPromise = ref(null);
+const debugAnalysisLoading = ref(false);
+const debugCanAnalyze = ref(false);
+const debugVerification = ref(null);
+const debugPhase = ref('idle');
+let activeDebugController = null;
+let debugRunId = 0;
 const hintProblemId = ref('');
 const hintProblem = ref('');
 const fetchingHintProblem = ref(false);
@@ -403,11 +417,17 @@ const loadingTips = computed(() => {
   return Array.from({ length: 8 }, (_, index) => items[index % items.length]);
 });
 
+const debugPhaseText = computed(() => ({
+  verify: '正在本地编译并执行样例……',
+  analyze: '本地验证已完成，AI 正在整理调试路线……',
+}[debugPhase.value] || '正在准备调试……'));
+
 const renderedResult = computed(() => {
   return result.value ? marked.parse(result.value) : '';
 });
 
 function switchTool(tool) {
+  if (activeTool.value === 'debug' && tool !== 'debug') cancelDebugRequest();
   activeTool.value = tool;
   result.value = '';
   brainstormData.value = null;
@@ -417,12 +437,11 @@ function switchTool(tool) {
   quizBackupQuestions.value = [];
   quizAnswers.value = {};
   quizRegenerating.value = {};
-  teachingAction.value = '';
-  debugHintLoading.value = false;
-  debugCanAskMore.value = false;
-  debugHintCache.value = null;
-  debugHintPrefetching.value = false;
-  debugHintPrefetchPromise.value = null;
+  teachingAction.value = tool === 'algorithm-coach' ? 'algorithm-coach' : '';
+  debugAnalysisLoading.value = false;
+  debugCanAnalyze.value = false;
+  debugVerification.value = null;
+  debugPhase.value = 'idle';
   fetchingHintProblem.value = false;
   hintInputsCollapsed.value = false;
   coachMarkdown.value = '';
@@ -537,6 +556,7 @@ async function exportAlgorithmCards() {
 }
 
 onMounted(loadNewsTips);
+onUnmounted(cancelDebugRequest);
 
 async function loadNewsTips() {
   try {
@@ -886,90 +906,128 @@ function quizCardClass(question, index) {
   return selected === question.correctAnswer ? 'answered-correct' : 'answered-wrong';
 }
 
+function formatDebugVerification(verification) {
+  const textFence = '```text';
+  const fence = '```';
+  if (!verification?.compiled) {
+    return `## 本地验证结果\n\n### 编译未通过\n\n${textFence}\n${verification?.compilerError || '未收到编译器报错。'}\n${fence}`;
+  }
+  const results = Array.isArray(verification.results) ? verification.results : [];
+  if (!results.length) {
+    return '## 本地验证结果\n\n### 编译通过，但没有可运行的样例输入。\n\n可以继续检查题目要求、边界条件和算法假设；如需 AI 协助，请点击下方按钮。';
+  }
+  const failed = results.find((item) => !item.passed);
+  if (!failed) {
+    const skipped = results.filter((item) => item.skipped).length;
+    return `## 本地验证结果\n\n### 样例验证通过\n\n已通过 ${results.filter((item) => !item.skipped).length} 个可运行样例${skipped ? `，${skipped} 个样例被跳过` : ''}。\n\n样例通过不代表所有数据都正确，可以继续检查题目要求、边界条件和算法假设；如需 AI 协助，请点击下方按钮。`;
+  }
+  const reason = failed.timedOut
+    ? '程序运行超时，可能存在死循环或复杂度过高。'
+    : failed.outputLimitExceeded
+      ? '程序输出超过限制，可能存在死循环输出。'
+      : failed.runtimeError || '实际输出与预期输出不一致。';
+  return `## 本地验证结果\n\n### 样例 ${failed.index} 未通过\n\n**样例输入**\n\n${textFence}\n${failed.input}\n${fence}\n\n**预期输出**\n\n${textFence}\n${failed.expectedOutput}\n${fence}\n\n**实际输出**\n\n${textFence}\n${failed.actualOutput || '（没有输出）'}\n${fence}\n\n${reason}\n\n可以先根据上面的差异定位问题；如需 AI 协助，请点击下方按钮。`;
+}
+
+function cancelDebugRequest() {
+  debugRunId += 1;
+  if (activeDebugController) activeDebugController.abort();
+  activeDebugController = null;
+  debugAnalysisLoading.value = false;
+  if (loading.value) loading.value = false;
+  debugPhase.value = 'idle';
+}
+
 async function debugCodeAction() {
-  if (!debugCode.value) return;
+  if (!debugCode.value || loading.value) return;
+  cancelDebugRequest();
+  const controller = new AbortController();
+  activeDebugController = controller;
+  const runId = ++debugRunId;
   debugInputsCollapsed.value = true;
   loading.value = true;
   result.value = '';
-  debugCanAskMore.value = false;
-  debugHintCache.value = null;
-  debugHintPrefetching.value = false;
-  debugHintPrefetchPromise.value = null;
-  await streamPost('/api/debug-code', {
-    code: debugCode.value,
-    samples: debugSamples.value,
-    problem: debugProblem.value,
-  }, (chunk) => {
-    result.value += chunk;
-  });
-  loading.value = false;
-  debugCanAskMore.value = Boolean(result.value);
-  if (debugCanAskMore.value) prefetchDebugHint(result.value);
-}
+  debugCanAnalyze.value = false;
+  debugVerification.value = null;
+  debugPhase.value = 'verify';
 
-function debugHintCacheKey(previousAdvice) {
-  return JSON.stringify({
-    code: debugCode.value,
-    problem: debugProblem.value,
-    previousAdvice,
-  });
-}
-
-async function requestDebugHint(previousAdvice) {
-  let hint = '';
-  await streamPost('/api/debug-code/hint', {
-    code: debugCode.value,
-    problem: debugProblem.value,
-    previousAdvice,
-  }, (chunk) => {
-    hint += chunk;
-  });
-  return hint.trim();
-}
-
-function prefetchDebugHint(previousAdvice) {
-  if (!debugCode.value || debugHintPrefetching.value || !previousAdvice.trim()) return;
-  const key = debugHintCacheKey(previousAdvice);
-  if (debugHintCache.value?.key === key) return;
-
-  debugHintPrefetching.value = true;
-  const request = requestDebugHint(previousAdvice)
-    .then((hint) => {
-      if (hint && !/请求失败|网络错误|进一步提示生成失败/.test(hint)) {
-        debugHintCache.value = { key, hint };
-      }
-    })
-    .finally(() => {
-      debugHintPrefetching.value = false;
-      debugHintPrefetchPromise.value = null;
+  try {
+    const response = await fetch('/api/debug-code/verify', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      body: JSON.stringify({ code: debugCode.value, samples: debugSamples.value }),
+      signal: controller.signal,
     });
-  debugHintPrefetchPromise.value = { key, request };
+    const verification = await response.json().catch(() => ({}));
+    if (!response.ok) throw new Error(verification.error || `本地验证失败（${response.status}）。`);
+    if (runId !== debugRunId) return;
+
+    result.value = formatDebugVerification(verification);
+    debugVerification.value = verification;
+    debugCanAnalyze.value = Boolean(verification.compiled);
+  } catch (error) {
+    if (runId !== debugRunId) return;
+    if (error.name === 'AbortError') {
+      result.value += '\n\n⚠️ 本次调试已取消。';
+    } else {
+      result.value += `\n\n⚠️ ${error.message || '本地验证失败，请稍后重试。'}`;
+    }
+    debugCanAnalyze.value = false;
+  } finally {
+    if (runId === debugRunId) {
+      activeDebugController = null;
+      loading.value = false;
+      debugPhase.value = 'idle';
+    }
+  }
 }
 
-async function requestFurtherDebugHint() {
-  if (!debugCode.value || debugHintLoading.value) return;
-  const previousAdvice = result.value;
-  debugCanAskMore.value = false;
-  debugHintLoading.value = true;
+async function requestDebugAnalysis() {
+  if (!debugCode.value || debugAnalysisLoading.value || loading.value || !debugCanAnalyze.value) return;
+  const controller = new AbortController();
+  activeDebugController = controller;
+  const runId = ++debugRunId;
+  debugAnalysisLoading.value = true;
   loading.value = true;
-  const key = debugHintCacheKey(previousAdvice);
-  let hint = debugHintCache.value?.key === key
-    ? debugHintCache.value.hint
-    : '';
-  if (!hint && debugHintPrefetchPromise.value?.key === key) {
-    await debugHintPrefetchPromise.value.request;
-    hint = debugHintCache.value?.key === key ? debugHintCache.value.hint : '';
+  debugPhase.value = 'analyze';
+  try {
+    const response = await fetch('/api/debug-code/analyze', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      body: JSON.stringify({
+        code: debugCode.value,
+        problem: debugProblem.value,
+        verification: debugVerification.value,
+      }),
+      signal: controller.signal,
+    });
+    const analysis = await response.json().catch(() => ({}));
+    if (!response.ok) throw new Error(analysis.error || `AI 分析请求失败（${response.status}）。`);
+    if (runId !== debugRunId) return;
+
+    if (analysis.ok && analysis.content) {
+      result.value += `\n\n---\n\n${analysis.content}`;
+      debugCanAnalyze.value = false;
+    } else {
+      result.value += `\n\n### AI 分析暂不可用\n\n${analysis.message || 'AI 没有返回可展示的分析。'}\n\n本地验证结果仍然有效，可以稍后重试。`;
+      debugCanAnalyze.value = Boolean(analysis.retryable);
+    }
+  } catch (error) {
+    if (runId !== debugRunId) return;
+    if (error.name === 'AbortError') {
+      result.value += '\n\n⚠️ AI 分析已取消，本地验证结果仍然保留。';
+    } else {
+      result.value += `\n\n### AI 分析暂时不可用\n\n${error.message || '请稍后重试。'}\n\n本地验证结果仍然有效。`;
+    }
+    debugCanAnalyze.value = true;
+  } finally {
+    if (runId === debugRunId) {
+      activeDebugController = null;
+      debugAnalysisLoading.value = false;
+      loading.value = false;
+      debugPhase.value = 'idle';
+    }
   }
-  if (!hint) hint = await requestDebugHint(previousAdvice);
-  debugHintCache.value = null;
-  const hintFailed = !hint.trim() || /请求失败|网络错误|进一步提示生成失败/.test(hint);
-  result.value += hintFailed
-    ? '\n\n### 进一步提示暂时生成失败\n\n请稍后再试。'
-    : `\n\n---\n\n${hint.trim()}`;
-  debugCanAskMore.value = hintFailed;
-  debugHintLoading.value = false;
-  loading.value = false;
-  if (!hintFailed) prefetchDebugHint(result.value);
 }
 </script>
 
@@ -1709,6 +1767,13 @@ body {
 .debug-hint-action span {
   color: #64748b;
   font-size: 14px;
+}
+
+.debug-cancel {
+  width: auto;
+  min-width: 72px;
+  padding: 9px 14px;
+  background: #64748b;
 }
 
 .edge-case-card {
