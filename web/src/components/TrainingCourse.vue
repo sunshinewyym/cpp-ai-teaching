@@ -191,27 +191,47 @@
             <header class="programming-progress-head">
               <div>
                 <h4>每日编程题完成标记</h4>
-                <p>编程题在外部 OJ 完成后，由老师按学生逐题标记；未标记不等同于未完成。</p>
+                <p>勾选即可保存；未标记不等同于未完成。</p>
               </div>
             </header>
-            <article v-for="item in assignment.programming" :key="item.programId" class="programming-progress-item">
-              <div class="programming-progress-title">
-                <b>{{ programLabel(item.programId) }}</b>
-                <span>{{ item.completed }}/{{ item.total }} 人已完成</span>
-              </div>
-              <div class="programming-student-checks">
-                <label v-for="detail in item.details" :key="detail.studentId">
-                  <input
-                    type="checkbox"
-                    :checked="detail.completed"
-                    :disabled="programmingSavingKey === `${item.programId}:${detail.studentId}`"
-                    @change="markProgrammingCompletion(item, detail, $event.target.checked)"
-                  />
-                  <span>{{ detail.name }}</span>
-                  <small v-if="detail.note">{{ detail.note }}</small>
-                </label>
-              </div>
-            </article>
+            <div v-if="assignment.students.length" class="programming-matrix-wrap">
+              <table class="programming-matrix">
+                <thead>
+                  <tr>
+                    <th class="programming-student-column">学生</th>
+                    <th v-for="item in assignment.programming" :key="item.programId" :title="programLabel(item.programId)">
+                      <span>{{ item.programId }}</span>
+                      <small>{{ item.completed }}/{{ item.total }}</small>
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr v-for="student in assignment.students" :key="student.id">
+                    <th class="programming-student-column">
+                      <span>{{ student.name }}</span>
+                      <small v-if="student.class_name">{{ student.class_name }}</small>
+                    </th>
+                    <td v-for="item in assignment.programming" :key="item.programId">
+                      <label
+                        v-if="programmingDetail(item, student.id)"
+                        class="programming-cell"
+                        :title="`${student.name} · ${item.programId}`"
+                      >
+                        <input
+                          type="checkbox"
+                          :checked="programmingDetail(item, student.id).completed"
+                          :disabled="programmingSavingKey === programmingCellKey(item, student.id)"
+                          @change="markProgrammingCompletion(item, programmingDetail(item, student.id), $event.target.checked)"
+                        />
+                        <span class="sr-only">{{ item.programId }}已完成</span>
+                      </label>
+                      <span v-else class="programming-cell-empty">—</span>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <p v-else class="empty-text">请先布置学生，再进行完成标记。</p>
           </section>
         </section>
 
@@ -893,8 +913,16 @@ function programLabel(id) {
   return problem ? `${problem.year} ${questionTypeLabel(problem.type)}第${problem.number}题（${id}）` : id;
 }
 
+function programmingDetail(item, studentId) {
+  return (item.details || []).find(detail => Number(detail.studentId) === Number(studentId)) || null;
+}
+
+function programmingCellKey(item, studentId) {
+  return `${item.programId}:${studentId}`;
+}
+
 async function markProgrammingCompletion(item, detail, completed) {
-  const key = `${item.programId}:${detail.studentId}`;
+  const key = programmingCellKey(item, detail.studentId);
   programmingSavingKey.value = key;
   try {
     const response = await authFetch(
@@ -1023,15 +1051,22 @@ input:focus, textarea:focus, select:focus { outline: 2px solid #c7d2fe; border-c
 .programming-progress { margin-top: 18px; border-top: 1px solid #e2e8f0; padding-top: 16px; }
 .programming-progress-head h4 { margin: 0; color: #312e81; font-size: 16px; }
 .programming-progress-head p { margin: 5px 0 0; color: #64748b; font-size: 12px; }
-.programming-progress-item { margin-top: 12px; border: 1px solid #e2e8f0; border-radius: 8px; padding: 11px 12px; }
-.programming-progress-title { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
-.programming-progress-title b { color: #334155; font-size: 13px; }
-.programming-progress-title span { color: #64748b; font-size: 12px; }
-.programming-student-checks { display: grid; grid-template-columns: repeat(4, minmax(140px, 1fr)); gap: 7px; margin-top: 9px; }
-.programming-student-checks label { display: grid; grid-template-columns: auto 1fr; gap: 2px 7px; align-items: center; border: 1px solid #eef2f7; border-radius: 6px; padding: 7px 8px; cursor: pointer; }
-.programming-student-checks input { width: auto; grid-row: 1 / 3; }
-.programming-student-checks span { color: #334155; font-size: 12px; font-weight: 700; }
-.programming-student-checks small { color: #64748b; font-size: 11px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.programming-matrix-wrap { margin-top: 10px; max-width: 100%; overflow-x: auto; border: 1px solid #e2e8f0; border-radius: 8px; }
+.programming-matrix { min-width: max-content; width: 100%; border-collapse: collapse; font-size: 12px; }
+.programming-matrix th, .programming-matrix td { border-bottom: 1px solid #eef2f7; border-right: 1px solid #eef2f7; padding: 6px 8px; text-align: center; white-space: nowrap; }
+.programming-matrix thead th { background: #f8fafc; color: #475569; font-weight: 800; }
+.programming-matrix thead th span { display: block; color: #4338ca; font-size: 12px; }
+.programming-matrix th small { display: block; margin-top: 2px; color: #94a3b8; font-size: 10px; font-weight: 500; }
+.programming-matrix tbody tr:last-child th, .programming-matrix tbody tr:last-child td { border-bottom: 0; }
+.programming-matrix th:last-child, .programming-matrix td:last-child { border-right: 0; }
+.programming-student-column { position: sticky; left: 0; z-index: 1; min-width: 104px; background: #fff; text-align: left !important; }
+.programming-matrix thead .programming-student-column { z-index: 2; background: #f8fafc; }
+.programming-student-column span { display: block; color: #334155; font-weight: 700; }
+.programming-student-column small { display: block; margin-top: 2px; color: #94a3b8; font-size: 10px; font-weight: 500; }
+.programming-cell { display: grid; place-items: center; min-width: 28px; min-height: 25px; cursor: pointer; }
+.programming-cell input { width: 15px; height: 15px; margin: 0; accent-color: #4f46e5; cursor: pointer; }
+.programming-cell-empty { color: #cbd5e1; }
+.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
 .answer-details { grid-column: 1 / -1; display: grid; gap: 6px; margin-top: 3px; border-radius: 7px; background: #f8fafc; padding: 9px 11px; }
 .answer-detail { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 6px 12px; border-radius: 5px; padding: 7px 9px; font-size: 13px; }
 .answer-detail span { color: #334155 !important; font-size: 13px !important; }
@@ -1111,7 +1146,6 @@ input:focus, textarea:focus, select:focus { outline: 2px solid #c7d2fe; border-c
   .training-page { padding: 18px 14px 48px; }
   .page-head, .day-head, .assignment-card > header { flex-direction: column; }
   .progress-list article { grid-template-columns: 1fr; }
-  .programming-student-checks { grid-template-columns: repeat(2, minmax(130px, 1fr)); }
   .progress-actions { grid-column: 1; grid-row: auto; justify-content: flex-start; }
   .head-actions, .head-actions button { width: 100%; }
   .date-field { width: 100%; }
