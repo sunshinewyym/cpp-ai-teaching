@@ -88,6 +88,33 @@
               </label>
             </div>
             <p v-else class="empty-text">请先在“学生管理”中添加学生。</p>
+            <div class="question-picker">
+              <div class="question-picker-head">
+                <strong>布置题目（默认全选）</strong>
+                <div>
+                  <button type="button" @click="selectAllAssignmentQuestions">全选</button>
+                  <button type="button" @click="clearAssignmentQuestions">清空</button>
+                  <span>{{ selectedAssignmentQuestionIds.length }}/{{ assignmentQuestionIds.length }}</span>
+                </div>
+              </div>
+              <div v-if="assignmentQuestionIds.length" class="question-checks">
+                <label
+                  v-for="questionId in assignmentQuestionIds"
+                  :key="questionId"
+                  :class="{ locked: lockedAssignmentQuestionIds.has(questionId) }"
+                >
+                  <input
+                    v-model="selectedAssignmentQuestionIds"
+                    type="checkbox"
+                    :value="questionId"
+                    :disabled="lockedAssignmentQuestionIds.has(questionId)"
+                  />
+                  <span>{{ questionLabel(questionId) }}</span>
+                  <small v-if="lockedAssignmentQuestionIds.has(questionId)">已提交/已开放</small>
+                </label>
+              </div>
+              <p v-else class="empty-text">本日暂无可布置题目。</p>
+            </div>
             <div class="recipient-save">
               <button class="primary" @click="saveAssignments" :disabled="assigning">
                 {{ assigning ? '保存中……' : '保存布置名单' }}
@@ -519,6 +546,7 @@ const problemInputs = ref({ basic: '', advanced: '', luoguBasic: '', luoguAdvanc
 const students = ref([]);
 const assignment = ref({ students: [], questions: [] });
 const selectedStudentIds = ref([]);
+const selectedAssignmentQuestionIds = ref([]);
 const selectedClass = ref('');
 const recipientsOpen = ref(false);
 const assignmentLoading = ref(false);
@@ -534,6 +562,13 @@ const classNames = computed(() => [...new Set(students.value
 const answeredQuestionIds = computed(() => new Set(
   assignment.value.questions
     .filter(item => item.submitted > 0)
+    .map(item => item.questionId)
+));
+const assignmentQuestionIds = computed(() => ['choice', 'reading', 'completion']
+  .flatMap(type => currentDay.value?.questions?.[type] || []));
+const lockedAssignmentQuestionIds = computed(() => new Set(
+  assignment.value.questions
+    .filter(item => item.submitted > 0 || item.released)
     .map(item => item.questionId)
 ));
 
@@ -587,8 +622,10 @@ async function loadAssignments() {
     if (Number(currentDay.value?.day) !== Number(day)) return;
     assignment.value = data;
     selectedStudentIds.value = data.students.map(item => item.id);
+    selectedAssignmentQuestionIds.value = data.questionIds || [...assignmentQuestionIds.value];
   } catch (error) {
-    assignment.value = { students: [], questions: [] };
+    assignment.value = { students: [], questions: [], questionIds: [] };
+    selectedAssignmentQuestionIds.value = [...assignmentQuestionIds.value];
     showMessage(error.message, 'error');
   } finally {
     assignmentLoading.value = false;
@@ -608,6 +645,15 @@ function toggleRecipients() {
   if (recipientsOpen.value) selectedStudentIds.value = assignment.value.students.map(item => item.id);
 }
 
+function selectAllAssignmentQuestions() {
+  selectedAssignmentQuestionIds.value = [...assignmentQuestionIds.value];
+}
+
+function clearAssignmentQuestions() {
+  selectedAssignmentQuestionIds.value = assignmentQuestionIds.value
+    .filter(questionId => lockedAssignmentQuestionIds.value.has(questionId));
+}
+
 function addSelectedClass() {
   const ids = students.value
     .filter(item => item.class_name === selectedClass.value)
@@ -624,12 +670,26 @@ async function saveAssignments() {
   try {
     const response = await authFetch(
       `/api/training-courses/days/${currentDay.value.day}/assignments`,
-      { method: 'POST', body: JSON.stringify({ studentIds: selectedStudentIds.value }) }
+      {
+        method: 'POST',
+        body: JSON.stringify({
+          studentIds: selectedStudentIds.value,
+          questionIds: selectedAssignmentQuestionIds.value,
+        }),
+      }
     );
     const data = await response.json();
     if (!response.ok) throw new Error(data.error || '课程布置失败');
     assignment.value = data;
     selectedStudentIds.value = data.students.map(item => item.id);
+    selectedAssignmentQuestionIds.value = data.questionIds || [];
+    const savedDay = course.value?.days?.find(item => Number(item.day) === Number(currentDay.value.day));
+    if (savedDay) {
+      const selected = new Set(selectedAssignmentQuestionIds.value);
+      for (const type of ['choice', 'reading', 'completion']) {
+        savedDay.questions[type] = (savedDay.questions[type] || []).filter(id => selected.has(id));
+      }
+    }
     recipientsOpen.value = false;
     showMessage(`已将 Day ${currentDay.value.day} 课程布置给 ${data.students.length} 名学生`);
   } catch (error) {
@@ -875,6 +935,16 @@ input:focus, textarea:focus, select:focus { outline: 2px solid #c7d2fe; border-c
 .student-checks input { width: auto; grid-row: 1 / 3; align-self: center; }
 .student-checks span { color: #334155; font-weight: 700; }
 .student-checks small { color: #94a3b8; }
+.question-picker { margin-top: 18px; border-top: 1px solid #e2e8f0; padding-top: 15px; }
+.question-picker-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; color: #4338ca; }
+.question-picker-head > div { display: flex; align-items: center; gap: 8px; }
+.question-picker-head button { padding: 5px 9px; font-size: 12px; }
+.question-picker-head span { color: #64748b; font-size: 12px; }
+.question-checks { display: grid; grid-template-columns: repeat(2, minmax(260px, 1fr)); gap: 8px; margin-top: 12px; max-height: 260px; overflow-y: auto; }
+.question-checks label { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 8px; border: 1px solid #e2e8f0; border-radius: 7px; padding: 8px 10px; cursor: pointer; }
+.question-checks label.locked { background: #f8fafc; cursor: not-allowed; }
+.question-checks span { color: #334155; font-size: 13px; line-height: 1.45; }
+.question-checks small { color: #94a3b8; font-size: 11px; white-space: nowrap; }
 .recipient-save { display: flex; justify-content: flex-end; margin-top: 13px; }
 .progress-list { display: grid; gap: 8px; margin-top: 16px; }
 .progress-list article { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 10px 16px; border-top: 1px solid #eef2f7; padding-top: 10px; }
@@ -952,6 +1022,7 @@ input:focus, textarea:focus, select:focus { outline: 2px solid #c7d2fe; border-c
   .day-tabs { grid-template-columns: repeat(2, 1fr); }
   .question-groups, .program-groups, .info-grid, .edit-grid { grid-template-columns: 1fr; }
   .student-checks { grid-template-columns: repeat(2, 1fr); }
+  .question-checks { grid-template-columns: 1fr; }
   .edit-field.wide { grid-column: auto; }
 }
 @media (max-width: 640px) {

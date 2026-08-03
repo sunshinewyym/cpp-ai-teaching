@@ -203,6 +203,7 @@ function assignmentOverview(course, day) {
 
   return {
     students,
+    questionIds: dayQuestionIds(day),
     questions: dayQuestionIds(day).map(questionId => {
       const submitted = byQuestion.get(questionId) || [];
       const submittedIds = new Set(submitted.map(item => item.assignment_id));
@@ -323,6 +324,42 @@ router.post('/days/:day/assignments', auth, requireTeacher, (req, res) => {
     return res.status(404).json({ error: error.message });
   }
 
+  const availableQuestionIds = dayQuestionIds(day);
+  const availableQuestionSet = new Set(availableQuestionIds);
+  const rawQuestionIds = req.body?.questionIds;
+  if (rawQuestionIds !== undefined && !Array.isArray(rawQuestionIds)) {
+    return res.status(400).json({ error: '布置题目必须是数组' });
+  }
+  const requestedQuestionIds = rawQuestionIds === undefined
+    ? availableQuestionIds
+    : [...new Set(rawQuestionIds.map(item => String(item).trim()).filter(Boolean))];
+  const invalidQuestionIds = requestedQuestionIds.filter(id => !availableQuestionSet.has(id));
+  if (invalidQuestionIds.length) {
+    return res.status(400).json({ error: `题目不属于本日课程：${invalidQuestionIds.join('、')}` });
+  }
+  const selectedQuestionSet = new Set(requestedQuestionIds);
+  const lockedQuestionIds = db.prepare(`
+    SELECT s.question_id AS question_id
+    FROM training_question_submissions s
+    JOIN training_day_assignments a ON a.id = s.assignment_id
+    WHERE a.course_id = ? AND a.day_number = ?
+    UNION
+    SELECT question_id
+    FROM training_question_releases
+    WHERE course_id = ? AND day_number = ?
+  `).all(course.id, day.day, course.id, day.day).map(item => item.question_id);
+  const removedLockedQuestions = lockedQuestionIds.filter(id => !selectedQuestionSet.has(id));
+  if (removedLockedQuestions.length) {
+    return res.status(409).json({ error: `题目 ${removedLockedQuestions.join('、')} 已有提交或解析开放，不能取消布置` });
+  }
+
+  const content = parseContent(course);
+  const storedDay = content.days.find(item => Number(item.day) === Number(day.day));
+  for (const type of ['choice', 'reading', 'completion']) {
+    storedDay.questions[type] = (storedDay.questions[type] || [])
+      .filter(questionId => selectedQuestionSet.has(questionId));
+  }
+
   const studentIds = [...new Set((Array.isArray(req.body?.studentIds) ? req.body.studentIds : [])
     .map(Number)
     .filter(Number.isInteger))].slice(0, 200);
@@ -364,6 +401,11 @@ router.post('/days/:day/assignments', auth, requireTeacher, (req, res) => {
 
   db.exec('BEGIN IMMEDIATE');
   try {
+    db.prepare(`
+      UPDATE training_courses
+      SET content_json = ?, updated_at = datetime('now','localtime')
+      WHERE id = ?
+    `).run(JSON.stringify(content), course.id);
     const insert = db.prepare(`
       INSERT OR IGNORE INTO training_day_assignments
         (course_id, teacher_id, day_number, student_id)
@@ -378,7 +420,9 @@ router.post('/days/:day/assignments', auth, requireTeacher, (req, res) => {
     throw error;
   }
 
-  res.json(assignmentOverview(course, day));
+  const updatedCourse = db.prepare('SELECT * FROM training_courses WHERE id = ?').get(course.id);
+  const updatedDay = getCourseDay(updatedCourse, day.day);
+  res.json(assignmentOverview(updatedCourse, updatedDay));
 });
 
 router.post('/days/:day/questions/:questionId/release', auth, requireTeacher, (req, res) => {

@@ -102,6 +102,18 @@ async function main() {
     assert.equal(published.response.status, 200);
     assert.equal(published.data.students.length, 2);
     assert.equal(published.data.questions.find(item => item.questionId === questionId).total, 2);
+    assert.deepEqual(
+      new Set(published.data.questionIds),
+      new Set(['choice', 'reading', 'completion'].flatMap(type => day.questions[type]))
+    );
+    const reducedQuestionIds = published.data.questionIds.filter(id => id !== published.data.questionIds[1]);
+    const selectedQuestions = await request(`/api/training-courses/days/${day.day}/assignments`, {
+      method: 'POST',
+      token: teacherToken,
+      body: { studentIds: [studentA.data.id, studentB.data.id], questionIds: reducedQuestionIds },
+    });
+    assert.equal(selectedQuestions.response.status, 200);
+    assert.deepEqual(selectedQuestions.data.questionIds, reducedQuestionIds);
 
     const loginStudent = username => request('/api/auth/login', {
       method: 'POST',
@@ -164,6 +176,16 @@ async function main() {
     );
     assert.equal(secondSubmit.response.status, 200);
     assert.equal(secondSubmit.data.leaderboardEligible, false);
+
+    const removeAnsweredQuestion = await request(`/api/training-courses/days/${day.day}/assignments`, {
+      method: 'POST',
+      token: teacherToken,
+      body: {
+        studentIds: [studentA.data.id, studentB.data.id],
+        questionIds: reducedQuestionIds.filter(id => id !== questionId),
+      },
+    });
+    assert.equal(removeAnsweredQuestion.response.status, 409);
 
     // Simulate a submission created before the practice-record sync was added.
     db.prepare('DELETE FROM practice_records WHERE user_id = ?').run(studentA.data.id);
