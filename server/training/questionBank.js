@@ -110,6 +110,7 @@ async function gradeQuestion(questionId, submittedAnswers) {
   let score = 0;
   let maxScore = 0;
   const answers = {};
+  const parts = [];
   for (const part of question.parts) {
     const selected = normalizeSelected(submittedAnswers[part.id]);
     if (!selected.length || selected.some(item => !part.options.includes(item))) {
@@ -118,12 +119,19 @@ async function gradeQuestion(questionId, submittedAnswers) {
     const correct = normalizeSelected(part.answers);
     answers[part.id] = selected;
     maxScore += part.score;
-    if (selected.length === correct.length && selected.every((item, index) => item === correct[index])) {
-      score += part.score;
-    }
+    const isCorrect = selected.length === correct.length && selected.every((item, index) => item === correct[index]);
+    if (isCorrect) score += part.score;
+    parts.push({
+      id: part.id,
+      selected,
+      correctAnswers: correct,
+      correct: isCorrect,
+      score: isCorrect ? part.score : 0,
+      maxScore: part.score,
+    });
   }
 
-  return { answers, score, maxScore };
+  return { answers, score, maxScore, parts };
 }
 
 module.exports = { gradeQuestion, loadQuestionBank };

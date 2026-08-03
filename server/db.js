@@ -137,6 +137,12 @@ if (!submissionColumns.some(column => column.name === 'duration_seconds')) {
   console.log('[DB] 迁移: 添加集训题答题用时字段');
 }
 
+const practiceColumns = db.prepare("PRAGMA table_info(practice_records)").all();
+if (!practiceColumns.some(column => column.name === 'training_submission_id')) {
+  db.exec('ALTER TABLE practice_records ADD COLUMN training_submission_id INTEGER');
+  console.log('[DB] 迁移: 添加集训练习记录关联字段');
+}
+
 const trainingCourseColumns = db.prepare("PRAGMA table_info(training_courses)").all();
 if (!trainingCourseColumns.some(column => column.name === 'variant')) {
   db.exec("ALTER TABLE training_courses ADD COLUMN variant TEXT NOT NULL DEFAULT 'advanced'");
@@ -156,6 +162,7 @@ db.exec('CREATE INDEX IF NOT EXISTS idx_training_assignments_student ON training
 db.exec('CREATE INDEX IF NOT EXISTS idx_training_assignments_course_day ON training_day_assignments(course_id, day_number)');
 db.exec('CREATE INDEX IF NOT EXISTS idx_training_submissions_assignment ON training_question_submissions(assignment_id)');
 db.exec('CREATE INDEX IF NOT EXISTS idx_training_releases_course_day ON training_question_releases(course_id, day_number)');
+db.exec('CREATE UNIQUE INDEX IF NOT EXISTS idx_records_training_submission ON practice_records(training_submission_id) WHERE training_submission_id IS NOT NULL');
 
 // 如果没有老师账号，创建默认 admin
 const bcrypt = require('bcryptjs');

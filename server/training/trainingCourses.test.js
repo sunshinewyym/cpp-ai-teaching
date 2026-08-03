@@ -141,6 +141,17 @@ async function main() {
     assert.equal(secondSubmit.response.status, 200);
     assert.equal(secondSubmit.data.leaderboardEligible, false);
 
+    // Simulate a submission created before the practice-record sync was added.
+    db.prepare('DELETE FROM practice_records WHERE user_id = ?').run(studentA.data.id);
+    const studentAHistory = await request('/api/practice/my-history', { token: studentALogin.data.token });
+    const studentBHistory = await request('/api/practice/my-history', { token: studentBLogin.data.token });
+    assert.equal(studentAHistory.data.length, 1);
+    assert.match(studentAHistory.data[0].level, /^(?:CSP-[JS]|GESP-[2-8])$/);
+    assert.equal(studentAHistory.data[0].question_type, 'choice');
+    assert.equal(studentAHistory.data[0].answers.questions[0].correct, true);
+    assert.equal(studentBHistory.data.length, 1);
+    assert.equal(studentBHistory.data[0].answers.questions[0].correct, false);
+
     const assignmentDetails = await request(
       `/api/training-courses/days/${day.day}/assignments`,
       { token: teacherToken }

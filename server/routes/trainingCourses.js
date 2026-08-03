@@ -4,6 +4,7 @@ const { auth, requireTeacher, requireAdmin } = require('../middleware/auth');
 const { cloneTrainingCourseTemplate } = require('../training/trainingCourseTemplate');
 const { cloneTrainingCourseProgressTemplate } = require('../training/trainingCourseProgressTemplate');
 const { gradeQuestion } = require('../training/questionBank');
+const { buildTrainingPracticeRecord } = require('../training/trainingRecord');
 const { isLeaderboardDurationValid } = require('../leaderboardRules');
 
 const router = express.Router();
@@ -549,27 +550,57 @@ router.post('/student/courses/:courseId/days/:day/questions/:questionId/submit',
       WHERE assignment_id = ? AND question_id = ?
     `).get(assignment.id, questionId);
     const duration = Number.isFinite(timing?.duration_seconds) ? timing.duration_seconds : 0;
-    const questionType = questionId.includes('-reading-')
+    const record = buildTrainingPracticeRecord(questionId, result, duration);
+    const questionType = record?.question_type || (questionId.includes('-reading-')
       ? 'reading'
-      : questionId.includes('-completion-') ? 'completion' : 'choice';
-    const itemCount = Object.keys(result.answers).length;
-    db.prepare(`
+      : questionId.includes('-completion-') ? 'completion' : 'choice');
+    const itemCount = result.parts.length;
+
+    db.exec('BEGIN IMMEDIATE');
+    try {
+      const savedSubmission = db.prepare(`
       INSERT INTO training_question_submissions
         (assignment_id, question_id, answers_json, score, max_score, duration_seconds)
       VALUES (?, ?, ?, ?, ?, ?)
-    `).run(
-      assignment.id,
-      questionId,
-      JSON.stringify(result.answers),
-      result.score,
-      result.maxScore,
-      duration
-    );
-    res.json({
-      message: '本题已提交，请等待教师开放答案解析',
-      submitted: true,
-      leaderboardEligible: isLeaderboardDurationValid(questionType, itemCount, duration),
-    });
+      `).run(
+        assignment.id,
+        questionId,
+        JSON.stringify(result.answers),
+        result.score,
+        result.maxScore,
+        duration
+      );
+      let recordId = null;
+      if (record) {
+        record.training_submission_id = Number(savedSubmission.lastInsertRowid);
+        const savedRecord = db.prepare(`
+          INSERT INTO practice_records
+            (user_id, level, year, question_type, total_score, max_score, answers_json, duration_seconds, training_submission_id)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+        `).run(
+          req.user.id,
+          record.level,
+          record.year,
+          record.question_type,
+          record.total_score,
+          record.max_score,
+          JSON.stringify(record.answers),
+          record.duration_seconds,
+          record.training_submission_id
+        );
+        recordId = Number(savedRecord.lastInsertRowid);
+      }
+      db.exec('COMMIT');
+      res.json({
+        message: '本题已提交，请等待教师开放答案解析',
+        submitted: true,
+        recordId,
+        leaderboardEligible: isLeaderboardDurationValid(questionType, itemCount, duration),
+      });
+    } catch (error) {
+      db.exec('ROLLBACK');
+      throw error;
+    }
   } catch (error) {
     if (error.message.includes('题库') || error.message.includes('完成本题')) {
       return res.status(400).json({ error: error.message });

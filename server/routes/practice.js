@@ -3,8 +3,87 @@ const db = require('../db');
 const { auth, requireTeacher } = require('../middleware/auth');
 const { chatStream } = require('../services/deepseek');
 const { isLeaderboardDurationValid } = require('../leaderboardRules');
+const { loadQuestionBank } = require('../training/questionBank');
+const { buildTrainingPracticeRecordFromSubmission } = require('../training/trainingRecord');
 
 const router = express.Router();
+
+let trainingRecordSyncPromise = null;
+
+async function syncTrainingPracticeRecords() {
+  if (trainingRecordSyncPromise) return trainingRecordSyncPromise;
+  trainingRecordSyncPromise = (async () => {
+    const bank = await loadQuestionBank();
+    const rows = db.prepare(`
+      SELECT s.id, s.question_id, s.answers_json, s.score, s.max_score, s.duration_seconds, a.student_id
+      FROM training_question_submissions s
+      JOIN training_day_assignments a ON a.id = s.assignment_id
+      LEFT JOIN practice_records r ON r.training_submission_id = s.id
+      WHERE r.id IS NULL
+      ORDER BY s.id
+    `).all();
+    const pending = [];
+    for (const row of rows) {
+      const definition = bank.get(row.question_id);
+      if (!definition) continue;
+      let answers;
+      try {
+        answers = JSON.parse(row.answers_json);
+      } catch {
+        continue;
+      }
+      const record = buildTrainingPracticeRecordFromSubmission(
+        row.question_id,
+        definition,
+        answers,
+        row.score,
+        row.max_score,
+        Number(row.duration_seconds) || 0,
+        row.id
+      );
+      if (record) pending.push({ studentId: row.student_id, record });
+    }
+    if (!pending.length) return;
+
+    db.exec('BEGIN IMMEDIATE');
+    try {
+      const insert = db.prepare(`
+        INSERT OR IGNORE INTO practice_records
+          (user_id, level, year, question_type, total_score, max_score, answers_json, duration_seconds, training_submission_id)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+      `);
+      for (const item of pending) {
+        const record = item.record;
+        insert.run(
+          item.studentId,
+          record.level,
+          record.year,
+          record.question_type,
+          record.total_score,
+          record.max_score,
+          JSON.stringify(record.answers),
+          record.duration_seconds,
+          record.training_submission_id
+        );
+      }
+      db.exec('COMMIT');
+    } catch (error) {
+      db.exec('ROLLBACK');
+      throw error;
+    }
+  })().finally(() => {
+    trainingRecordSyncPromise = null;
+  });
+  return trainingRecordSyncPromise;
+}
+
+async function ensureTrainingPracticeRecords() {
+  try {
+    await syncTrainingPracticeRecords();
+  } catch (error) {
+    console.error('[Practice] 集训记录同步失败:', error.message);
+  }
+}
 
 // 学生提交练习记录
 router.post('/submit', auth, (req, res) => {
@@ -29,7 +108,8 @@ router.post('/submit', auth, (req, res) => {
 });
 
 // 学生查看自己的历史记录
-router.get('/my-history', auth, (req, res) => {
+router.get('/my-history', auth, async (req, res) => {
+  await ensureTrainingPracticeRecords();
   const { level, year, question_type, limit } = req.query;
   let sql = 'SELECT * FROM practice_records WHERE user_id = ?';
   const params = [req.user.id];
