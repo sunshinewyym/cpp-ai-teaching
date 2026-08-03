@@ -175,7 +175,14 @@ async function main() {
       `/api/training-courses/days/${day.day}/questions/${questionId}/release`,
       { method: 'POST', token: teacherToken, body: {} }
     );
-    assert.equal(earlyRelease.response.status, 409);
+    assert.equal(earlyRelease.response.status, 200);
+    const studentBCourseBeforeReleaseSubmit = await request('/api/training-courses/student', {
+      token: studentBLogin.data.token,
+    });
+    assert.equal(
+      studentBCourseBeforeReleaseSubmit.data.courses[0].days[0].states[questionId].released,
+      false
+    );
 
     const secondSubmit = await request(
       `/api/training-courses/student/courses/${saved.data.id}/days/${day.day}/questions/${questionId}/submit`,
@@ -183,6 +190,13 @@ async function main() {
     );
     assert.equal(secondSubmit.response.status, 200);
     assert.equal(secondSubmit.data.leaderboardEligible, false);
+    const studentBCourseAfterRelease = await request('/api/training-courses/student', {
+      token: studentBLogin.data.token,
+    });
+    assert.equal(
+      studentBCourseAfterRelease.data.courses[0].days[0].states[questionId].released,
+      true
+    );
 
     const removeAnsweredQuestion = await request(`/api/training-courses/days/${day.day}/assignments`, {
       method: 'POST',

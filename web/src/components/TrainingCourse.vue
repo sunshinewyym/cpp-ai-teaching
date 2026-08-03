@@ -62,7 +62,7 @@
           <header>
             <div>
               <h3>本日课程布置与解析开放</h3>
-              <p>已布置 {{ assignment.students.length }} 人；学生逐题提交，全部完成后可单独开放该题解析。</p>
+              <p>已布置 {{ assignment.students.length }} 人；教师开放解析后，已提交学生立即可查看，未提交学生完成后自动查看。</p>
             </div>
             <button class="primary" @click="toggleRecipients" :disabled="assignmentLoading">
               {{ recipientsOpen ? '收起名单' : '布置本日课程' }}
@@ -138,7 +138,7 @@
                 <button
                   v-else
                   @click="releaseQuestion(item)"
-                  :disabled="releasingId === item.questionId || !item.total || item.submitted < item.total"
+                  :disabled="releasingId === item.questionId || !item.total"
                 >
                   {{ releasingId === item.questionId ? '开放中……' : '开放本题解析' }}
                 </button>

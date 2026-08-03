@@ -154,12 +154,10 @@ function assignedQuestionIds(course, day) {
   return configured.filter(questionId => available.has(questionId));
 }
 
-function releaseAppliesToAssignment(release, assignment, submission) {
-  if (!release) return false;
-  // A student added after the release gets one first submission. Once that
-  // submission exists, the already-opened answer/analysis becomes final.
-  if (submission) return true;
-  return String(assignment.assigned_at || '') <= String(release.released_at || '');
+function releaseAppliesToAssignment(release, submission) {
+  // Only students with a submission can see a released answer. Students who
+  // have not submitted may still answer once, then see the analysis.
+  return Boolean(release && submission);
 }
 
 function publicSession(session) {
@@ -405,8 +403,8 @@ router.post('/days/:day/assignments', auth, requireTeacher, (req, res) => {
     `).run(assignmentQuestionsJson, course.id);
     const insert = db.prepare(`
       INSERT OR IGNORE INTO training_day_assignments
-        (course_id, teacher_id, day_number, student_id, assigned_at)
-      VALUES (?, ?, ?, ?, strftime('%Y-%m-%d %H:%M:%f','now','localtime'))
+        (course_id, teacher_id, day_number, student_id)
+      VALUES (?, ?, ?, ?)
     `);
     for (const studentId of additions) insert.run(course.id, req.user.id, day.day, studentId);
     const remove = db.prepare('DELETE FROM training_day_assignments WHERE id = ?');
@@ -442,21 +440,12 @@ router.post('/days/:day/questions/:questionId/release', auth, requireTeacher, (r
     FROM training_day_assignments
     WHERE course_id = ? AND day_number = ?
   `).get(course.id, day.day).count;
-  const submitted = db.prepare(`
-    SELECT COUNT(*) AS count
-    FROM training_question_submissions s
-    JOIN training_day_assignments a ON a.id = s.assignment_id
-    WHERE a.course_id = ? AND a.day_number = ? AND s.question_id = ?
-  `).get(course.id, day.day, questionId).count;
   if (!total) return res.status(400).json({ error: '请先把本日课程布置给学生' });
-  if (submitted < total) {
-    return res.status(409).json({ error: `还有 ${total - submitted} 名学生未提交，暂不能开放解析` });
-  }
 
   db.prepare(`
     INSERT OR IGNORE INTO training_question_releases
-      (course_id, day_number, question_id, released_by, released_at)
-    VALUES (?, ?, ?, ?, strftime('%Y-%m-%d %H:%M:%f','now','localtime'))
+      (course_id, day_number, question_id, released_by)
+    VALUES (?, ?, ?, ?)
   `).run(course.id, day.day, questionId, req.user.id);
   res.json({ message: '本题答案与解析已开放' });
 });
@@ -487,7 +476,7 @@ router.get('/student', auth, (req, res) => {
   const courses = rows.map(row => {
     const content = parseContent(row);
     const assigned = db.prepare(`
-      SELECT id, day_number, assigned_at
+      SELECT id, day_number
       FROM training_day_assignments
       WHERE course_id = ? AND student_id = ?
       ORDER BY day_number
@@ -521,7 +510,7 @@ router.get('/student', auth, (req, res) => {
         for (const questionId of selectedQuestionIds) {
           const submission = submissions.get(questionId);
           const release = releases.get(`${day.day}:${questionId}`);
-          const released = releaseAppliesToAssignment(release, assignment, submission);
+          const released = releaseAppliesToAssignment(release, submission);
           states[questionId] = {
             submitted: Boolean(submission),
             submittedAt: submission?.submitted_at || null,
@@ -589,7 +578,7 @@ router.post('/student/courses/:courseId/days/:day/questions/:questionId/submit',
     SELECT id FROM training_question_submissions
     WHERE assignment_id = ? AND question_id = ?
   `).get(assignment.id, questionId);
-  if (releaseAppliesToAssignment(released, assignment, existingSubmission)) {
+  if (releaseAppliesToAssignment(released, existingSubmission)) {
     return res.status(409).json({ error: '本题解析已经开放，不能再提交' });
   }
 
@@ -619,7 +608,7 @@ router.post('/student/courses/:courseId/days/:day/questions/:questionId/submit',
         SELECT id FROM training_question_submissions
         WHERE assignment_id = ? AND question_id = ?
       `).get(assignment.id, questionId);
-      if (releaseAppliesToAssignment(releasedNow, assignment, existing)) {
+      if (releaseAppliesToAssignment(releasedNow, existing)) {
         db.exec('ROLLBACK');
         return res.status(409).json({ error: '本题解析已经开放，不能再提交' });
       }
