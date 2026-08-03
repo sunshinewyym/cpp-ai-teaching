@@ -57,7 +57,7 @@
           <div class="question-section">
             <div class="section-heading">
               <h4>历年真题</h4>
-              <p>每道大题独立提交。提交后不能修改，等待老师统一开放答案与解析。</p>
+              <p>每道大题独立提交。教师开放解析前可以修改答案，开放后将锁定。</p>
             </div>
             <div class="question-groups">
               <section v-for="group in questionGroups" :key="group.type" class="question-group">
@@ -133,7 +133,7 @@
           <OptionList
             :question="choicePart(preview.item)"
             :selected="draftAnswers[preview.id] || []"
-            :disabled="preview.state.submitted"
+            :disabled="preview.state.released"
             :show-result="preview.state.released"
             :correct-answers="[preview.item.answer]"
             @select="selectOption(choicePart(preview.item), $event)"
@@ -155,7 +155,7 @@
               <OptionList
                 :question="item"
                 :selected="draftAnswers[item.id] || []"
-                :disabled="preview.state.submitted"
+                :disabled="preview.state.released"
                 :show-result="preview.state.released"
                 :correct-answers="item.answers"
                 @select="selectOption(item, $event)"
@@ -173,13 +173,13 @@
           <p v-if="preview.state.released" class="released">
             本题得分：{{ preview.state.score }} / {{ preview.state.maxScore }}，答案与解析已开放。
           </p>
-          <p v-else-if="preview.state.submitted" class="waiting">本题已提交，等待老师开放答案与解析。</p>
+          <p v-else-if="preview.state.submitted" class="waiting">本题已提交，教师开放解析前可以修改答案。</p>
           <button
-            v-else
+            v-if="!preview.state.released"
             class="primary"
             :disabled="submitting || !canSubmit"
             @click="submitQuestion"
-          >{{ submitting ? '提交中……' : '提交本题' }}</button>
+          >{{ submitting ? '提交中……' : preview.state.submitted ? '修改并重新提交' : '提交本题' }}</button>
         </footer>
       </section>
     </div>
@@ -404,7 +404,7 @@ function choicePart(item) {
 }
 
 function selectOption(question, key) {
-  if (preview.value?.state.submitted) return;
+  if (preview.value?.state.released) return;
   const selected = draftAnswers.value[question.id] || [];
   const nextSelected = question.multiple
     ? (selected.includes(key) ? selected.filter(item => item !== key) : [...selected, key])
@@ -565,8 +565,8 @@ button.primary { border-color: #4f46e5; background: #4f46e5; color: #fff; font-w
 .answer-box { margin-top: 14px; border-left: 4px solid #22c55e; border-radius: 5px; background: #f0fdf4; padding: 13px 15px; }
 .answer-box :deep(.answer-title) { color: #166534; }
 .answer-box :deep(.markdown) { margin-top: 8px; }
-.submit-bar { position: sticky; bottom: 0; display: flex; justify-content: flex-end; border-top: 1px solid #e2e8f0; background: #fff; padding: 14px 22px; }
-.submit-bar p { width: 100%; margin: 0; border-radius: 6px; padding: 10px 13px; }
+.submit-bar { position: sticky; bottom: 0; display: flex; align-items: center; justify-content: flex-end; gap: 12px; border-top: 1px solid #e2e8f0; background: #fff; padding: 14px 22px; }
+.submit-bar p { flex: 1; width: auto; margin: 0; border-radius: 6px; padding: 10px 13px; }
 .submit-bar .waiting { background: #fff7ed; color: #9a3412; }
 .submit-bar .released { background: #dcfce7; color: #166534; }
 @media (max-width: 900px) {

@@ -530,11 +530,6 @@ router.post('/student/courses/:courseId/days/:day/questions/:questionId/submit',
     questionId
   );
   if (!assignment) return res.status(404).json({ error: '这道题尚未布置给你' });
-  const existing = db.prepare(`
-    SELECT id FROM training_question_submissions
-    WHERE assignment_id = ? AND question_id = ?
-  `).get(assignment.id, questionId);
-  if (existing) return res.status(409).json({ error: '本题已经提交，不能重复修改' });
   const released = db.prepare(`
     SELECT 1 FROM training_question_releases
     WHERE course_id = ? AND day_number = ? AND question_id = ?
@@ -558,41 +553,91 @@ router.post('/student/courses/:courseId/days/:day/questions/:questionId/submit',
 
     db.exec('BEGIN IMMEDIATE');
     try {
-      const savedSubmission = db.prepare(`
-      INSERT INTO training_question_submissions
-        (assignment_id, question_id, answers_json, score, max_score, duration_seconds)
-      VALUES (?, ?, ?, ?, ?, ?)
-      `).run(
-        assignment.id,
-        questionId,
-        JSON.stringify(result.answers),
-        result.score,
-        result.maxScore,
-        duration
-      );
+      const releasedNow = db.prepare(`
+        SELECT 1 FROM training_question_releases
+        WHERE course_id = ? AND day_number = ? AND question_id = ?
+      `).get(assignment.course_id, assignment.day_number, questionId);
+      if (releasedNow) {
+        db.exec('ROLLBACK');
+        return res.status(409).json({ error: '本题解析已经开放，不能再提交' });
+      }
+
+      const existing = db.prepare(`
+        SELECT id FROM training_question_submissions
+        WHERE assignment_id = ? AND question_id = ?
+      `).get(assignment.id, questionId);
+      const answersJson = JSON.stringify(result.answers);
+      let submissionId;
+      if (existing) {
+        db.prepare(`
+          UPDATE training_question_submissions
+          SET answers_json = ?, score = ?, max_score = ?, duration_seconds = ?,
+              submitted_at = datetime('now','localtime')
+          WHERE id = ?
+        `).run(answersJson, result.score, result.maxScore, duration, existing.id);
+        submissionId = existing.id;
+      } else {
+        const savedSubmission = db.prepare(`
+          INSERT INTO training_question_submissions
+            (assignment_id, question_id, answers_json, score, max_score, duration_seconds)
+          VALUES (?, ?, ?, ?, ?, ?)
+        `).run(
+          assignment.id,
+          questionId,
+          answersJson,
+          result.score,
+          result.maxScore,
+          duration
+        );
+        submissionId = Number(savedSubmission.lastInsertRowid);
+      }
       let recordId = null;
       if (record) {
-        record.training_submission_id = Number(savedSubmission.lastInsertRowid);
-        const savedRecord = db.prepare(`
-          INSERT INTO practice_records
-            (user_id, level, year, question_type, total_score, max_score, answers_json, duration_seconds, training_submission_id)
-          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-        `).run(
-          req.user.id,
-          record.level,
-          record.year,
-          record.question_type,
-          record.total_score,
-          record.max_score,
-          JSON.stringify(record.answers),
-          record.duration_seconds,
-          record.training_submission_id
-        );
-        recordId = Number(savedRecord.lastInsertRowid);
+        record.training_submission_id = submissionId;
+        const existingRecord = db.prepare(
+          'SELECT id FROM practice_records WHERE training_submission_id = ?'
+        ).get(submissionId);
+        if (existingRecord) {
+          db.prepare(`
+            UPDATE practice_records
+            SET user_id = ?, level = ?, year = ?, question_type = ?, total_score = ?,
+                max_score = ?, answers_json = ?, duration_seconds = ?,
+                created_at = datetime('now','localtime')
+            WHERE training_submission_id = ?
+          `).run(
+            req.user.id,
+            record.level,
+            record.year,
+            record.question_type,
+            record.total_score,
+            record.max_score,
+            JSON.stringify(record.answers),
+            record.duration_seconds,
+            record.training_submission_id
+          );
+          recordId = existingRecord.id;
+        } else {
+          const savedRecord = db.prepare(`
+            INSERT INTO practice_records
+              (user_id, level, year, question_type, total_score, max_score, answers_json, duration_seconds, training_submission_id)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+          `).run(
+            req.user.id,
+            record.level,
+            record.year,
+            record.question_type,
+            record.total_score,
+            record.max_score,
+            JSON.stringify(record.answers),
+            record.duration_seconds,
+            record.training_submission_id
+          );
+          recordId = Number(savedRecord.lastInsertRowid);
+        }
       }
       db.exec('COMMIT');
       res.json({
-        message: '本题已提交，请等待教师开放答案解析',
+        message: existing ? '答案已更新，请等待教师开放答案解析' : '本题已提交，请等待教师开放答案解析',
         submitted: true,
         recordId,
         leaderboardEligible: isLeaderboardDurationValid(questionType, itemCount, duration),

@@ -128,6 +128,25 @@ async function main() {
     assert.equal(firstSubmit.response.status, 200);
     assert.equal(firstSubmit.data.leaderboardEligible, true);
 
+    const revisedSubmit = await request(
+      `/api/training-courses/student/courses/${saved.data.id}/days/${day.day}/questions/${questionId}/submit`,
+      { method: 'POST', token: studentALogin.data.token, body: { answers: { [questionId]: ['D'] } } }
+    );
+    assert.equal(revisedSubmit.response.status, 200);
+    assert.equal(revisedSubmit.data.recordId, firstSubmit.data.recordId);
+    const storedSubmission = db.prepare(`
+      SELECT answers_json, score FROM training_question_submissions
+      WHERE assignment_id = (SELECT id FROM training_day_assignments WHERE course_id = ? AND day_number = ? AND student_id = ?)
+        AND question_id = ?
+    `).get(saved.data.id, day.day, studentA.data.id, questionId);
+    assert.deepEqual(JSON.parse(storedSubmission.answers_json)[questionId], ['D']);
+    assert.equal(storedSubmission.score, 0);
+    assert.equal(
+      db.prepare('SELECT COUNT(*) AS count FROM practice_records WHERE training_submission_id = ?')
+        .get(Number(revisedSubmit.data.recordId)).count,
+      1
+    );
+
     const earlyRelease = await request(
       `/api/training-courses/days/${day.day}/questions/${questionId}/release`,
       { method: 'POST', token: teacherToken, body: {} }
@@ -148,7 +167,7 @@ async function main() {
     assert.equal(studentAHistory.data.length, 1);
     assert.match(studentAHistory.data[0].level, /^(?:CSP-[JS]|GESP-[2-8])$/);
     assert.equal(studentAHistory.data[0].question_type, 'choice');
-    assert.equal(studentAHistory.data[0].answers.questions[0].correct, true);
+    assert.equal(studentAHistory.data[0].answers.questions[0].correct, false);
     assert.equal(studentBHistory.data.length, 1);
     assert.equal(studentBHistory.data[0].answers.questions[0].correct, false);
 
@@ -159,9 +178,8 @@ async function main() {
     const questionDetails = assignmentDetails.data.questions.find(item => item.questionId === questionId).details;
     assert.equal(questionDetails.length, 2);
     assert.ok(questionDetails.every(item => item.submitted));
-    assert.equal(questionDetails.filter(item => item.correct).length, 1);
-    assert.equal(questionDetails.filter(item => item.correct === false).length, 1);
-    assert.ok(questionDetails.some(item => item.answers[questionId]?.[0] === 'C'));
+    assert.equal(questionDetails.filter(item => item.correct).length, 0);
+    assert.equal(questionDetails.filter(item => item.correct === false).length, 2);
     assert.ok(questionDetails.some(item => item.answers[questionId]?.[0] === 'D'));
 
     const released = await request(
@@ -169,6 +187,12 @@ async function main() {
       { method: 'POST', token: teacherToken, body: {} }
     );
     assert.equal(released.response.status, 200);
+
+    const afterReleaseSubmit = await request(
+      `/api/training-courses/student/courses/${saved.data.id}/days/${day.day}/questions/${questionId}/submit`,
+      { method: 'POST', token: studentALogin.data.token, body: { answers: answer } }
+    );
+    assert.equal(afterReleaseSubmit.response.status, 409);
 
     const studentCourse = await request('/api/training-courses/student', {
       token: studentALogin.data.token,
