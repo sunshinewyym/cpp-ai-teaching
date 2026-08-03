@@ -216,7 +216,34 @@ curl -I http://127.0.0.1/
 预期结果：
 
 ```json
-{"status":"ok","time":"..."}
+{"status":"ok","runner":"ready","questionBank":"ready","time":"..."}
+```
+
+`questionBank: ready` 表示集训题目提交所需的题库已经加载。题库文件由 server 镜像从 `web/src/data/` 一起打包；如果只重启旧容器而没有重新构建镜像，集训页面可能可以打开，但提交题目会失败。
+
+已有部署更新时，至少重新构建 server 和 web：
+
+```bash
+cd /opt/cpp-ai-teaching
+git pull --ff-only
+docker compose --env-file .env \
+  -f docker/docker-compose.yml build --no-cache server web
+docker compose --env-file .env \
+  -f docker/docker-compose.yml up -d server web
+docker compose --env-file .env \
+  -f docker/docker-compose.yml exec server \
+  wget -qO- http://localhost:3000/api/health
+```
+
+使用 HTTPS 覆盖配置时，改用两份 Compose 文件：
+
+```bash
+docker compose --env-file .env \
+  -f docker/docker-compose.yml \
+  -f docker/docker-compose.ssl.yml build --no-cache server web
+docker compose --env-file .env \
+  -f docker/docker-compose.yml \
+  -f docker/docker-compose.ssl.yml up -d server web
 ```
 
 ## 7. 域名与 HTTPS
@@ -296,10 +323,12 @@ curl --fail https://yourdomain.com/api/health
 
 - [ ] `docker compose ... ps` 显示 `ppt-ai-server` 和 `ppt-ai-web` 正常运行；
 - [ ] `/api/health` 返回 `status: ok`；
+- [ ] `/api/health` 返回 `questionBank: ready`；
 - [ ] 首页和 `panel.html?topic=BFS` 可以访问；
 - [ ] AI 对话可以流式输出；
 - [ ] 算法速懂卡、边界盲盒、练习题和讲稿可以生成；
 - [ ] 算法教练可以创建会话、点击选项并进入下一轮；
+- [ ] 学生可以打开集训历年真题，选择答案并提交；
 - [ ] 浏览器开发者工具中没有 `/api` 的 401 或 500 错误；
 - [ ] Lighthouse 控制台未开放 `3000/5174/5175/2358`；
 - [ ] 配置 HTTPS 后，HTTP 会跳转到 HTTPS。
@@ -345,7 +374,9 @@ git status --short
 git pull --ff-only
 
 docker compose --env-file .env \
-  -f docker/docker-compose.yml up -d --build
+  -f docker/docker-compose.yml build --no-cache server web
+docker compose --env-file .env \
+  -f docker/docker-compose.yml up -d server web
 
 curl --fail http://127.0.0.1/api/health
 ```
@@ -355,7 +386,10 @@ curl --fail http://127.0.0.1/api/health
 ```bash
 docker compose --env-file .env \
   -f docker/docker-compose.yml \
-  -f docker/docker-compose.ssl.yml up -d --build
+  -f docker/docker-compose.ssl.yml build --no-cache server web
+docker compose --env-file .env \
+  -f docker/docker-compose.yml \
+  -f docker/docker-compose.ssl.yml up -d server web
 ```
 
 更新失败时先查看最近提交，再切回上一个确认可用的提交并重新构建：
@@ -428,6 +462,15 @@ curl http://127.0.0.1/api/health
 ```
 
 确认 Lighthouse 可以访问模型服务，并检查 `COACH_TIMEOUT_MS` 是否过小。
+
+如果只有集训真题提交返回 500，先检查题库状态：
+
+```bash
+curl --fail http://127.0.0.1/api/health
+docker compose --env-file .env -f docker/docker-compose.yml logs --tail 100 server
+```
+
+若返回 `questionBank: unavailable`，说明正在运行旧 server 镜像。执行本节“已有部署更新时”的构建命令；不要只执行 `restart`。
 
 ### 构建时内存不足
 

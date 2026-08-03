@@ -15,6 +15,7 @@ const practiceRouter = require('./routes/practice');
 const feedbackRouter = require('./routes/feedback');
 const trainingCoursesRouter = require('./routes/trainingCourses');
 const leaderboardRouter = require('./routes/leaderboard');
+const { loadQuestionBank } = require('./training/questionBank');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -27,13 +28,22 @@ app.use(express.json({ limit: '2mb' }));
 app.use(express.static(path.join(__dirname, 'public')));
 
 // Health check
-app.get('/api/health', (req, res) => {
+app.get('/api/health', async (req, res) => {
   const runnerRequired = String(process.env.CODE_RUNNER_MODE || 'local').toLowerCase() === 'runner';
   const runnerSocket = process.env.RUNNER_SOCKET_PATH || '/run/cpp-runner/runner.sock';
   const runnerReady = !runnerRequired || fs.existsSync(runnerSocket);
-  res.status(runnerReady ? 200 : 503).json({
-    status: runnerReady ? 'ok' : 'degraded',
+  let questionBankReady = true;
+  try {
+    await loadQuestionBank();
+  } catch (error) {
+    questionBankReady = false;
+    console.error('[Health] 题库加载失败:', error.message);
+  }
+  const ready = runnerReady && questionBankReady;
+  res.status(ready ? 200 : 503).json({
+    status: ready ? 'ok' : 'degraded',
     runner: runnerRequired ? (runnerReady ? 'ready' : 'unavailable') : 'local',
+    questionBank: questionBankReady ? 'ready' : 'unavailable',
     time: new Date().toISOString(),
   });
 });

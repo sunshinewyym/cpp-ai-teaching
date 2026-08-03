@@ -1,10 +1,16 @@
+const fs = require('node:fs');
 const path = require('node:path');
 const { pathToFileURL } = require('node:url');
 
 let questionBankPromise;
 
+const localDataDir = path.resolve(__dirname, '../../web/src/data');
+const packagedDataDir = path.resolve(__dirname, '../web/src/data');
+const dataDir = process.env.QUESTION_BANK_DATA_DIR
+  || (fs.existsSync(path.join(localDataDir, 'cspChoicePapers.js')) ? localDataDir : packagedDataDir);
+
 function loadModule(file) {
-  return import(pathToFileURL(path.join(__dirname, '../../web/src/data', file)).href);
+  return import(pathToFileURL(path.join(dataDir, file)).href);
 }
 
 async function loadQuestionBank() {

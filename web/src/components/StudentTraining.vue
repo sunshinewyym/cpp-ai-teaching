@@ -375,9 +375,12 @@ function choicePart(item) {
 function selectOption(question, key) {
   if (preview.value?.state.submitted) return;
   const selected = draftAnswers.value[question.id] || [];
-  draftAnswers.value[question.id] = question.multiple
+  const nextSelected = question.multiple
     ? (selected.includes(key) ? selected.filter(item => item !== key) : [...selected, key])
     : [key];
+  // Replace the answer map so the submit-state computed value updates reliably
+  // even when the selected question id was not present in the initial object.
+  draftAnswers.value = { ...draftAnswers.value, [question.id]: nextSelected };
 }
 
 async function submitQuestion() {

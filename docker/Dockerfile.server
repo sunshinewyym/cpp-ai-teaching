@@ -9,6 +9,10 @@ COPY server/ ./
 RUN mkdir -p /app/data
 COPY knowledge/ /knowledge/
 COPY server/prompts/ ./prompts/
+# The training grader reuses the frontend's generated question-bank modules.
+# Keep them in the image with package metadata so Node loads them as ESM.
+COPY web/package.json ./web/package.json
+COPY web/src/data/ ./web/src/data/
 
 EXPOSE 3000
 
