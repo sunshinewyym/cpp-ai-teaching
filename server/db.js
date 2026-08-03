@@ -148,6 +148,10 @@ if (!trainingCourseColumns.some(column => column.name === 'variant')) {
   db.exec("ALTER TABLE training_courses ADD COLUMN variant TEXT NOT NULL DEFAULT 'advanced'");
   console.log('[DB] 迁移: 添加集训课程 variant 字段');
 }
+if (!trainingCourseColumns.some(column => column.name === 'assignment_questions_json')) {
+  db.exec("ALTER TABLE training_courses ADD COLUMN assignment_questions_json TEXT NOT NULL DEFAULT '{}'");
+  console.log('[DB] 迁移: 添加本日布置题目配置字段');
+}
 
 // 确保 admin 账号拥有管理员权限（兼容旧数据）
 db.exec("UPDATE users SET is_admin = 1 WHERE username = 'admin' AND role = 'teacher' AND is_admin = 0");

@@ -125,6 +125,13 @@ async function main() {
       token: studentALogin.data.token,
     });
     assert.equal(studentAccess.data.hasAccess, true);
+    const studentCourseAfterSelection = await request('/api/training-courses/student', {
+      token: studentALogin.data.token,
+    });
+    assert.equal(
+      studentCourseAfterSelection.data.courses[0].days[0].states[published.data.questionIds[1]],
+      undefined
+    );
 
     const answer = { [questionId]: ['C'] };
     const started = await request(
@@ -185,7 +192,15 @@ async function main() {
         questionIds: reducedQuestionIds.filter(id => id !== questionId),
       },
     });
-    assert.equal(removeAnsweredQuestion.response.status, 409);
+    assert.equal(removeAnsweredQuestion.response.status, 200);
+    assert.equal(removeAnsweredQuestion.data.questionIds.includes(questionId), false);
+    const reselectedQuestions = await request(`/api/training-courses/days/${day.day}/assignments`, {
+      method: 'POST',
+      token: teacherToken,
+      body: { studentIds: [studentA.data.id, studentB.data.id], questionIds: reducedQuestionIds },
+    });
+    assert.equal(reselectedQuestions.response.status, 200);
+    assert.equal(reselectedQuestions.data.questionIds.includes(questionId), true);
 
     // Simulate a submission created before the practice-record sync was added.
     db.prepare('DELETE FROM practice_records WHERE user_id = ?').run(studentA.data.id);
@@ -252,8 +267,8 @@ async function main() {
       { token: teacherToken }
     );
     assert.equal(
-      progressAfterAdd.data.questions.find(item => item.questionId === '2025-choice-1').submitted,
-      0
+      progressAfterAdd.data.questions.some(item => item.questionId === '2025-choice-1'),
+      false
     );
 
     const refreshedSameVariant = await request(`/api/training-courses/assign/${created.data.id}`, {

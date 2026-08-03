@@ -107,7 +107,6 @@
                     v-model="selectedAssignmentQuestionIds"
                     type="checkbox"
                     :value="questionId"
-                    :disabled="lockedAssignmentQuestionIds.has(questionId)"
                   />
                   <span>{{ questionLabel(questionId) }}</span>
                   <small v-if="lockedAssignmentQuestionIds.has(questionId)">已提交/已开放</small>
@@ -650,8 +649,7 @@ function selectAllAssignmentQuestions() {
 }
 
 function clearAssignmentQuestions() {
-  selectedAssignmentQuestionIds.value = assignmentQuestionIds.value
-    .filter(questionId => lockedAssignmentQuestionIds.value.has(questionId));
+  selectedAssignmentQuestionIds.value = [];
 }
 
 function addSelectedClass() {
@@ -683,13 +681,6 @@ async function saveAssignments() {
     assignment.value = data;
     selectedStudentIds.value = data.students.map(item => item.id);
     selectedAssignmentQuestionIds.value = data.questionIds || [];
-    const savedDay = course.value?.days?.find(item => Number(item.day) === Number(currentDay.value.day));
-    if (savedDay) {
-      const selected = new Set(selectedAssignmentQuestionIds.value);
-      for (const type of ['choice', 'reading', 'completion']) {
-        savedDay.questions[type] = (savedDay.questions[type] || []).filter(id => selected.has(id));
-      }
-    }
     recipientsOpen.value = false;
     showMessage(`已将 Day ${currentDay.value.day} 课程布置给 ${data.students.length} 名学生`);
   } catch (error) {

@@ -141,6 +141,19 @@ function dayQuestionIds(day) {
   return ['choice', 'reading', 'completion'].flatMap(type => day.questions?.[type] || []);
 }
 
+function assignedQuestionIds(course, day) {
+  let config = {};
+  try {
+    config = JSON.parse(course.assignment_questions_json || '{}');
+  } catch {
+    config = {};
+  }
+  const configured = config[String(day.day)];
+  if (!Array.isArray(configured)) return dayQuestionIds(day);
+  const available = new Set(dayQuestionIds(day));
+  return configured.filter(questionId => available.has(questionId));
+}
+
 function publicSession(session) {
   return {
     theme: session?.theme || '',
@@ -161,7 +174,7 @@ function getStudentQuestionAssignment(studentId, courseId, dayNumber, questionId
   const day = parseContent(assignment).days?.find(
     item => Number(item.day) === Number(assignment.day_number)
   );
-  return day && dayQuestionIds(day).includes(questionId) ? assignment : null;
+  return day && assignedQuestionIds(assignment, day).includes(questionId) ? assignment : null;
 }
 
 function teacherOwnsStudent(user, studentId) {
@@ -174,6 +187,7 @@ function teacherOwnsStudent(user, studentId) {
 }
 
 function assignmentOverview(course, day) {
+  const questionIds = assignedQuestionIds(course, day);
   const students = db.prepare(`
     SELECT a.id AS assignment_id, u.id, u.name, u.username, u.class_name
     FROM training_day_assignments a
@@ -203,8 +217,8 @@ function assignmentOverview(course, day) {
 
   return {
     students,
-    questionIds: dayQuestionIds(day),
-    questions: dayQuestionIds(day).map(questionId => {
+    questionIds,
+    questions: questionIds.map(questionId => {
       const submitted = byQuestion.get(questionId) || [];
       const submittedIds = new Set(submitted.map(item => item.assignment_id));
       const maxTotal = submitted.reduce((sum, item) => sum + Number(item.max_score), 0);
@@ -337,28 +351,14 @@ router.post('/days/:day/assignments', auth, requireTeacher, (req, res) => {
   if (invalidQuestionIds.length) {
     return res.status(400).json({ error: `题目不属于本日课程：${invalidQuestionIds.join('、')}` });
   }
-  const selectedQuestionSet = new Set(requestedQuestionIds);
-  const lockedQuestionIds = db.prepare(`
-    SELECT s.question_id AS question_id
-    FROM training_question_submissions s
-    JOIN training_day_assignments a ON a.id = s.assignment_id
-    WHERE a.course_id = ? AND a.day_number = ?
-    UNION
-    SELECT question_id
-    FROM training_question_releases
-    WHERE course_id = ? AND day_number = ?
-  `).all(course.id, day.day, course.id, day.day).map(item => item.question_id);
-  const removedLockedQuestions = lockedQuestionIds.filter(id => !selectedQuestionSet.has(id));
-  if (removedLockedQuestions.length) {
-    return res.status(409).json({ error: `题目 ${removedLockedQuestions.join('、')} 已有提交或解析开放，不能取消布置` });
+  let assignmentQuestionConfig = {};
+  try {
+    assignmentQuestionConfig = JSON.parse(course.assignment_questions_json || '{}');
+  } catch {
+    assignmentQuestionConfig = {};
   }
-
-  const content = parseContent(course);
-  const storedDay = content.days.find(item => Number(item.day) === Number(day.day));
-  for (const type of ['choice', 'reading', 'completion']) {
-    storedDay.questions[type] = (storedDay.questions[type] || [])
-      .filter(questionId => selectedQuestionSet.has(questionId));
-  }
+  assignmentQuestionConfig[String(day.day)] = requestedQuestionIds;
+  const assignmentQuestionsJson = JSON.stringify(assignmentQuestionConfig);
 
   const studentIds = [...new Set((Array.isArray(req.body?.studentIds) ? req.body.studentIds : [])
     .map(Number)
@@ -403,9 +403,9 @@ router.post('/days/:day/assignments', auth, requireTeacher, (req, res) => {
   try {
     db.prepare(`
       UPDATE training_courses
-      SET content_json = ?, updated_at = datetime('now','localtime')
+      SET assignment_questions_json = ?, updated_at = datetime('now','localtime')
       WHERE id = ?
-    `).run(JSON.stringify(content), course.id);
+    `).run(assignmentQuestionsJson, course.id);
     const insert = db.prepare(`
       INSERT OR IGNORE INTO training_day_assignments
         (course_id, teacher_id, day_number, student_id)
@@ -436,7 +436,7 @@ router.post('/days/:day/questions/:questionId/release', auth, requireTeacher, (r
     return res.status(404).json({ error: error.message });
   }
   const questionId = String(req.params.questionId || '');
-  if (!dayQuestionIds(day).includes(questionId)) {
+  if (!assignedQuestionIds(course, day).includes(questionId)) {
     return res.status(404).json({ error: '本日课程中没有这道题' });
   }
 
@@ -510,13 +510,15 @@ router.get('/student', auth, (req, res) => {
       teacherName: row.teacher_name,
       days: (content.days || []).filter(day => assignmentByDay.has(Number(day.day))).map(day => {
         const assignment = assignmentByDay.get(Number(day.day));
+        const selectedQuestionIds = assignedQuestionIds(row, day);
+        const selectedQuestionSet = new Set(selectedQuestionIds);
         const submissions = new Map(db.prepare(`
           SELECT question_id, answers_json, score, max_score, submitted_at
           FROM training_question_submissions
           WHERE assignment_id = ?
         `).all(assignment.id).map(item => [item.question_id, item]));
         const states = {};
-        for (const questionId of dayQuestionIds(day)) {
+        for (const questionId of selectedQuestionIds) {
           const submission = submissions.get(questionId);
           const releasedAt = releases.get(`${day.day}:${questionId}`);
           states[questionId] = {
@@ -536,7 +538,11 @@ router.get('/student', auth, (req, res) => {
           date: day.date,
           morning: publicSession(day.morning),
           afternoon: publicSession(day.afternoon),
-          questions: day.questions,
+          questions: {
+            choice: (day.questions.choice || []).filter(questionId => selectedQuestionSet.has(questionId)),
+            reading: (day.questions.reading || []).filter(questionId => selectedQuestionSet.has(questionId)),
+            completion: (day.questions.completion || []).filter(questionId => selectedQuestionSet.has(questionId)),
+          },
           programming: day.programming,
           states,
         };
