@@ -29,7 +29,8 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 // Health check
 app.get('/api/health', async (req, res) => {
-  const runnerRequired = String(process.env.CODE_RUNNER_MODE || 'local').toLowerCase() === 'runner';
+  const defaultRunnerMode = process.env.NODE_ENV === 'production' ? 'runner' : 'local';
+  const runnerRequired = String(process.env.CODE_RUNNER_MODE || defaultRunnerMode).toLowerCase() === 'runner';
   const runnerSocket = process.env.RUNNER_SOCKET_PATH || '/run/cpp-runner/runner.sock';
   const runnerReady = !runnerRequired || fs.existsSync(runnerSocket);
   let questionBankReady = true;

@@ -6,7 +6,8 @@ const { spawn } = require('child_process');
 const crypto = require('crypto');
 
 const CXX = process.env.CXX || 'g++';
-const RUNNER_MODE = String(process.env.CODE_RUNNER_MODE || 'local').toLowerCase();
+const DEFAULT_RUNNER_MODE = process.env.NODE_ENV === 'production' ? 'runner' : 'local';
+const RUNNER_MODE = String(process.env.CODE_RUNNER_MODE || DEFAULT_RUNNER_MODE).toLowerCase();
 const RUNNER_SOCKET_PATH = process.env.RUNNER_SOCKET_PATH || '/run/cpp-runner/runner.sock';
 
 const MAX_SOURCE_LENGTH = Number(process.env.DEBUG_MAX_SOURCE_LENGTH || 64 * 1024);
@@ -59,6 +60,7 @@ function runProcess(command, args, input = '', options = {}) {
     const stderrChunks = [];
     let timedOut = false;
     let outputLimitExceeded = false;
+    let processErrorCode = '';
     let settled = false;
     let timer;
 
@@ -85,6 +87,7 @@ function runProcess(command, args, input = '', options = {}) {
         stderr: Buffer.concat(stderrChunks).toString('utf8') || error,
         timedOut,
         outputLimitExceeded,
+        errorCode: processErrorCode,
       });
     };
 
@@ -123,7 +126,10 @@ function runProcess(command, args, input = '', options = {}) {
       stderrBytes = appendOutput(stderrChunks, chunk, stderrBytes);
     });
     child.stdin.on('error', () => {});
-    child.on('error', (error) => finish(-1, error.message));
+    child.on('error', (error) => {
+      processErrorCode = error.code || '';
+      finish(-1, error.message);
+    });
     child.on('close', (code) => finish(code, ''));
 
     try {
@@ -185,6 +191,7 @@ async function verifyCppLocal(code, samples = [], options = {}) {
     );
 
     if (compilation.timedOut || compilation.code !== 0 || compilation.outputLimitExceeded) {
+      const compilerUnavailable = compilation.errorCode === 'ENOENT';
       return {
         runner: 'local',
         compiled: false,
@@ -193,7 +200,9 @@ async function verifyCppLocal(code, samples = [], options = {}) {
           ? `编译器输出超过 ${MAX_OUTPUT_BYTES} 字节，已停止本次编译。`
           : (compilation.timedOut
             ? `编译超过 ${COMPILE_TIMEOUT_MS / 1000} 秒，已停止本次编译。`
-            : (compilation.stderr || '编译失败，未收到具体报错信息。')),
+            : (compilerUnavailable
+              ? `服务器未找到 C++ 编译器“${CXX}”。生产环境请启用 runner 模式并确认 runner 容器健康；若使用本地模式，请安装 g++ 并设置 CXX。`
+              : (compilation.stderr || '编译失败，未收到具体报错信息。'))),
       };
     }
 
@@ -317,9 +326,17 @@ async function verifyCpp(code, samples = [], options = {}) {
   return verifyCppLocal(code, samples, options);
 }
 
+function formatRunnerError(error) {
+  if (RUNNER_MODE === 'runner' && ['ENOENT', 'ECONNREFUSED', 'ENOTFOUND'].includes(error?.code)) {
+    return '代码执行 runner 当前不可用，请检查 runner 容器状态、共享 socket 和 /api/health 后重试。';
+  }
+  return '代码执行服务暂时不可用，请稍后重试。';
+}
+
 module.exports = {
   verifyCpp,
   verifyCppLocal,
   runProcess,
   normalizeOutput,
+  formatRunnerError,
 };

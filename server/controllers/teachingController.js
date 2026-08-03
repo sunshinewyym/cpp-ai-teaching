@@ -4,7 +4,7 @@ const { chat, chatWithMeta } = require('../services/deepseek');
 const { routePrompt } = require('../services/promptRouter');
 const { augmentWithKnowledge } = require('../services/knowledge');
 const { setupSSE, sendSSE, endSSE } = require('../utils/stream');
-const { verifyCpp } = require('../services/codeRunner');
+const { verifyCpp, formatRunnerError } = require('../services/codeRunner');
 const { sanitizeChatContent } = require('./chatController');
 const { createDebugGuideStream, buildDebugMessages } = require('../debug/guide');
 
@@ -428,7 +428,7 @@ async function handleDebugVerify(req, res) {
     if (!res.writableEnded) res.json({ ...verification, requestId });
   } catch (error) {
     console.error(`[Debug Verify Error] ${requestId}:`, error.message);
-    if (!res.writableEnded) res.status(503).json({ error: '代码执行服务暂时不可用，请稍后重试。', requestId });
+    if (!res.writableEnded) res.status(503).json({ error: formatRunnerError(error), requestId });
   } finally {
     request.cleanup();
   }
@@ -532,7 +532,7 @@ async function handleDebugCode(req, res) {
     });
   } catch (err) {
     console.error('[Debug Verify Error]', err.message);
-    sendSSE(res, { error: '代码验证失败，请检查本机 C++ 编译环境后重试。' });
+    sendSSE(res, { error: formatRunnerError(err) });
     endSSE(res);
   }
 }

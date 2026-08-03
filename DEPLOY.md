@@ -463,6 +463,46 @@ curl http://127.0.0.1/api/health
 
 确认 Lighthouse 可以访问模型服务，并检查 `COACH_TIMEOUT_MS` 是否过小。
 
+### 代码调试提示 `spawn g++ ENOENT`
+
+这表示后端正在使用 `local` 模式，但当前运行环境找不到 `g++`。生产环境应使用独立的 runner 容器，不要让业务后端直接编译学生代码。
+
+先检查运行模式和健康状态：
+
+```bash
+docker compose --env-file .env -f docker/docker-compose.yml exec server printenv CODE_RUNNER_MODE
+curl --fail http://127.0.0.1/api/health
+docker compose --env-file .env -f docker/docker-compose.yml ps
+```
+
+健康接口应返回 `"runner":"ready"`。如果 `CODE_RUNNER_MODE` 为空或为 `local`，请确认 `server/.env` 至少包含：
+
+```env
+NODE_ENV=production
+CODE_RUNNER_MODE=runner
+RUNNER_SOCKET_PATH=/run/cpp-runner/runner.sock
+```
+
+然后重新构建并启动 runner 和 server（仅重启旧 server 不会创建 runner）：
+
+```bash
+docker compose --env-file .env -f docker/docker-compose.yml up -d --build runner server
+docker compose --env-file .env -f docker/docker-compose.yml logs --tail 80 runner server
+curl --fail http://127.0.0.1/api/health
+```
+
+如果没有使用 Docker，而是直接用 Node/PM2 运行后端，则需要在服务器安装编译器，并明确使用受控的本地模式：
+
+```bash
+apt-get update && apt-get install -y g++
+export NODE_ENV=production
+export CODE_RUNNER_MODE=local
+export CXX=/usr/bin/g++
+pm2 restart ppt-ai-server --update-env
+```
+
+这种方式不会提供 runner 容器的隔离保护，只适合受控环境；生产课堂服务优先使用前面的 Docker runner 方案。
+
 如果只有集训真题提交返回 500，先检查题库状态：
 
 ```bash
