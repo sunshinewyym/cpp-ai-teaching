@@ -75,7 +75,9 @@ const OBJECTIVE_TYPE_LABELS = {
 };
 const PROGRAMMING_GROUP_LABELS = {
   luoguBasic: '洛谷基础题',
+  luoguPopular: '洛谷普及-题',
   luoguAdvanced: '洛谷提高题',
+  csp: 'CSP复赛真题',
   basic: '东方博宜基础题',
   advanced: '东方博宜提高题',
 };
@@ -270,7 +272,7 @@ function buildDailyProgrammingSummary(studentId, dateKey) {
     if (!day) continue;
 
     const seen = new Set();
-    for (const group of ['luoguBasic', 'luoguAdvanced', 'basic', 'advanced']) {
+    for (const group of ['luoguBasic', 'luoguPopular', 'luoguAdvanced', 'csp', 'basic', 'advanced']) {
       for (const programId of day.programming?.[group] || []) {
         if (seen.has(programId)) continue;
         seen.add(programId);

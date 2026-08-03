@@ -88,8 +88,8 @@
 
           <div class="program-section">
             <div class="section-heading">
-              <h4>编程题链接（洛谷重点，东方博宜补充）</h4>
-              <p>洛谷题目为本日编程训练重点，东方博宜 OJ 题目作为补充；系统仅提供题号链接，请前往对应平台提交代码。</p>
+              <h4>编程题链接（洛谷、CSP 真题与东方博宜分组）</h4>
+              <p>原有洛谷题、普及-补充题和 CSP 复赛真题分别列出；东方博宜 OJ 题目作为额外训练，系统仅提供题号链接。</p>
             </div>
             <div class="program-groups">
               <ProgramLinks
@@ -99,12 +99,24 @@
                 platform="luogu"
               />
               <ProgramLinks
+                v-if="currentDay.programming.luoguPopular?.length"
+                title="洛谷普及-题（补充）"
+                :ids="currentDay.programming.luoguPopular"
+                platform="luogu"
+              />
+              <ProgramLinks
                 v-if="currentDay.programming.luoguAdvanced?.length"
                 title="洛谷提高/迁移题（重点）"
                 :ids="currentDay.programming.luoguAdvanced"
                 platform="luogu"
               />
-              <ProgramLinks title="东方博宜基础补充题" :ids="currentDay.programming.basic" />
+              <ProgramLinks
+                v-if="currentDay.programming.csp?.length"
+                title="CSP 复赛真题（洛谷）"
+                :ids="currentDay.programming.csp"
+                platform="luogu"
+              />
+              <ProgramLinks title="东方博宜基础补充题（进阶）" :ids="currentDay.programming.basic" />
               <ProgramLinks title="东方博宜提高补充题" :ids="currentDay.programming.advanced" />
             </div>
           </div>

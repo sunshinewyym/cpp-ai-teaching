@@ -166,23 +166,27 @@ if (!trainingCourseColumns.some(column => column.name === 'assignment_questions_
   console.log('[DB] 迁移: 添加本日布置题目配置字段');
 }
 
-// 迁移：Day 2 编程题改用 CSP-J 复赛洛谷题；只更新旧默认题单且保留已有作答。
+// 迁移：Day 2 编程题按原有洛谷、普及-、CSP 真题和东方博宜分组；只更新旧默认题单且保留已有作答。
 const day2ProgrammingTarget = {
-  basic: [],
-  advanced: [],
-  luoguBasic: ['P7071', 'P7909'],
-  luoguAdvanced: ['P7072', 'P8814'],
+  basic: ['P1238', 'P1336'],
+  advanced: ['P1358', 'P1379'],
+  luoguBasic: ['P5723'],
+  luoguPopular: ['P1563', 'P1068', 'P2563'],
+  luoguAdvanced: ['P1149', 'P1865'],
+  csp: ['P7071', 'P7909', 'P7072', 'P8814'],
 };
 const day2ProgrammingOld = {
   advanced: [
     { basic: ['P1020', 'P1027', 'P1028'], advanced: ['P1109', 'P1390', 'P1418'], luoguBasic: ['P5710', 'P5723'], luoguAdvanced: ['P1149', 'P1865'] },
+    { basic: [], advanced: [], luoguBasic: ['P7071', 'P7909'], luoguAdvanced: ['P7072', 'P8814'] },
   ],
   progress: [
     { basic: ['P1288', 'P1293'], advanced: ['P1359', 'P1547'], luoguBasic: [], luoguAdvanced: [] },
     { basic: ['P1288', 'P1293'], advanced: ['P1359', 'P1547'], luoguBasic: ['P5710', 'P5723'], luoguAdvanced: ['P1149', 'P1865'] },
+    { basic: [], advanced: [], luoguBasic: ['P7071', 'P7909'], luoguAdvanced: ['P7072', 'P8814'] },
   ],
 };
-const sameProgrammingList = (left, right) => JSON.stringify(left || []) === JSON.stringify(right);
+const sameProgrammingList = (left, right) => JSON.stringify(left || []) === JSON.stringify(right || []);
 const day2Courses = db.prepare('SELECT id, variant, content_json FROM training_courses WHERE active = 1').all();
 const updateDay2Course = db.prepare(
   "UPDATE training_courses SET content_json = ?, updated_at = datetime('now', 'localtime') WHERE id = ?"
@@ -196,7 +200,9 @@ for (const course of day2Courses) {
     sameProgrammingList(programming.basic, old.basic)
     && sameProgrammingList(programming.advanced, old.advanced)
     && sameProgrammingList(programming.luoguBasic, old.luoguBasic)
+    && sameProgrammingList(programming.luoguPopular, old.luoguPopular)
     && sameProgrammingList(programming.luoguAdvanced, old.luoguAdvanced)
+    && sameProgrammingList(programming.csp, old.csp)
   );
   if (!day || !isOldDefault) continue;
   const submitted = db.prepare(`

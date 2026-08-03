@@ -23,8 +23,8 @@ const trainingCourseProgressTemplate = {
       day: 2, date: '2026-08-04',
       morning: session('进制转换与位运算基础', 'N 进制与十进制互转；短除法与按权展开；按位与、或、异或、左移、右移；补码直觉。', 'GESP C++3级专项：gesp-cpp3-2023-06-judgment-2、gesp-cpp3-2023-06-choice-10、gesp-cpp3-2024-09-choice-6；CSP-J 真题：2021-choice-7、2022-choice-13；阅读 2021-reading-1；完善 2020-completion-1。', '能手算并编程完成常见进制转换，理解位运算在取位、清零、判断奇偶中的作用。'),
       questions: { choice: ['gesp-cpp3-2023-06-judgment-2', 'gesp-cpp3-2023-06-choice-10', 'gesp-cpp3-2024-09-choice-6', '2021-choice-7', '2022-choice-13', 'csp-s-2020-choice-5'], reading: ['2021-reading-1', 'csp-s-2020-reading-1'], completion: ['2020-completion-1', 'csp-s-2020-completion-1'] },
-      afternoon: session('进制转换与位运算编程', '十进制转任意进制；十六进制字符处理；掩码、移位和二进制位提取。', '洛谷 CSP-J 复赛：P7071、P7909（第一题）；P7072、P8814（第二题）。先完成位运算与区间取模，再完成计数和质因数分解。', '掌握“除基取余”和“按位取位”两类模板，避免边界位、前导零和字符映射错误。'),
-      programming: { basic: [], advanced: [] },
+      afternoon: session('进制转换与位运算编程', '十进制转任意进制；十六进制字符处理；掩码、移位和二进制位提取。', '保留原有洛谷题 P5723，并增加普及-题 P1563、P1068、P2563；CSP-J 复赛真题单列为 P7071、P7909、P7072、P8814；东方博宜题用于同类模型的额外训练。', '掌握“除基取余”和“按位取位”两类模板，避免边界位、前导零和字符映射错误。'),
+      programming: { basic: ['P1238', 'P1336'], advanced: ['P1358', 'P1379'] },
     },
     {
       day: 3, date: '2026-08-05',
@@ -87,7 +87,7 @@ const trainingCourseProgressTemplate = {
 
 const progressLuoguPrograms = [
   { basic: ['P1000', 'P1046', 'P5710'], advanced: ['P5727', 'P1089'] },
-  { basic: ['P7071', 'P7909'], advanced: ['P7072', 'P8814'] },
+  { basic: ['P5723'], popular: ['P1563', 'P1068', 'P2563'], advanced: ['P1149', 'P1865'], csp: ['P7071', 'P7909', 'P7072', 'P8814'] },
   { basic: ['P1428', 'P5730'], advanced: ['P1598', 'P1125'] },
   { basic: ['P1177', 'P2249'], advanced: ['P1102', 'P1873'] },
   { basic: ['P1706', 'P1605'], advanced: ['P1101', 'P1219'] },
@@ -101,7 +101,9 @@ const progressLuoguPrograms = [
 for (const [index, day] of trainingCourseProgressTemplate.days.entries()) {
   const luogu = progressLuoguPrograms[index] || { basic: [], advanced: [] };
   day.programming.luoguBasic = [...luogu.basic];
+  day.programming.luoguPopular = [...(luogu.popular || [])];
   day.programming.luoguAdvanced = [...luogu.advanced];
+  day.programming.csp = [...(luogu.csp || [])];
 }
 
 function cloneTrainingCourseProgressTemplate() {

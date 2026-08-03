@@ -330,8 +330,8 @@
           <div class="program-section">
             <div class="section-heading">
               <div>
-                <h4>编程题链接（洛谷重点，东方博宜补充）</h4>
-                <p>洛谷题目为本日编程训练重点，东方博宜 OJ 题目作为补充；系统仅提供题号链接，请前往对应平台提交代码。</p>
+                <h4>编程题链接（洛谷、CSP 真题与东方博宜分组）</h4>
+                <p>原有洛谷题、普及-补充题和 CSP 复赛真题分别列出；东方博宜 OJ 题目作为额外训练，系统仅提供题号链接。</p>
               </div>
             </div>
             <div class="program-groups">
@@ -346,6 +346,16 @@
                 @remove="removeProblem('luoguBasic', $event)"
               />
               <ProgramGroup
+                title="洛谷普及-题（补充）"
+                description="增加基础算法、枚举、模拟与初等数论训练"
+                :ids="currentDay.programming.luoguPopular || []"
+                platform="luogu"
+                :editing="editing"
+                v-model:input="problemInputs.luoguPopular"
+                @add="addProblem('luoguPopular')"
+                @remove="removeProblem('luoguPopular', $event)"
+              />
+              <ProgramGroup
                 title="洛谷提高/迁移题（重点）"
                 description="面向已掌握模板的学生，训练建模、边界与迁移"
                 :ids="currentDay.programming.luoguAdvanced || []"
@@ -356,8 +366,18 @@
                 @remove="removeProblem('luoguAdvanced', $event)"
               />
               <ProgramGroup
-                title="东方博宜基础补充题"
-                description="巩固标准模型和代码正确率"
+                title="CSP 复赛真题（洛谷）"
+                description="单独归类 CSP-J 复赛第一、二题，完成后再做提高迁移"
+                :ids="currentDay.programming.csp || []"
+                platform="luogu"
+                :editing="editing"
+                v-model:input="problemInputs.csp"
+                @add="addProblem('csp')"
+                @remove="removeProblem('csp', $event)"
+              />
+              <ProgramGroup
+                title="东方博宜基础补充题（进阶）"
+                description="用于同类模型的额外训练，难度高于入门热身"
                 :ids="currentDay.programming.basic || []"
                 platform="oj"
                 :editing="editing"
@@ -605,7 +625,7 @@ const messageType = ref('ok');
 const preview = ref(null);
 const answerVisible = ref(false);
 const questionSelections = ref({ choice: '', reading: '', completion: '' });
-const problemInputs = ref({ basic: '', advanced: '', luoguBasic: '', luoguAdvanced: '' });
+const problemInputs = ref({ basic: '', advanced: '', luoguBasic: '', luoguPopular: '', luoguAdvanced: '', csp: '' });
 const students = ref([]);
 const assignment = ref({ students: [], questions: [] });
 const selectedStudentIds = ref([]);
@@ -819,7 +839,7 @@ async function selectDay(index) {
 
 function resetAddInputs() {
   questionSelections.value = { choice: '', reading: '', completion: '' };
-  problemInputs.value = { basic: '', advanced: '', luoguBasic: '', luoguAdvanced: '' };
+  problemInputs.value = { basic: '', advanced: '', luoguBasic: '', luoguPopular: '', luoguAdvanced: '', csp: '' };
 }
 
 function availableQuestions(type) {

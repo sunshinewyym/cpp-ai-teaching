@@ -60,7 +60,9 @@ function normalizeCourse(body) {
         basic: cleanList(programming.basic, /^P\d{4,6}$/i).map(id => id.toUpperCase()),
         advanced: cleanList(programming.advanced, /^P\d{4,6}$/i).map(id => id.toUpperCase()),
         luoguBasic: cleanList(programming.luoguBasic, /^P\d{4,6}$/i).map(id => id.toUpperCase()),
+        luoguPopular: cleanList(programming.luoguPopular, /^P\d{4,6}$/i).map(id => id.toUpperCase()),
         luoguAdvanced: cleanList(programming.luoguAdvanced, /^P\d{4,6}$/i).map(id => id.toUpperCase()),
+        csp: cleanList(programming.csp, /^P\d{4,6}$/i).map(id => id.toUpperCase()),
       },
     };
   });
@@ -173,7 +175,7 @@ function dayProgrammingEntries(day) {
   const programming = day?.programming || {};
   const entries = [];
   const seen = new Set();
-  for (const group of ['luoguBasic', 'luoguAdvanced', 'basic', 'advanced']) {
+  for (const group of ['luoguBasic', 'luoguPopular', 'luoguAdvanced', 'csp', 'basic', 'advanced']) {
     for (const programId of programming[group] || []) {
       if (seen.has(programId)) continue;
       seen.add(programId);
