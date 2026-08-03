@@ -141,9 +141,14 @@ async function main() {
     `).get(saved.data.id, day.day, studentA.data.id, questionId);
     assert.deepEqual(JSON.parse(storedSubmission.answers_json)[questionId], ['D']);
     assert.equal(storedSubmission.score, 0);
+    const storedRecord = db.prepare(
+      'SELECT training_submission_id, answers_json FROM practice_records WHERE id = ?'
+    ).get(Number(revisedSubmit.data.recordId));
+    assert.ok(storedRecord.training_submission_id);
+    assert.equal(JSON.parse(storedRecord.answers_json).questions[0].correct, false);
     assert.equal(
-      db.prepare('SELECT COUNT(*) AS count FROM practice_records WHERE training_submission_id = ?')
-        .get(Number(revisedSubmit.data.recordId)).count,
+      db.prepare('SELECT COUNT(*) AS count FROM practice_records WHERE user_id = ?')
+        .get(studentA.data.id).count,
       1
     );
 
