@@ -91,6 +91,13 @@ function mergeSubmittedQuestions(template, existingRow) {
     WHERE a.course_id = ?
     GROUP BY a.day_number, s.question_id
   `).all(existingRow.id);
+  const markedProgramming = db.prepare(`
+    SELECT a.day_number, c.program_id
+    FROM training_programming_completions c
+    JOIN training_day_assignments a ON a.id = c.assignment_id
+    WHERE a.course_id = ? AND c.completed = 1
+    GROUP BY a.day_number, c.program_id
+  `).all(existingRow.id);
   const sourceDays = new Map((current.days || []).map(day => [Number(day.day), day]));
   const targetDays = new Map((template.days || []).map(day => [Number(day.day), day]));
 
@@ -113,6 +120,24 @@ function mergeSubmittedQuestions(template, existingRow) {
         }
       }
     }
+  }
+  for (const item of markedProgramming) {
+    const dayNumber = Number(item.day_number);
+    const sourceDay = sourceDays.get(dayNumber);
+    let targetDay = targetDays.get(dayNumber);
+    if (!sourceDay) continue;
+    if (!targetDay) {
+      targetDay = JSON.parse(JSON.stringify(sourceDay));
+      template.days.push(targetDay);
+      targetDays.set(dayNumber, targetDay);
+    }
+    if (dayProgrammingIds(targetDay).includes(item.program_id)) continue;
+    targetDay.programming ||= {};
+    const sourceGroup = Object.keys(sourceDay.programming || {})
+      .find(group => (sourceDay.programming[group] || []).includes(item.program_id)) || 'basic';
+    const targetList = targetDay.programming[sourceGroup]
+      || (targetDay.programming[sourceGroup] = []);
+    targetList.push(item.program_id);
   }
   return template;
 }
@@ -142,6 +167,24 @@ function getCourseDay(row, dayNumber) {
 
 function dayQuestionIds(day) {
   return ['choice', 'reading', 'completion'].flatMap(type => day.questions?.[type] || []);
+}
+
+function dayProgrammingEntries(day) {
+  const programming = day?.programming || {};
+  const entries = [];
+  const seen = new Set();
+  for (const group of ['luoguBasic', 'luoguAdvanced', 'basic', 'advanced']) {
+    for (const programId of programming[group] || []) {
+      if (seen.has(programId)) continue;
+      seen.add(programId);
+      entries.push({ programId, group });
+    }
+  }
+  return entries;
+}
+
+function dayProgrammingIds(day) {
+  return dayProgrammingEntries(day).map(item => item.programId);
 }
 
 function assignedQuestionIds(course, day) {
@@ -198,6 +241,7 @@ function teacherOwnsStudent(user, studentId) {
 async function assignmentOverview(course, day) {
   const questionBank = await loadQuestionBank();
   const questionIds = assignedQuestionIds(course, day);
+  const programmingEntries = dayProgrammingEntries(day);
   const students = db.prepare(`
     SELECT a.id AS assignment_id, u.id, u.name, u.username, u.class_name
     FROM training_day_assignments a
@@ -219,6 +263,17 @@ async function assignmentOverview(course, day) {
     WHERE course_id = ? AND day_number = ?
   `).all(course.id, day.day).map(item => [item.question_id, item.released_at]));
 
+  const completions = db.prepare(`
+    SELECT c.assignment_id, c.program_id, c.completed, c.note, c.marked_at
+    FROM training_programming_completions c
+    JOIN training_day_assignments a ON a.id = c.assignment_id
+    WHERE a.course_id = ? AND a.day_number = ?
+  `).all(course.id, day.day);
+  const completionByKey = new Map(completions.map(item => [
+    `${item.assignment_id}:${item.program_id}`,
+    item,
+  ]));
+
   const byQuestion = new Map();
   for (const item of submissions) {
     if (!byQuestion.has(item.question_id)) byQuestion.set(item.question_id, []);
@@ -228,6 +283,27 @@ async function assignmentOverview(course, day) {
   return {
     students,
     questionIds,
+    programming: programmingEntries.map(({ programId, group }) => ({
+      programId,
+      group,
+      completed: students.reduce((count, student) => {
+        const state = completionByKey.get(`${student.assignment_id}:${programId}`);
+        return count + (state?.completed ? 1 : 0);
+      }, 0),
+      total: students.length,
+      details: students.map(student => {
+        const state = completionByKey.get(`${student.assignment_id}:${programId}`);
+        return {
+          studentId: student.id,
+          name: student.name,
+          username: student.username,
+          className: student.class_name || '',
+          completed: Boolean(state?.completed),
+          note: state?.note || '',
+          markedAt: state?.marked_at || null,
+        };
+      }),
+    })),
     questions: questionIds.map(questionId => {
       const submitted = byQuestion.get(questionId) || [];
       const submittedIds = new Set(submitted.map(item => item.assignment_id));
@@ -330,6 +406,19 @@ router.put('/me', auth, requireTeacher, (req, res) => {
       return res.status(409).json({ error: `题目 ${item.question_id} 已有学生作答，不能删除` });
     }
   }
+  const markedProgramming = db.prepare(`
+    SELECT a.day_number, c.program_id
+    FROM training_programming_completions c
+    JOIN training_day_assignments a ON a.id = c.assignment_id
+    WHERE a.course_id = ? AND c.completed = 1
+    GROUP BY a.day_number, c.program_id
+  `).all(existing.id);
+  for (const item of markedProgramming) {
+    const day = course.days.find(candidate => Number(candidate.day) === Number(item.day_number));
+    if (!day || !dayProgrammingIds(day).includes(item.program_id)) {
+      return res.status(409).json({ error: `编程题 ${item.program_id} 已标记完成，不能删除` });
+    }
+  }
 
   db.prepare(`
     UPDATE training_courses
@@ -406,10 +495,13 @@ router.post('/days/:day/assignments', auth, requireTeacher, async (req, res) => 
 
   for (const assignment of removals) {
     const answered = db.prepare(
-      'SELECT 1 FROM training_question_submissions WHERE assignment_id = ? LIMIT 1'
-    ).get(assignment.id);
+      `SELECT 1 FROM training_question_submissions WHERE assignment_id = ?
+       UNION ALL
+       SELECT 1 FROM training_programming_completions WHERE assignment_id = ?
+       LIMIT 1`
+    ).get(assignment.id, assignment.id);
     if (answered) {
-      return res.status(409).json({ error: '已有学生开始作答，不能取消其课程' });
+      return res.status(409).json({ error: '已有学生开始作答或标记编程题，不能取消其课程' });
     }
   }
 
@@ -441,6 +533,54 @@ router.post('/days/:day/assignments', auth, requireTeacher, async (req, res) => 
   } catch (error) {
     res.status(500).json({ error: '甯冪疆杩涘害璇诲彇澶辫触' });
   }
+});
+
+router.put('/days/:day/programming/:programId/completion', auth, requireTeacher, (req, res) => {
+  const course = getTeacherCourse(req.user.id);
+  if (!course) return res.status(403).json({ error: '当前账号没有集训课程权限' });
+  let day;
+  try {
+    day = getCourseDay(course, req.params.day);
+  } catch (error) {
+    return res.status(404).json({ error: error.message });
+  }
+
+  const programId = String(req.params.programId || '').trim().toUpperCase();
+  if (!dayProgrammingIds(day).includes(programId)) {
+    return res.status(404).json({ error: '本日课程中没有这道编程题' });
+  }
+  const studentId = Number(req.body?.studentId);
+  if (!Number.isInteger(studentId) || !teacherOwnsStudent(req.user, studentId)) {
+    return res.status(403).json({ error: '学生不存在或不属于当前教师' });
+  }
+  if (typeof req.body?.completed !== 'boolean') {
+    return res.status(400).json({ error: 'completed 必须是布尔值' });
+  }
+  const assignment = db.prepare(`
+    SELECT id
+    FROM training_day_assignments
+    WHERE course_id = ? AND day_number = ? AND student_id = ?
+  `).get(course.id, day.day, studentId);
+  if (!assignment) return res.status(404).json({ error: '该学生尚未布置本日课程' });
+
+  if (!req.body.completed) {
+    db.prepare(`
+      DELETE FROM training_programming_completions
+      WHERE assignment_id = ? AND program_id = ?
+    `).run(assignment.id, programId);
+  } else {
+    db.prepare(`
+      INSERT INTO training_programming_completions
+        (assignment_id, program_id, completed, note, marked_by, marked_at)
+      VALUES (?, ?, 1, ?, ?, datetime('now','localtime'))
+      ON CONFLICT(assignment_id, program_id) DO UPDATE SET
+        completed = 1,
+        note = excluded.note,
+        marked_by = excluded.marked_by,
+        marked_at = excluded.marked_at
+    `).run(assignment.id, programId, cleanText(req.body.note, 500), req.user.id);
+  }
+  res.json({ programId, studentId, completed: Boolean(req.body.completed) });
 });
 
 router.post('/days/:day/questions/:questionId/release', auth, requireTeacher, (req, res) => {
@@ -750,8 +890,14 @@ router.post('/assign/:teacherId', auth, requireAdmin, (req, res) => {
       JOIN training_day_assignments a ON a.id = s.assignment_id
       WHERE a.course_id = ?
     `).get(existing.id).count;
-    if (Number(submitted) > 0) {
-      return res.status(409).json({ error: '该教师的课程已有学生作答，暂不能切换课程版本' });
+    const markedProgramming = db.prepare(`
+      SELECT COUNT(*) AS count
+      FROM training_programming_completions c
+      JOIN training_day_assignments a ON a.id = c.assignment_id
+      WHERE a.course_id = ? AND c.completed = 1
+    `).get(existing.id).count;
+    if (Number(submitted) > 0 || Number(markedProgramming) > 0) {
+      return res.status(409).json({ error: '该教师的课程已有学生作答或编程题完成标记，暂不能切换课程版本' });
     }
     db.prepare(`
       UPDATE training_courses

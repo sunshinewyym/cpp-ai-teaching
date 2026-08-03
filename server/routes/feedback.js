@@ -73,9 +73,25 @@ const OBJECTIVE_TYPE_LABELS = {
   reading: '阅读程序',
   completion: '完善程序',
 };
+const PROGRAMMING_GROUP_LABELS = {
+  luoguBasic: '洛谷基础题',
+  luoguAdvanced: '洛谷提高题',
+  basic: '东方博宜基础题',
+  advanced: '东方博宜提高题',
+};
 
 function isDateKey(value) {
   return /^\d{4}-\d{2}-\d{2}$/.test(String(value || '').trim());
+}
+
+function emptyProgrammingSummary() {
+  return {
+    hasAssignments: false,
+    assignedCount: 0,
+    completedCount: 0,
+    completed: [],
+    pending: [],
+  };
 }
 
 function emptyPracticeSummary(dateKey) {
@@ -91,6 +107,7 @@ function emptyPracticeSummary(dateKey) {
     byType: [],
     wrongQuestions: [],
     records: [],
+    programming: emptyProgrammingSummary(),
     message: '当天没有客观题训练记录。该学生可能只参加了半天课程，请结合课堂表现补充，不要据此推断其没有学习。',
   };
 }
@@ -164,8 +181,9 @@ function summaryRecordFromTrainingSubmission(row, definition) {
   };
 }
 
-function finalizePracticeSummary(dateKey, records) {
+function finalizePracticeSummary(dateKey, records, programming = emptyProgrammingSummary()) {
   const summary = emptyPracticeSummary(dateKey);
+  summary.programming = programming;
   summary.records = records.sort((left, right) => String(left.createdAt).localeCompare(String(right.createdAt)));
   if (!records.length) return summary;
 
@@ -216,6 +234,69 @@ function finalizePracticeSummary(dateKey, records) {
   return summary;
 }
 
+function buildDailyProgrammingSummary(studentId, dateKey) {
+  const assignments = db.prepare(`
+    SELECT a.id AS assignment_id, a.day_number, a.assigned_at,
+      c.title, c.content_json
+    FROM training_day_assignments a
+    JOIN training_courses c ON c.id = a.course_id AND c.active = 1
+    WHERE a.student_id = ?
+    ORDER BY a.assigned_at, a.id
+  `).all(studentId);
+  const completionRows = db.prepare(`
+    SELECT c.assignment_id, c.program_id, c.completed, c.note, c.marked_at
+    FROM training_programming_completions c
+    JOIN training_day_assignments a ON a.id = c.assignment_id
+    WHERE a.student_id = ?
+  `).all(studentId);
+  const completionByKey = new Map(completionRows.map(item => [
+    `${item.assignment_id}:${item.program_id}`,
+    item,
+  ]));
+  const summary = emptyProgrammingSummary();
+
+  for (const assignment of assignments) {
+    let content;
+    try {
+      content = JSON.parse(assignment.content_json);
+    } catch {
+      continue;
+    }
+    const day = content.days?.find(item => {
+      if (Number(item.day) !== Number(assignment.day_number)) return false;
+      return item.date === dateKey
+        || (!item.date && String(assignment.assigned_at || '').slice(0, 10) === dateKey);
+    });
+    if (!day) continue;
+
+    const seen = new Set();
+    for (const group of ['luoguBasic', 'luoguAdvanced', 'basic', 'advanced']) {
+      for (const programId of day.programming?.[group] || []) {
+        if (seen.has(programId)) continue;
+        seen.add(programId);
+        const state = completionByKey.get(`${assignment.assignment_id}:${programId}`);
+        const item = {
+          programId,
+          group,
+          courseTitle: assignment.title,
+          dayNumber: assignment.day_number,
+          note: state?.note || '',
+          markedAt: state?.marked_at || null,
+        };
+        summary.assignedCount += 1;
+        if (state?.completed) {
+          summary.completedCount += 1;
+          summary.completed.push(item);
+        } else {
+          summary.pending.push(item);
+        }
+      }
+    }
+  }
+  summary.hasAssignments = summary.assignedCount > 0;
+  return summary;
+}
+
 async function buildDailyPracticeSummary(studentId, dateKey) {
   const practiceRows = db.prepare(`
     SELECT id, level, year, question_type, total_score, max_score,
@@ -250,19 +331,35 @@ async function buildDailyPracticeSummary(studentId, dateKey) {
       if (record) records.push(record);
     }
   }
-  return finalizePracticeSummary(dateKey, records);
+  return finalizePracticeSummary(dateKey, records, buildDailyProgrammingSummary(studentId, dateKey));
 }
 
 function formatPracticeMaterial(summary) {
-  if (!summary?.hasRecords) return summary?.message || '当天没有客观题训练记录，请勿自行补充学生做题表现。';
-  const lines = [
-    `当天客观题训练汇总：共 ${summary.totalRecords} 次记录，${summary.totalQuestions} 道小题，答对 ${summary.correctQuestions} 道，正确率 ${summary.accuracyPercent ?? 0}%，得分 ${summary.totalScore}/${summary.maxScore}。`,
-  ];
-  for (const record of summary.records) {
-    const detail = record.questions.map(question =>
-      `第${question.number}小问${question.correct ? '正确' : '错误'}（学生答案：${question.userAnswer || '未作答'}，正确答案：${question.correctAnswer || '未提供'}）`
-    ).join('；');
-    lines.push(`- ${record.level} ${record.year} ${OBJECTIVE_TYPE_LABELS[record.questionType] || record.questionType}：${record.totalScore}/${record.maxScore}；${detail}`);
+  const lines = [];
+  if (!summary?.hasRecords) {
+    lines.push(summary?.message || '当天没有客观题训练记录，请勿自行补充学生做题表现。');
+  } else {
+    lines.push(
+      `当天客观题训练汇总：共 ${summary.totalRecords} 次记录，${summary.totalQuestions} 道小题，答对 ${summary.correctQuestions} 道，正确率 ${summary.accuracyPercent ?? 0}%，得分 ${summary.totalScore}/${summary.maxScore}。`
+    );
+    for (const record of summary.records) {
+      const detail = record.questions.map(question =>
+        `第${question.number}小问${question.correct ? '正确' : '错误'}（学生答案：${question.userAnswer || '未作答'}，正确答案：${question.correctAnswer || '未提供'}）`
+      ).join('；');
+      lines.push(`- ${record.level} ${record.year} ${OBJECTIVE_TYPE_LABELS[record.questionType] || record.questionType}：${record.totalScore}/${record.maxScore}；${detail}`);
+    }
+  }
+  const programming = summary?.programming;
+  if (programming?.hasAssignments) {
+    lines.push(`当天编程题完成标记：已完成 ${programming.completedCount}/${programming.assignedCount} 道。`);
+    if (programming.completed.length) {
+      lines.push(`- 已完成：${programming.completed.map(item => `${item.programId}（${PROGRAMMING_GROUP_LABELS[item.group] || item.group}）`).join('、')}`);
+    }
+    if (programming.pending.length) {
+      lines.push(`- 尚未标记完成：${programming.pending.map(item => `${item.programId}（${PROGRAMMING_GROUP_LABELS[item.group] || item.group}）`).join('、')}`);
+    }
+  } else {
+    lines.push('当天没有可用的集训编程题完成标记。');
   }
   return lines.join('\n');
 }
@@ -410,7 +507,7 @@ ${practiceMaterial}
 - 教师补充的课堂表现素材：
 ${performance}
 
-请把客观题训练素材只作为可核对的事实依据；如果提示当天没有客观题记录，不得写成“没有学习”“没有做题”或据此评价学生，只能结合教师补充的课堂表现素材完成反馈。
+请把客观题训练素材和编程题完成标记只作为可核对的事实依据；如果提示当天没有客观题记录，不得写成“没有学习”“没有做题”或据此评价学生。如果编程题显示“尚未标记完成”，只能表述为“尚未记录完成”，不能断言学生没有完成；最终反馈还要结合教师补充的课堂表现素材。
 
 请严格遵守以下课评风格规则：
 ${styleRules}
@@ -555,5 +652,6 @@ ${timeline}
 module.exports = router;
 module.exports.DEFAULT_STYLE = DEFAULT_STYLE;
 module.exports.buildDailyPracticeSummary = buildDailyPracticeSummary;
+module.exports.buildDailyProgrammingSummary = buildDailyProgrammingSummary;
 module.exports.emptyPracticeSummary = emptyPracticeSummary;
 module.exports.formatPracticeMaterial = formatPracticeMaterial;

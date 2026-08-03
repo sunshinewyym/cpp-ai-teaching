@@ -43,8 +43,10 @@ async function main() {
   assert.ok(trainingQuestion, 'question bank should include the training test question');
   const course = db.prepare(`
     INSERT INTO training_courses (teacher_id, title, content_json, variant)
-    VALUES (?, 'Feedback course', '{}', 'advanced')
-  `).run(teacherId);
+    VALUES (?, 'Feedback course', ?, 'advanced')
+  `).run(teacherId, JSON.stringify({
+    days: [{ day: 1, date: '2026-08-03', programming: { basic: ['P1001'] } }],
+  }));
   const assignment = db.prepare(`
     INSERT INTO training_day_assignments (course_id, teacher_id, day_number, student_id)
     VALUES (?, ?, 1, ?)
@@ -59,6 +61,11 @@ async function main() {
     trainingQuestion.parts[0].score,
     trainingQuestion.parts[0].score
   );
+  db.prepare(`
+    INSERT INTO training_programming_completions
+      (assignment_id, program_id, completed, note, marked_by)
+    VALUES (?, 'P1001', 1, '已完成', ?)
+  `).run(Number(assignment.lastInsertRowid), teacherId);
 
   const summary = await buildDailyPracticeSummary(studentId, '2026-08-03');
   assert.equal(summary.hasRecords, true);
@@ -67,12 +74,16 @@ async function main() {
   assert.equal(summary.correctQuestions, 3);
   assert.equal(summary.accuracyPercent, 75);
   assert.equal(summary.wrongQuestions.length, 1);
+  assert.equal(summary.programming.assignedCount, 1);
+  assert.equal(summary.programming.completedCount, 1);
   assert.match(formatPracticeMaterial(summary), /第2小问错误/);
   assert.match(formatPracticeMaterial(summary), /学生答案：B/);
+  assert.match(formatPracticeMaterial(summary), /P1001/);
 
   const emptySummary = await buildDailyPracticeSummary(studentId, '2026-08-04');
   assert.equal(emptySummary.hasRecords, false);
   assert.equal(emptySummary.totalQuestions, 0);
+  assert.equal(emptySummary.programming.assignedCount, 0);
   assert.match(emptySummary.message, /半天/);
   assert.match(formatPracticeMaterial(emptySummary), /不要据此推断/);
 

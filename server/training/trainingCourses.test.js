@@ -263,6 +263,44 @@ async function main() {
       2
     );
 
+    const programmingId = day.programming.basic[0];
+    const markedProgramming = await request(
+      `/api/training-courses/days/${day.day}/programming/${programmingId}/completion`,
+      {
+        method: 'PUT',
+        token: teacherToken,
+        body: { studentId: studentA.data.id, completed: true, note: '课堂完成并提交 OJ' },
+      }
+    );
+    assert.equal(markedProgramming.response.status, 200);
+    const programmingOverview = await request(
+      `/api/training-courses/days/${day.day}/assignments`,
+      { token: teacherToken }
+    );
+    const programmingProgress = programmingOverview.data.programming.find(
+      item => item.programId === programmingId
+    );
+    assert.equal(programmingProgress.completed, 1);
+    assert.equal(
+      programmingProgress.details.find(item => item.studentId === studentA.data.id).completed,
+      true
+    );
+    assert.equal(
+      programmingProgress.details.find(item => item.studentId === studentA.data.id).note,
+      '课堂完成并提交 OJ'
+    );
+
+    const unmarkedProgramming = await request(
+      `/api/training-courses/days/${day.day}/programming/${programmingId}/completion`,
+      {
+        method: 'PUT',
+        token: teacherToken,
+        body: { studentId: studentA.data.id, completed: false },
+      }
+    );
+    assert.equal(unmarkedProgramming.response.status, 200);
+    assert.equal(unmarkedProgramming.data.completed, false);
+
     const studentCLogin = await loginStudent('course_student_c');
     const studentCCourseBeforeSubmit = await request('/api/training-courses/student', {
       token: studentCLogin.data.token,

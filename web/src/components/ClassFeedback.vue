@@ -77,8 +77,8 @@
             <span class="practice-material-date">{{ dateDisplay }}</span>
           </div>
           <span v-if="practiceSummaryLoading" class="practice-material-status">读取中…</span>
-          <span v-else-if="practiceSummary?.hasRecords" class="practice-material-status success">可作为反馈素材</span>
-          <span v-else class="practice-material-status muted">当天暂无记录</span>
+          <span v-else-if="practiceSummary?.hasRecords || practiceSummary?.programming?.hasAssignments" class="practice-material-status success">可作为反馈素材</span>
+          <span v-else class="practice-material-status muted">当天暂无训练记录</span>
         </div>
 
         <p v-if="practiceSummaryError" class="practice-material-error">{{ practiceSummaryError }}</p>
@@ -104,6 +104,21 @@
         </template>
         <p v-else class="practice-material-hint">
           {{ practiceSummary?.message || '当天没有客观题训练记录。请结合课堂表现填写，不要据此推断学生没有学习。' }}
+        </p>
+        <div v-if="practiceSummary?.programming?.hasAssignments" class="programming-material">
+          <div class="programming-material-title">
+            <strong>编程题完成标记</strong>
+            <span>{{ practiceSummary.programming.completedCount }}/{{ practiceSummary.programming.assignedCount }} 道已完成</span>
+          </div>
+          <p v-if="practiceSummary.programming.completed.length" class="programming-material-completed">
+            已完成：{{ practiceSummary.programming.completed.map(item => item.programId).join('、') }}
+          </p>
+          <p v-if="practiceSummary.programming.pending.length" class="programming-material-pending">
+            尚未标记完成：{{ practiceSummary.programming.pending.map(item => item.programId).join('、') }}
+          </p>
+        </div>
+        <p v-else-if="!practiceSummaryLoading && !practiceSummaryError" class="practice-material-hint">
+          当天没有可用的集训编程题完成标记。
         </p>
       </section>
       <div class="form-row">
@@ -626,6 +641,12 @@ onMounted(() => {
 .practice-stats, .practice-types { display: flex; flex-wrap: wrap; gap: 8px 14px; margin-top: 10px; color: #334155; font-size: 13px; }
 .practice-types { color: #475569; font-size: 12px; }
 .practice-wrong { margin-top: 9px; color: #b91c1c; font-size: 12px; line-height: 1.6; }
+.programming-material { margin-top: 12px; border-top: 1px solid #e2e8f0; padding-top: 10px; }
+.programming-material-title { display: flex; align-items: center; justify-content: space-between; gap: 8px; color: #334155; font-size: 13px; }
+.programming-material-title span { color: #475569; font-size: 12px; }
+.programming-material-completed, .programming-material-pending { margin: 6px 0 0; font-size: 12px; line-height: 1.5; }
+.programming-material-completed { color: #15803d; }
+.programming-material-pending { color: #b45309; }
 
 /* 月视图日历 */
 .date-picker { display: flex; align-items: center; gap: 10px; }

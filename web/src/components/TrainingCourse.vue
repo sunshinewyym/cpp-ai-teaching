@@ -186,6 +186,33 @@
             </article>
           </div>
           <p v-else-if="assignmentLoading" class="empty-text">正在读取布置进度……</p>
+
+          <section v-if="assignment.programming?.length" class="programming-progress">
+            <header class="programming-progress-head">
+              <div>
+                <h4>每日编程题完成标记</h4>
+                <p>编程题在外部 OJ 完成后，由老师按学生逐题标记；未标记不等同于未完成。</p>
+              </div>
+            </header>
+            <article v-for="item in assignment.programming" :key="item.programId" class="programming-progress-item">
+              <div class="programming-progress-title">
+                <b>{{ programLabel(item.programId) }}</b>
+                <span>{{ item.completed }}/{{ item.total }} 人已完成</span>
+              </div>
+              <div class="programming-student-checks">
+                <label v-for="detail in item.details" :key="detail.studentId">
+                  <input
+                    type="checkbox"
+                    :checked="detail.completed"
+                    :disabled="programmingSavingKey === `${item.programId}:${detail.studentId}`"
+                    @change="markProgrammingCompletion(item, detail, $event.target.checked)"
+                  />
+                  <span>{{ detail.name }}</span>
+                  <small v-if="detail.note">{{ detail.note }}</small>
+                </label>
+              </div>
+            </article>
+          </section>
         </section>
 
         <section class="session">
@@ -569,6 +596,7 @@ const assignmentLoading = ref(false);
 const assigning = ref(false);
 const releasingId = ref('');
 const detailOpen = ref({});
+const programmingSavingKey = ref('');
 
 const workingCourse = computed(() => editing.value ? draft.value : course.value);
 const currentDay = computed(() => workingCourse.value?.days?.[selectedDay.value]);
@@ -860,6 +888,34 @@ function questionLabel(id) {
   return id;
 }
 
+function programLabel(id) {
+  const problem = programMap.get(id);
+  return problem ? `${problem.year} ${questionTypeLabel(problem.type)}第${problem.number}题（${id}）` : id;
+}
+
+async function markProgrammingCompletion(item, detail, completed) {
+  const key = `${item.programId}:${detail.studentId}`;
+  programmingSavingKey.value = key;
+  try {
+    const response = await authFetch(
+      `/api/training-courses/days/${currentDay.value.day}/programming/${encodeURIComponent(item.programId)}/completion`,
+      {
+        method: 'PUT',
+        body: JSON.stringify({ studentId: detail.studentId, completed }),
+      }
+    );
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.error || '保存编程题完成标记失败');
+    detail.completed = data.completed;
+    await loadAssignments();
+  } catch (error) {
+    showMessage(error.message, 'error');
+    await loadAssignments();
+  } finally {
+    programmingSavingKey.value = '';
+  }
+}
+
 function variantLabel(value) {
   return value === 'progress' ? '进阶组' : '高阶组';
 }
@@ -964,6 +1020,18 @@ input:focus, textarea:focus, select:focus { outline: 2px solid #c7d2fe; border-c
 .progress-actions { grid-column: 2; grid-row: 1; display: flex !important; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: 7px; }
 .released-badge { flex-shrink: 0; border-radius: 999px; background: #dcfce7; color: #15803d; padding: 5px 9px; font-size: 12px; }
 .details-button { border-color: #c7d2fe; background: #eef2ff; color: #4338ca; font-size: 12px; }
+.programming-progress { margin-top: 18px; border-top: 1px solid #e2e8f0; padding-top: 16px; }
+.programming-progress-head h4 { margin: 0; color: #312e81; font-size: 16px; }
+.programming-progress-head p { margin: 5px 0 0; color: #64748b; font-size: 12px; }
+.programming-progress-item { margin-top: 12px; border: 1px solid #e2e8f0; border-radius: 8px; padding: 11px 12px; }
+.programming-progress-title { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.programming-progress-title b { color: #334155; font-size: 13px; }
+.programming-progress-title span { color: #64748b; font-size: 12px; }
+.programming-student-checks { display: grid; grid-template-columns: repeat(4, minmax(140px, 1fr)); gap: 7px; margin-top: 9px; }
+.programming-student-checks label { display: grid; grid-template-columns: auto 1fr; gap: 2px 7px; align-items: center; border: 1px solid #eef2f7; border-radius: 6px; padding: 7px 8px; cursor: pointer; }
+.programming-student-checks input { width: auto; grid-row: 1 / 3; }
+.programming-student-checks span { color: #334155; font-size: 12px; font-weight: 700; }
+.programming-student-checks small { color: #64748b; font-size: 11px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .answer-details { grid-column: 1 / -1; display: grid; gap: 6px; margin-top: 3px; border-radius: 7px; background: #f8fafc; padding: 9px 11px; }
 .answer-detail { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 6px 12px; border-radius: 5px; padding: 7px 9px; font-size: 13px; }
 .answer-detail span { color: #334155 !important; font-size: 13px !important; }
@@ -1043,6 +1111,7 @@ input:focus, textarea:focus, select:focus { outline: 2px solid #c7d2fe; border-c
   .training-page { padding: 18px 14px 48px; }
   .page-head, .day-head, .assignment-card > header { flex-direction: column; }
   .progress-list article { grid-template-columns: 1fr; }
+  .programming-student-checks { grid-template-columns: repeat(2, minmax(130px, 1fr)); }
   .progress-actions { grid-column: 1; grid-row: auto; justify-content: flex-start; }
   .head-actions, .head-actions button { width: 100%; }
   .date-field { width: 100%; }

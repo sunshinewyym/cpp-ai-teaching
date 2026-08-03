@@ -90,6 +90,19 @@ db.exec(`
 `);
 
 db.exec(`
+  CREATE TABLE IF NOT EXISTS training_programming_completions (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    assignment_id INTEGER NOT NULL REFERENCES training_day_assignments(id) ON DELETE CASCADE,
+    program_id TEXT NOT NULL,
+    completed INTEGER NOT NULL DEFAULT 1,
+    note TEXT DEFAULT '',
+    marked_by INTEGER REFERENCES users(id),
+    marked_at TEXT DEFAULT (datetime('now','localtime')),
+    UNIQUE(assignment_id, program_id)
+  )
+`);
+
+db.exec(`
   CREATE TABLE IF NOT EXISTS training_question_releases (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     course_id INTEGER NOT NULL REFERENCES training_courses(id) ON DELETE CASCADE,
@@ -166,6 +179,7 @@ db.exec('CREATE INDEX IF NOT EXISTS idx_training_assignments_student ON training
 db.exec('CREATE INDEX IF NOT EXISTS idx_training_assignments_course_day ON training_day_assignments(course_id, day_number)');
 db.exec('CREATE INDEX IF NOT EXISTS idx_training_submissions_assignment ON training_question_submissions(assignment_id)');
 db.exec('CREATE INDEX IF NOT EXISTS idx_training_releases_course_day ON training_question_releases(course_id, day_number)');
+db.exec('CREATE INDEX IF NOT EXISTS idx_training_programming_completion_assignment ON training_programming_completions(assignment_id)');
 db.exec('CREATE UNIQUE INDEX IF NOT EXISTS idx_records_training_submission ON practice_records(training_submission_id) WHERE training_submission_id IS NOT NULL');
 
 // 如果没有老师账号，创建默认 admin
