@@ -181,9 +181,11 @@ function assignmentOverview(course, day) {
     ORDER BY u.class_name, u.name
   `).all(course.id, day.day);
   const submissions = db.prepare(`
-    SELECT s.question_id, s.assignment_id, s.score, s.max_score, s.submitted_at
+    SELECT s.question_id, s.assignment_id, s.answers_json, s.score, s.max_score, s.submitted_at,
+      a.student_id, u.name, u.username, u.class_name
     FROM training_question_submissions s
     JOIN training_day_assignments a ON a.id = s.assignment_id
+    JOIN users u ON u.id = a.student_id
     WHERE a.course_id = ? AND a.day_number = ?
   `).all(course.id, day.day);
   const releases = new Map(db.prepare(`
@@ -205,6 +207,7 @@ function assignmentOverview(course, day) {
       const submittedIds = new Set(submitted.map(item => item.assignment_id));
       const maxTotal = submitted.reduce((sum, item) => sum + Number(item.max_score), 0);
       const scoreTotal = submitted.reduce((sum, item) => sum + Number(item.score), 0);
+      const submittedByStudent = new Map(submitted.map(item => [item.student_id, item]));
       return {
         questionId,
         submitted: submitted.length,
@@ -212,6 +215,29 @@ function assignmentOverview(course, day) {
         released: releases.has(questionId),
         releasedAt: releases.get(questionId) || null,
         averagePercent: maxTotal ? Math.round(scoreTotal * 100 / maxTotal) : null,
+        details: students.map(student => {
+          const submission = submittedByStudent.get(student.id);
+          let answers = null;
+          if (submission) {
+            try {
+              answers = JSON.parse(submission.answers_json);
+            } catch {
+              answers = null;
+            }
+          }
+          return {
+            studentId: student.id,
+            name: student.name,
+            username: student.username,
+            className: student.class_name || '',
+            submitted: Boolean(submission),
+            score: submission ? Number(submission.score) : null,
+            maxScore: submission ? Number(submission.max_score) : null,
+            correct: submission ? Number(submission.score) === Number(submission.max_score) : null,
+            submittedAt: submission?.submitted_at || null,
+            answers,
+          };
+        }),
         missingStudents: students
           .filter(item => !submittedIds.has(item.assignment_id))
           .map(item => ({ id: item.id, name: item.name })),

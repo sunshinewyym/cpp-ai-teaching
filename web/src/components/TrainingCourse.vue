@@ -107,14 +107,39 @@
                   未提交：{{ item.missingStudents.map(student => student.name).join('、') }}
                 </small>
               </div>
-              <strong v-if="item.released" class="released-badge">解析已开放</strong>
-              <button
-                v-else
-                @click="releaseQuestion(item)"
-                :disabled="releasingId === item.questionId || !item.total || item.submitted < item.total"
-              >
-                {{ releasingId === item.questionId ? '开放中……' : '开放本题解析' }}
-              </button>
+              <div class="progress-actions">
+                <strong v-if="item.released" class="released-badge">解析已开放</strong>
+                <button
+                  v-else
+                  @click="releaseQuestion(item)"
+                  :disabled="releasingId === item.questionId || !item.total || item.submitted < item.total"
+                >
+                  {{ releasingId === item.questionId ? '开放中……' : '开放本题解析' }}
+                </button>
+                <button
+                  v-if="item.submitted"
+                  type="button"
+                  class="details-button"
+                  @click="toggleQuestionDetails(item.questionId)"
+                >
+                  {{ detailOpen[item.questionId] ? '收起答题明细' : '查看答题明细' }}
+                </button>
+              </div>
+              <div v-if="detailOpen[item.questionId]" class="answer-details">
+                <div
+                  v-for="detail in (item.details || [])"
+                  :key="detail.studentId"
+                  class="answer-detail"
+                  :class="detail.submitted ? (detail.correct ? 'correct' : 'wrong') : 'missing'"
+                >
+                  <span>{{ detail.name }}<small v-if="detail.className">（{{ detail.className }}）</small></span>
+                  <b v-if="detail.submitted && isProgramQuestion(item.questionId)">
+                    得分 {{ detail.score }}/{{ detail.maxScore }}
+                  </b>
+                  <b v-else-if="detail.submitted">{{ detail.correct ? '正确' : '错误' }}</b>
+                  <b v-else>未提交</b>
+                </div>
+              </div>
             </article>
           </div>
           <p v-else-if="assignmentLoading" class="empty-text">正在读取布置进度……</p>
@@ -499,6 +524,7 @@ const recipientsOpen = ref(false);
 const assignmentLoading = ref(false);
 const assigning = ref(false);
 const releasingId = ref('');
+const detailOpen = ref({});
 
 const workingCourse = computed(() => editing.value ? draft.value : course.value);
 const currentDay = computed(() => workingCourse.value?.days?.[selectedDay.value]);
@@ -567,6 +593,14 @@ async function loadAssignments() {
   } finally {
     assignmentLoading.value = false;
   }
+}
+
+function toggleQuestionDetails(questionId) {
+  detailOpen.value = { ...detailOpen.value, [questionId]: !detailOpen.value[questionId] };
+}
+
+function isProgramQuestion(questionId) {
+  return questionId.includes('-reading-') || questionId.includes('-completion-');
 }
 
 function toggleRecipients() {
@@ -843,12 +877,26 @@ input:focus, textarea:focus, select:focus { outline: 2px solid #c7d2fe; border-c
 .student-checks small { color: #94a3b8; }
 .recipient-save { display: flex; justify-content: flex-end; margin-top: 13px; }
 .progress-list { display: grid; gap: 8px; margin-top: 16px; }
-.progress-list article { display: flex; align-items: center; justify-content: space-between; gap: 16px; border-top: 1px solid #eef2f7; padding-top: 10px; }
+.progress-list article { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 10px 16px; border-top: 1px solid #eef2f7; padding-top: 10px; }
 .progress-list article > div { display: grid; gap: 3px; }
+.progress-list article > div:first-child { grid-column: 1; }
 .progress-list article b { color: #334155; }
 .progress-list article span { color: #64748b; font-size: 13px; }
 .progress-list article small { color: #c2410c; }
+.progress-actions { grid-column: 2; grid-row: 1; display: flex !important; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: 7px; }
 .released-badge { flex-shrink: 0; border-radius: 999px; background: #dcfce7; color: #15803d; padding: 5px 9px; font-size: 12px; }
+.details-button { border-color: #c7d2fe; background: #eef2ff; color: #4338ca; font-size: 12px; }
+.answer-details { grid-column: 1 / -1; display: grid; gap: 6px; margin-top: 3px; border-radius: 7px; background: #f8fafc; padding: 9px 11px; }
+.answer-detail { display: flex; align-items: center; justify-content: space-between; gap: 12px; border-radius: 5px; padding: 7px 9px; font-size: 13px; }
+.answer-detail span { color: #334155 !important; font-size: 13px !important; }
+.answer-detail span small { margin-left: 3px; color: #94a3b8 !important; font-size: 11px !important; }
+.answer-detail b { font-size: 12px; }
+.answer-detail.correct { background: #f0fdf4; color: #15803d; }
+.answer-detail.correct b { color: #15803d; }
+.answer-detail.wrong { background: #fef2f2; color: #b91c1c; }
+.answer-detail.wrong b { color: #b91c1c; }
+.answer-detail.missing { background: #fff7ed; color: #c2410c; }
+.answer-detail.missing b { color: #c2410c; }
 .session { border: 1px solid #dbe2ea; border-radius: 10px; background: #fff; padding: 22px; }
 .session.afternoon { border-top: 4px solid #0ea5e9; }
 .session-title { display: flex; align-items: center; gap: 12px; margin-bottom: 17px; }
@@ -908,7 +956,9 @@ input:focus, textarea:focus, select:focus { outline: 2px solid #c7d2fe; border-c
 }
 @media (max-width: 640px) {
   .training-page { padding: 18px 14px 48px; }
-  .page-head, .day-head, .assignment-card > header, .progress-list article { flex-direction: column; }
+  .page-head, .day-head, .assignment-card > header { flex-direction: column; }
+  .progress-list article { grid-template-columns: 1fr; }
+  .progress-actions { grid-column: 1; grid-row: auto; justify-content: flex-start; }
   .head-actions, .head-actions button { width: 100%; }
   .date-field { width: 100%; }
   .student-checks { grid-template-columns: 1fr; }

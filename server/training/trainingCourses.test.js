@@ -136,10 +136,22 @@ async function main() {
 
     const secondSubmit = await request(
       `/api/training-courses/student/courses/${saved.data.id}/days/${day.day}/questions/${questionId}/submit`,
-      { method: 'POST', token: studentBLogin.data.token, body: { answers: answer } }
+      { method: 'POST', token: studentBLogin.data.token, body: { answers: { [questionId]: ['D'] } } }
     );
     assert.equal(secondSubmit.response.status, 200);
     assert.equal(secondSubmit.data.leaderboardEligible, false);
+
+    const assignmentDetails = await request(
+      `/api/training-courses/days/${day.day}/assignments`,
+      { token: teacherToken }
+    );
+    const questionDetails = assignmentDetails.data.questions.find(item => item.questionId === questionId).details;
+    assert.equal(questionDetails.length, 2);
+    assert.ok(questionDetails.every(item => item.submitted));
+    assert.equal(questionDetails.filter(item => item.correct).length, 1);
+    assert.equal(questionDetails.filter(item => item.correct === false).length, 1);
+    assert.ok(questionDetails.some(item => item.answers[questionId]?.[0] === 'C'));
+    assert.ok(questionDetails.some(item => item.answers[questionId]?.[0] === 'D'));
 
     const released = await request(
       `/api/training-courses/days/${day.day}/questions/${questionId}/release`,

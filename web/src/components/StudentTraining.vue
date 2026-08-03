@@ -69,7 +69,7 @@
                   @click="openQuestion(id)"
                 >
                   <span>{{ questionLabel(id) }}</span>
-                  <b :class="statusClass(questionState(id))">{{ statusLabel(questionState(id)) }}</b>
+                  <b :class="statusClass(questionState(id), id)">{{ statusLabel(questionState(id), id) }}</b>
                 </button>
                 <p v-if="!currentDay.questions[group.type].length" class="empty-text">本日未布置</p>
               </section>
@@ -134,6 +134,8 @@
             :question="choicePart(preview.item)"
             :selected="draftAnswers[preview.id] || []"
             :disabled="preview.state.submitted"
+            :show-result="preview.state.released"
+            :correct-answers="[preview.item.answer]"
             @select="selectOption(choicePart(preview.item), $event)"
           />
           <AnswerBox
@@ -154,6 +156,8 @@
                 :question="item"
                 :selected="draftAnswers[item.id] || []"
                 :disabled="preview.state.submitted"
+                :show-result="preview.state.released"
+                :correct-answers="item.answers"
                 @select="selectOption(item, $event)"
               />
               <AnswerBox
@@ -227,20 +231,35 @@ const ProgramLinks = defineComponent({
 });
 
 const OptionList = defineComponent({
-  props: { question: Object, selected: Array, disabled: Boolean },
+  props: {
+    question: Object,
+    selected: Array,
+    disabled: Boolean,
+    showResult: Boolean,
+    correctAnswers: Array,
+  },
   emits: ['select'],
   setup(props, { emit }) {
-    return () => h('div', { class: 'option-list' },
+    return () => {
+      const correctAnswers = props.correctAnswers || [];
+      return h('div', { class: 'option-list' },
       Object.entries(props.question.options || {}).map(([key, text]) => h('button', {
         type: 'button',
-        class: { selected: props.selected.includes(key) },
+        class: {
+          selected: props.selected.includes(key),
+          'result-correct': props.showResult && correctAnswers.includes(key),
+          'result-wrong': props.showResult
+            && props.selected.includes(key)
+            && !correctAnswers.includes(key),
+        },
         disabled: props.disabled,
         onClick: () => emit('select', key),
       }, [
         h('b', key),
         h('span', { innerHTML: renderInline(text) }),
       ]))
-    );
+      );
+    };
   },
 });
 
@@ -327,16 +346,28 @@ function questionState(id) {
   return currentDay.value?.states?.[id] || { submitted: false, released: false, answers: null };
 }
 
-function statusLabel(state) {
-  if (state.released) return '解析已开放';
+function statusLabel(state, id) {
+  if (state.released) {
+    const item = choiceMap.get(id) || programMap.get(id);
+    if (choiceMap.has(id)) return isChoiceCorrect(item, state) ? '正确' : '错误';
+    return `得分 ${state.score ?? 0}/${state.maxScore ?? 0}`;
+  }
   if (state.submitted) return '已提交，等待解析';
   return '未提交';
 }
 
-function statusClass(state) {
-  if (state.released) return 'released';
+function statusClass(state, id) {
+  if (state.released) {
+    if (choiceMap.has(id)) return isChoiceCorrect(choiceMap.get(id), state) ? 'correct' : 'wrong';
+    return 'score';
+  }
   if (state.submitted) return 'waiting';
   return 'pending';
+}
+
+function isChoiceCorrect(item, state) {
+  const selected = state.answers?.[item.id];
+  return Array.isArray(selected) && selected.length === 1 && selected[0] === item.answer;
 }
 
 async function openQuestion(id) {
@@ -500,6 +531,9 @@ button.primary { border-color: #4f46e5; background: #4f46e5; color: #fff; font-w
 .question-card b.pending { background: #f1f5f9; color: #64748b; }
 .question-card b.waiting { background: #fff7ed; color: #c2410c; }
 .question-card b.released { background: #dcfce7; color: #15803d; }
+.question-card b.correct { background: #dcfce7; color: #15803d; }
+.question-card b.wrong { background: #fee2e2; color: #b91c1c; }
+.question-card b.score { background: #dbeafe; color: #1d4ed8; }
 .program-groups { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 14px; }
 .program-group :deep(.program-links) { display: flex; flex-wrap: wrap; gap: 8px; }
 .program-group :deep(.program-links a) { display: inline-flex; border: 1px solid #bfdbfe; border-radius: 6px; background: #eff6ff; color: #2563eb; padding: 7px 10px; font-weight: 800; text-decoration: none; }
@@ -523,6 +557,8 @@ button.primary { border-color: #4f46e5; background: #4f46e5; color: #fff; font-w
 .option-list :deep(button) { width: 100%; display: flex; align-items: flex-start; gap: 10px; border: 1px solid #cbd5e1; border-radius: 7px; background: #fff; color: #334155; padding: 11px 13px; font: inherit; text-align: left; cursor: pointer; }
 .option-list :deep(button:hover:not(:disabled)) { border-color: #818cf8; background: #f8faff; }
 .option-list :deep(button.selected) { border-color: #6366f1; background: #eef2ff; color: #3730a3; }
+.option-list :deep(button.result-correct) { border-color: #22c55e; background: #f0fdf4; color: #166534; }
+.option-list :deep(button.result-wrong) { border-color: #ef4444; background: #fef2f2; color: #b91c1c; }
 .option-list :deep(button b) { min-width: 22px; color: #4f46e5; }
 .sub-question { border-top: 1px solid #e2e8f0; padding: 18px 0; }
 .sub-question h4 { line-height: 1.7; }
