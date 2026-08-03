@@ -191,10 +191,53 @@ async function main() {
     assert.equal(classBoard.data.rows.length, 1);
     assert.deepEqual(classBoard.data.classes, ['一班', '二班']);
 
+    const assignmentB = db.prepare(`
+      INSERT INTO training_day_assignments (course_id, teacher_id, day_number, student_id)
+      VALUES (?, ?, 1, ?)
+    `).run(course.id, teacher.data.id, studentB.data.id);
+    const insertCspSMirror = (questionId, questionType, partCount, submittedAt) => {
+      const parts = Array.from({ length: partCount }, (_, index) => ({
+        id: partCount === 1 ? questionId : `${questionId}-${index + 1}`,
+        number: partCount === 1
+          ? Number(questionId.split('-').pop())
+          : `${questionId.split('-').pop()}.${index + 1}`,
+      }));
+      const answers = Object.fromEntries(parts.map(part => [part.id, ['A']]));
+      const submission = db.prepare(`
+        INSERT INTO training_question_submissions
+          (assignment_id, question_id, answers_json, score, max_score, submitted_at)
+        VALUES (?, ?, ?, 0, ?, ?)
+      `).run(
+        Number(assignmentB.lastInsertRowid),
+        questionId,
+        JSON.stringify(answers),
+        partCount,
+        submittedAt
+      );
+      db.prepare(`
+        INSERT INTO practice_records
+          (user_id, level, year, question_type, total_score, max_score, answers_json, created_at, training_submission_id)
+        VALUES (?, 'CSP-S', 2019, ?, 0, ?, ?, ?, ?)
+      `).run(
+        studentB.data.id,
+        questionType,
+        partCount,
+        JSON.stringify({ questions: parts.map(part => ({ ...part, correct: false })) }),
+        submittedAt,
+        Number(submission.lastInsertRowid)
+      );
+    };
+    insertCspSMirror('csp-s-2019-choice-3', 'choice', 1, '2026-07-20 08:00:00');
+    insertCspSMirror('csp-s-2019-reading-1', 'reading', 6, '2026-07-20 08:01:00');
+    insertCspSMirror('csp-s-2019-completion-2', 'completion', 5, '2026-07-20 08:02:00');
+
     const sBoard = await request('/api/leaderboard?level=S&period=all', {
       token: teacherLogin.data.token,
     });
-    assert.ok(sBoard.data.rows.every(item => item.solvedCount === 0));
+    const sStudentA = sBoard.data.rows.find(item => item.id === studentA.data.id);
+    const sStudentB = sBoard.data.rows.find(item => item.id === studentB.data.id);
+    assert.equal(sStudentA.solvedCount, 0);
+    assert.equal(sStudentB.solvedCount, 12);
 
     const gespBoard = await request('/api/leaderboard?level=GESP-2&period=all', {
       token: teacherLogin.data.token,

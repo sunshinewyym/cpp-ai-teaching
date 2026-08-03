@@ -31,9 +31,15 @@ function trainingLevelCode(questionId) {
   return match ? `GESP-${match[1]}` : 'J';
 }
 
+function canonicalQuestionId(value) {
+  const rawId = String(value || '').trim();
+  const cspS = /^csp-s-(\d{4}-(?:choice|reading|completion)-\d+(?:-\d+)?)$/i.exec(rawId);
+  return cspS ? cspS[1] : rawId;
+}
+
 function practiceQuestionKey(record, question, index) {
   const level = levelCode(record.level);
-  const rawId = String(question.id || '');
+  const rawId = canonicalQuestionId(question.id);
   const baseId = /^\d{4}-(choice|reading|completion)-\d+/.test(rawId) || /^gesp-/i.test(rawId)
     ? rawId
     : `${record.year}-${record.question_type}-${question.number || rawId || index + 1}`;
@@ -219,7 +225,7 @@ router.get('/', auth, async (req, res, next) => {
         definition.parts.forEach((part, index) => {
           events.push({
             studentId: submission.student_id,
-            key: `${submissionLevel}:${part.id}`,
+            key: `${submissionLevel}:${canonicalQuestionId(part.id)}`,
             level: submissionLevel,
             correct: sameAnswers(answers[part.id], part.answers),
             visible: req.user.role === 'teacher' || Boolean(submission.released),
