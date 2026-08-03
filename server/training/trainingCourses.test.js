@@ -8,6 +8,7 @@ process.env.DATA_DIR = testDataDir;
 
 const app = require('../app');
 const db = require('../db');
+const { loadQuestionBank } = require('./questionBank');
 
 async function main() {
   const server = app.listen(0, '127.0.0.1');
@@ -285,6 +286,34 @@ async function main() {
     const studentCStateAfterSubmit = studentCCourseAfterSubmit.data.courses[0].days[0].states[questionId];
     assert.equal(studentCStateAfterSubmit.submitted, true);
     assert.equal(studentCStateAfterSubmit.released, true);
+    const programQuestionId = day.questions.reading[0];
+    const programDefinition = (await loadQuestionBank()).get(programQuestionId);
+    const programAnswers = Object.fromEntries(programDefinition.parts.map((part, index) => {
+      if (index === 0) {
+        const wrong = part.options.find(option => !part.answers.includes(option));
+        return [part.id, [wrong]];
+      }
+      return [part.id, [...part.answers]];
+    }));
+    await request(
+      `/api/training-courses/student/courses/${saved.data.id}/days/${day.day}/questions/${programQuestionId}/start`,
+      { method: 'POST', token: studentCLogin.data.token }
+    );
+    const programSubmit = await request(
+      `/api/training-courses/student/courses/${saved.data.id}/days/${day.day}/questions/${programQuestionId}/submit`,
+      { method: 'POST', token: studentCLogin.data.token, body: { answers: programAnswers } }
+    );
+    assert.equal(programSubmit.response.status, 200);
+    const programDetails = await request(
+      `/api/training-courses/days/${day.day}/assignments`,
+      { token: teacherToken }
+    );
+    const programStudentDetail = programDetails.data.questions
+      .find(item => item.questionId === programQuestionId)
+      .details.find(item => item.studentId === studentC.data.id);
+    assert.equal(programStudentDetail.parts.length, programDefinition.parts.length);
+    assert.equal(programStudentDetail.parts[0].correct, false);
+    assert.ok(programStudentDetail.parts.slice(1).every(part => part.correct));
     const makeupResubmit = await request(
       `/api/training-courses/student/courses/${saved.data.id}/days/${day.day}/questions/${questionId}/submit`,
       { method: 'POST', token: studentCLogin.data.token, body: { answers: { [questionId]: ['C'] } } }

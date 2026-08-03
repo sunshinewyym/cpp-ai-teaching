@@ -164,6 +164,23 @@
                   </b>
                   <b v-else-if="detail.submitted">{{ detail.correct ? '正确' : '错误' }}</b>
                   <b v-else>未提交</b>
+                  <div
+                    v-if="detail.submitted && isProgramQuestion(item.questionId) && detail.parts?.length"
+                    class="answer-parts"
+                  >
+                    <div
+                      v-for="part in detail.parts"
+                      :key="part.id"
+                      class="answer-part"
+                      :class="part.correct ? 'correct' : 'wrong'"
+                    >
+                      <span>第 {{ part.number || part.id }} 小问：{{ part.correct ? '正确' : '错误' }}</span>
+                      <small>
+                        学生：{{ part.user_answer_label || part.user_answer || '未作答' }}；
+                        正确：{{ part.correct_answer_label || part.correct_answer || '-' }}
+                      </small>
+                    </div>
+                  </div>
                 </div>
               </div>
             </article>
@@ -948,16 +965,22 @@ input:focus, textarea:focus, select:focus { outline: 2px solid #c7d2fe; border-c
 .released-badge { flex-shrink: 0; border-radius: 999px; background: #dcfce7; color: #15803d; padding: 5px 9px; font-size: 12px; }
 .details-button { border-color: #c7d2fe; background: #eef2ff; color: #4338ca; font-size: 12px; }
 .answer-details { grid-column: 1 / -1; display: grid; gap: 6px; margin-top: 3px; border-radius: 7px; background: #f8fafc; padding: 9px 11px; }
-.answer-detail { display: flex; align-items: center; justify-content: space-between; gap: 12px; border-radius: 5px; padding: 7px 9px; font-size: 13px; }
+.answer-detail { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 6px 12px; border-radius: 5px; padding: 7px 9px; font-size: 13px; }
 .answer-detail span { color: #334155 !important; font-size: 13px !important; }
 .answer-detail span small { margin-left: 3px; color: #94a3b8 !important; font-size: 11px !important; }
 .answer-detail b { font-size: 12px; }
+.answer-parts { grid-column: 1 / -1; display: grid; gap: 4px; margin-top: 2px; }
+.answer-part { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 4px 10px; border-radius: 4px; padding: 5px 7px; background: rgba(255, 255, 255, .7); font-size: 12px; }
+.answer-part span { font-size: 12px !important; font-weight: 700; }
+.answer-part small { color: inherit; font-size: 11px; opacity: .82; }
 .answer-detail.correct { background: #f0fdf4; color: #15803d; }
 .answer-detail.correct b { color: #15803d; }
 .answer-detail.wrong { background: #fef2f2; color: #b91c1c; }
 .answer-detail.wrong b { color: #b91c1c; }
 .answer-detail.missing { background: #fff7ed; color: #c2410c; }
 .answer-detail.missing b { color: #c2410c; }
+.answer-part.correct { color: #166534; background: #dcfce7; }
+.answer-part.wrong { color: #991b1b; background: #fee2e2; }
 .session { border: 1px solid #dbe2ea; border-radius: 10px; background: #fff; padding: 22px; }
 .session.afternoon { border-top: 4px solid #0ea5e9; }
 .session-title { display: flex; align-items: center; gap: 12px; margin-bottom: 17px; }

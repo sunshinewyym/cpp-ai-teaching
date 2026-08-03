@@ -3,8 +3,11 @@ const db = require('../db');
 const { auth, requireTeacher, requireAdmin } = require('../middleware/auth');
 const { cloneTrainingCourseTemplate } = require('../training/trainingCourseTemplate');
 const { cloneTrainingCourseProgressTemplate } = require('../training/trainingCourseProgressTemplate');
-const { gradeQuestion } = require('../training/questionBank');
-const { buildTrainingPracticeRecord } = require('../training/trainingRecord');
+const { gradeQuestion, loadQuestionBank } = require('../training/questionBank');
+const {
+  buildTrainingPracticeRecord,
+  buildTrainingPracticeRecordFromSubmission,
+} = require('../training/trainingRecord');
 const { isLeaderboardDurationValid } = require('../leaderboardRules');
 
 const router = express.Router();
@@ -192,7 +195,8 @@ function teacherOwnsStudent(user, studentId) {
     : db.prepare(sql).get(studentId, user.id);
 }
 
-function assignmentOverview(course, day) {
+async function assignmentOverview(course, day) {
+  const questionBank = await loadQuestionBank();
   const questionIds = assignedQuestionIds(course, day);
   const students = db.prepare(`
     SELECT a.id AS assignment_id, u.id, u.name, u.username, u.class_name
@@ -240,9 +244,23 @@ function assignmentOverview(course, day) {
         details: students.map(student => {
           const submission = submittedByStudent.get(student.id);
           let answers = null;
+          let parts = [];
           if (submission) {
             try {
               answers = JSON.parse(submission.answers_json);
+              const definition = questionBank.get(questionId);
+              const record = definition
+                ? buildTrainingPracticeRecordFromSubmission(
+                  questionId,
+                  definition,
+                  answers,
+                  submission.score,
+                  submission.max_score,
+                  submission.duration_seconds,
+                  submission.id
+                )
+                : null;
+              parts = record?.answers?.questions || [];
             } catch {
               answers = null;
             }
@@ -258,6 +276,7 @@ function assignmentOverview(course, day) {
             correct: submission ? Number(submission.score) === Number(submission.max_score) : null,
             submittedAt: submission?.submitted_at || null,
             answers,
+            parts,
           };
         }),
         missingStudents: students
@@ -322,18 +341,18 @@ router.put('/me', auth, requireTeacher, (req, res) => {
   res.json(rowToCourse(row));
 });
 
-router.get('/days/:day/assignments', auth, requireTeacher, (req, res) => {
+router.get('/days/:day/assignments', auth, requireTeacher, async (req, res) => {
   const course = getTeacherCourse(req.user.id);
   if (!course) return res.status(403).json({ error: '当前账号没有集训课程权限' });
   try {
     const day = getCourseDay(course, req.params.day);
-    res.json(assignmentOverview(course, day));
+    res.json(await assignmentOverview(course, day));
   } catch (error) {
     res.status(404).json({ error: error.message });
   }
 });
 
-router.post('/days/:day/assignments', auth, requireTeacher, (req, res) => {
+router.post('/days/:day/assignments', auth, requireTeacher, async (req, res) => {
   const course = getTeacherCourse(req.user.id);
   if (!course) return res.status(403).json({ error: '当前账号没有集训课程权限' });
 
@@ -417,7 +436,11 @@ router.post('/days/:day/assignments', auth, requireTeacher, (req, res) => {
 
   const updatedCourse = db.prepare('SELECT * FROM training_courses WHERE id = ?').get(course.id);
   const updatedDay = getCourseDay(updatedCourse, day.day);
-  res.json(assignmentOverview(updatedCourse, updatedDay));
+  try {
+    res.json(await assignmentOverview(updatedCourse, updatedDay));
+  } catch (error) {
+    res.status(500).json({ error: '甯冪疆杩涘害璇诲彇澶辫触' });
+  }
 });
 
 router.post('/days/:day/questions/:questionId/release', auth, requireTeacher, (req, res) => {
