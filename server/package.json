@@ -12,7 +12,8 @@
     "test:debug-runner": "node services/codeRunner.test.js",
     "test:coach": "node coach/engine.test.js && node coach/guide.test.js && node coach/article.test.js",
     "test:training-course": "node training/trainingCourses.test.js",
-    "test:leaderboard": "node leaderboard.test.js"
+    "test:leaderboard": "node leaderboard.test.js",
+    "test:feedback": "node feedback.test.js"
   },
   "dependencies": {
     "axios": "^1.6.0",

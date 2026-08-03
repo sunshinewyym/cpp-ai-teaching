@@ -70,6 +70,42 @@
         <label>题号 <span class="optional-tag">（可选）</span></label>
         <input v-model="problemIds" placeholder="没有题号可留空；多个用逗号分隔，例如：1106,1111,1129" />
       </div>
+      <section v-if="selectedStudent" class="practice-material">
+        <div class="practice-material-head">
+          <div>
+            <strong>当天做题记录</strong>
+            <span class="practice-material-date">{{ dateDisplay }}</span>
+          </div>
+          <span v-if="practiceSummaryLoading" class="practice-material-status">读取中…</span>
+          <span v-else-if="practiceSummary?.hasRecords" class="practice-material-status success">可作为反馈素材</span>
+          <span v-else class="practice-material-status muted">当天暂无记录</span>
+        </div>
+
+        <p v-if="practiceSummaryError" class="practice-material-error">{{ practiceSummaryError }}</p>
+        <template v-else-if="practiceSummaryLoading">
+          <p class="practice-material-hint">正在读取该学生当天的客观题训练记录。</p>
+        </template>
+        <template v-else-if="practiceSummary?.hasRecords">
+          <div class="practice-stats">
+            <span>记录 {{ practiceSummary.totalRecords }} 次</span>
+            <span>小题 {{ practiceSummary.totalQuestions }} 题</span>
+            <span>答对 {{ practiceSummary.correctQuestions }} 题</span>
+            <span v-if="practiceSummary.accuracyPercent !== null">正确率 {{ practiceSummary.accuracyPercent }}%</span>
+            <span>得分 {{ practiceSummary.totalScore }}/{{ practiceSummary.maxScore }}</span>
+          </div>
+          <div class="practice-types">
+            <span v-for="item in practiceSummary.byType" :key="item.type">
+              {{ item.label }} {{ item.correctQuestions }}/{{ item.questions }}，{{ item.totalScore }}/{{ item.maxScore }} 分
+            </span>
+          </div>
+          <div v-if="practiceSummary.wrongQuestions?.length" class="practice-wrong">
+            错题提示：{{ practiceSummary.wrongQuestions.slice(0, 8).map(formatWrongQuestion).join('；') }}<span v-if="practiceSummary.wrongQuestions.length > 8">等 {{ practiceSummary.wrongQuestions.length }} 题</span>
+          </div>
+        </template>
+        <p v-else class="practice-material-hint">
+          {{ practiceSummary?.message || '当天没有客观题训练记录。请结合课堂表现填写，不要据此推断学生没有学习。' }}
+        </p>
+      </section>
       <div class="form-row">
         <label>课堂表现</label>
         <textarea
@@ -195,6 +231,10 @@ const historyRecords = ref([]);
 const historyLoading = ref(false);
 const expanded = ref({});
 
+const practiceSummary = ref(null);
+const practiceSummaryLoading = ref(false);
+const practiceSummaryError = ref('');
+
 const analysis = ref('');
 const analyzing = ref(false);
 const analysisError = ref('');
@@ -207,6 +247,13 @@ const viewYear = ref(initNow.getFullYear());
 const viewMonth = ref(initNow.getMonth() + 1);
 const selected = ref({ year: initNow.getFullYear(), month: initNow.getMonth() + 1, day: initNow.getDate() });
 date.value = `${initNow.getMonth() + 1}月${initNow.getDate()}日`;
+
+const dateKey = computed(() => {
+  const year = selected.value.year;
+  const month = String(selected.value.month).padStart(2, '0');
+  const day = String(selected.value.day).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+});
 
 const dateDisplay = computed(() => {
   const t = new Date();
@@ -335,6 +382,34 @@ async function loadStudents() {
   }
 }
 
+function formatWrongQuestion(item) {
+  const title = `${item.typeLabel || '客观题'}第${item.number || '?'}小题`;
+  if (!item.userAnswer && !item.correctAnswer) return title;
+  return `${title}（作答${item.userAnswer || '未提供'}，正确答案${item.correctAnswer || '未提供'}）`;
+}
+
+async function loadPracticeSummary() {
+  if (!selectedStudent.value) {
+    practiceSummary.value = null;
+    practiceSummaryError.value = '';
+    return;
+  }
+  practiceSummaryLoading.value = true;
+  practiceSummaryError.value = '';
+  try {
+    const query = new URLSearchParams({ student_id: selectedStudent.value, date: dateKey.value });
+    const resp = await authFetch(`/api/feedback/practice-summary?${query.toString()}`);
+    const data = await resp.json();
+    if (!resp.ok) throw new Error(data.error || '读取当天做题记录失败');
+    practiceSummary.value = data;
+  } catch (e) {
+    practiceSummary.value = null;
+    practiceSummaryError.value = e.message || '读取当天做题记录失败';
+  } finally {
+    practiceSummaryLoading.value = false;
+  }
+}
+
 async function saveStyle() {
   savingStyle.value = true;
   styleMsg.value = '';
@@ -366,6 +441,8 @@ async function generate() {
       method: 'POST',
       body: JSON.stringify({
         date: date.value,
+        date_key: dateKey.value,
+        student_id: selectedStudent.value || '',
         topic: topic.value,
         problemIds: problemIds.value,
         performance: performance.value,
@@ -498,7 +575,11 @@ async function copyResult() {
   }
 }
 
-watch(selectedStudent, loadHistory);
+watch(selectedStudent, () => {
+  loadHistory();
+  loadPracticeSummary();
+});
+watch(dateKey, loadPracticeSummary);
 onMounted(() => {
   loadStyle();
   loadStudents();
@@ -532,6 +613,19 @@ onMounted(() => {
 .gen-btn { align-self: flex-start; padding: 11px 26px; border: none; border-radius: 8px; background: linear-gradient(135deg, #4f46e5, #6366f1); color: #fff; font-size: 15px; font-weight: 600; cursor: pointer; }
 .gen-btn:hover:not(:disabled) { opacity: 0.85; }
 .gen-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.practice-material { padding: 14px 16px; background: #f8fafc; border: 1px solid #dbeafe; border-left: 4px solid #6366f1; border-radius: 9px; }
+.practice-material-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; color: #334155; }
+.practice-material-head strong { font-size: 14px; }
+.practice-material-date { margin-left: 8px; color: #64748b; font-size: 12px; }
+.practice-material-status { flex-shrink: 0; color: #4f46e5; font-size: 12px; }
+.practice-material-status.success { color: #15803d; }
+.practice-material-status.muted { color: #b45309; }
+.practice-material-hint, .practice-material-error { margin: 9px 0 0; color: #64748b; font-size: 13px; line-height: 1.6; }
+.practice-material-error { color: #b91c1c; }
+.practice-stats, .practice-types { display: flex; flex-wrap: wrap; gap: 8px 14px; margin-top: 10px; color: #334155; font-size: 13px; }
+.practice-types { color: #475569; font-size: 12px; }
+.practice-wrong { margin-top: 9px; color: #b91c1c; font-size: 12px; line-height: 1.6; }
 
 /* 月视图日历 */
 .date-picker { display: flex; align-items: center; gap: 10px; }

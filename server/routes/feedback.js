@@ -3,6 +3,8 @@ const axios = require('axios');
 const db = require('../db');
 const { auth, requireTeacher } = require('../middleware/auth');
 const { chatStream } = require('../services/deepseek');
+const { loadQuestionBank } = require('../training/questionBank');
+const { buildTrainingPracticeRecordFromSubmission } = require('../training/trainingRecord');
 
 const router = express.Router();
 
@@ -64,6 +66,207 @@ function getOwnedStudent(teacherUser, studentId) {
   return db.prepare(sql).get(...params);
 }
 
+const OBJECTIVE_TYPES = new Set(['choice', 'judgment', 'reading', 'completion']);
+const OBJECTIVE_TYPE_LABELS = {
+  choice: '选择题',
+  judgment: '判断题',
+  reading: '阅读程序',
+  completion: '完善程序',
+};
+
+function isDateKey(value) {
+  return /^\d{4}-\d{2}-\d{2}$/.test(String(value || '').trim());
+}
+
+function emptyPracticeSummary(dateKey) {
+  return {
+    date: dateKey,
+    hasRecords: false,
+    totalRecords: 0,
+    totalQuestions: 0,
+    correctQuestions: 0,
+    accuracyPercent: null,
+    totalScore: 0,
+    maxScore: 0,
+    byType: [],
+    wrongQuestions: [],
+    records: [],
+    message: '当天没有客观题训练记录。该学生可能只参加了半天课程，请结合课堂表现补充，不要据此推断其没有学习。',
+  };
+}
+
+function normalizeSummaryQuestion(question) {
+  return {
+    id: question.id || '',
+    number: question.number || question.id || '',
+    correct: question.correct === true || question.correct === 1 || question.correct === 'true',
+    score: Number(question.score) || 0,
+    userAnswer: question.user_answer_label || question.user_answer || '',
+    correctAnswer: question.correct_answer_label || question.correct_answer || '',
+  };
+}
+
+function summaryRecordFromPracticeRow(row) {
+  let answers;
+  try {
+    answers = JSON.parse(row.answers_json);
+  } catch {
+    return null;
+  }
+  const questions = Array.isArray(answers?.questions)
+    ? answers.questions.map(normalizeSummaryQuestion)
+    : [];
+  if (!questions.length) return null;
+  return {
+    id: `practice-${row.id}`,
+    source: 'practice_record',
+    trainingSubmissionId: row.training_submission_id || null,
+    level: row.level || '',
+    year: row.year,
+    session: answers.session || String(row.year || ''),
+    questionType: row.question_type,
+    totalScore: Number(row.total_score) || 0,
+    maxScore: Number(row.max_score) || 0,
+    createdAt: row.created_at,
+    questions,
+  };
+}
+
+function summaryRecordFromTrainingSubmission(row, definition) {
+  let answers;
+  try {
+    answers = JSON.parse(row.answers_json);
+  } catch {
+    return null;
+  }
+  const record = buildTrainingPracticeRecordFromSubmission(
+    row.question_id,
+    definition,
+    answers,
+    row.score,
+    row.max_score,
+    row.duration_seconds,
+    row.submission_id
+  );
+  if (!record) return null;
+  return {
+    id: `training-${row.submission_id}`,
+    source: 'training_submission',
+    trainingSubmissionId: row.submission_id,
+    level: record.level,
+    year: record.year,
+    session: record.answers.session || String(record.year || ''),
+    questionType: record.question_type,
+    totalScore: Number(record.total_score) || 0,
+    maxScore: Number(record.max_score) || 0,
+    createdAt: row.submitted_at,
+    questions: record.answers.questions.map(normalizeSummaryQuestion),
+  };
+}
+
+function finalizePracticeSummary(dateKey, records) {
+  const summary = emptyPracticeSummary(dateKey);
+  summary.records = records.sort((left, right) => String(left.createdAt).localeCompare(String(right.createdAt)));
+  if (!records.length) return summary;
+
+  const byType = new Map();
+  for (const record of records) {
+    const type = OBJECTIVE_TYPES.has(record.questionType) ? record.questionType : 'choice';
+    const item = byType.get(type) || {
+      type,
+      label: OBJECTIVE_TYPE_LABELS[type] || type,
+      records: 0,
+      questions: 0,
+      correctQuestions: 0,
+      totalScore: 0,
+      maxScore: 0,
+    };
+    item.records += 1;
+    item.questions += record.questions.length;
+    item.correctQuestions += record.questions.filter(question => question.correct).length;
+    item.totalScore += record.totalScore;
+    item.maxScore += record.maxScore;
+    byType.set(type, item);
+  }
+
+  summary.hasRecords = true;
+  summary.totalRecords = records.length;
+  summary.totalQuestions = records.reduce((total, record) => total + record.questions.length, 0);
+  summary.correctQuestions = records.reduce(
+    (total, record) => total + record.questions.filter(question => question.correct).length,
+    0
+  );
+  summary.accuracyPercent = summary.totalQuestions
+    ? Math.round(summary.correctQuestions * 10000 / summary.totalQuestions) / 100
+    : null;
+  summary.totalScore = records.reduce((total, record) => total + record.totalScore, 0);
+  summary.maxScore = records.reduce((total, record) => total + record.maxScore, 0);
+  summary.byType = [...byType.values()];
+  summary.wrongQuestions = records.flatMap(record => record.questions
+    .filter(question => !question.correct)
+    .map(question => ({
+      level: record.level,
+      year: record.year,
+      questionType: record.questionType,
+      typeLabel: OBJECTIVE_TYPE_LABELS[record.questionType] || record.questionType,
+      number: question.number,
+      userAnswer: question.userAnswer,
+      correctAnswer: question.correctAnswer,
+    })));
+  return summary;
+}
+
+async function buildDailyPracticeSummary(studentId, dateKey) {
+  const practiceRows = db.prepare(`
+    SELECT id, level, year, question_type, total_score, max_score,
+      answers_json, duration_seconds, training_submission_id, created_at
+    FROM practice_records
+    WHERE user_id = ?
+      AND substr(created_at, 1, 10) = ?
+      AND question_type IN ('choice', 'judgment', 'reading', 'completion')
+    ORDER BY created_at, id
+  `).all(studentId, dateKey);
+  const records = practiceRows.map(summaryRecordFromPracticeRow).filter(Boolean);
+  const linkedSubmissionIds = new Set(
+    records.map(record => record.trainingSubmissionId).filter(Boolean).map(String)
+  );
+
+  const submissions = db.prepare(`
+    SELECT s.id AS submission_id, s.question_id, s.answers_json, s.score, s.max_score,
+      s.duration_seconds, s.submitted_at
+    FROM training_question_submissions s
+    JOIN training_day_assignments a ON a.id = s.assignment_id
+    WHERE a.student_id = ?
+      AND substr(s.submitted_at, 1, 10) = ?
+    ORDER BY s.submitted_at, s.id
+  `).all(studentId, dateKey);
+  if (submissions.length) {
+    const questionBank = await loadQuestionBank();
+    for (const submission of submissions) {
+      if (linkedSubmissionIds.has(String(submission.submission_id))) continue;
+      const definition = questionBank.get(submission.question_id);
+      if (!definition) continue;
+      const record = summaryRecordFromTrainingSubmission(submission, definition);
+      if (record) records.push(record);
+    }
+  }
+  return finalizePracticeSummary(dateKey, records);
+}
+
+function formatPracticeMaterial(summary) {
+  if (!summary?.hasRecords) return summary?.message || '当天没有客观题训练记录，请勿自行补充学生做题表现。';
+  const lines = [
+    `当天客观题训练汇总：共 ${summary.totalRecords} 次记录，${summary.totalQuestions} 道小题，答对 ${summary.correctQuestions} 道，正确率 ${summary.accuracyPercent ?? 0}%，得分 ${summary.totalScore}/${summary.maxScore}。`,
+  ];
+  for (const record of summary.records) {
+    const detail = record.questions.map(question =>
+      `第${question.number}小问${question.correct ? '正确' : '错误'}（学生答案：${question.userAnswer || '未作答'}，正确答案：${question.correctAnswer || '未提供'}）`
+    ).join('；');
+    lines.push(`- ${record.level} ${record.year} ${OBJECTIVE_TYPE_LABELS[record.questionType] || record.questionType}：${record.totalScore}/${record.maxScore}；${detail}`);
+  }
+  return lines.join('\n');
+}
+
 // 将上游 DeepSeek 的 SSE 流转发给前端。
 // 关键：按字节缓冲，只在完整的 0x0A 行边界处解码，避免跨 chunk 的
 // UTF-8 多字节字符或被截断的 data 行导致内容丢失 / 格式错乱。
@@ -116,6 +319,22 @@ router.get('/style', auth, requireTeacher, (req, res) => {
   res.json({ style: row?.feedback_style || '', defaultStyle: DEFAULT_STYLE });
 });
 
+// 读取学生当天的客观题训练表现，供课后反馈预览和 AI 生成使用。
+router.get('/practice-summary', auth, requireTeacher, async (req, res) => {
+  const studentId = String(req.query.student_id || '').trim();
+  const dateKey = String(req.query.date || '').trim();
+  if (!studentId || !isDateKey(dateKey)) {
+    return res.status(400).json({ error: '缺少有效的 student_id 或日期' });
+  }
+  const student = getOwnedStudent(req.user, studentId);
+  if (!student) return res.status(403).json({ error: '学生不存在或无权限' });
+  try {
+    res.json(await buildDailyPracticeSummary(student.id, dateKey));
+  } catch (error) {
+    res.status(500).json({ error: '读取当天做题记录失败' });
+  }
+});
+
 // 保存当前老师的课评风格规则
 router.put('/style', auth, requireTeacher, (req, res) => {
   const { style } = req.body;
@@ -126,10 +345,33 @@ router.put('/style', auth, requireTeacher, (req, res) => {
 
 // 生成课后反馈（SSE 流式）
 router.post('/generate', auth, requireTeacher, async (req, res) => {
-  const { date, topic, problemIds, performance, style } = req.body;
+  const {
+    date,
+    date_key: dateKey,
+    student_id: studentId,
+    topic,
+    problemIds,
+    performance,
+    style,
+  } = req.body;
   if (!topic || !performance) {
     return res.status(400).json({ error: '请填写上课主题和课堂表现' });
   }
+
+  let student = null;
+  let practiceSummary = emptyPracticeSummary(isDateKey(dateKey) ? dateKey : '');
+  if (studentId) {
+    student = getOwnedStudent(req.user, studentId);
+    if (!student) return res.status(403).json({ error: '学生不存在或无权限' });
+    if (isDateKey(dateKey)) {
+      try {
+        practiceSummary = await buildDailyPracticeSummary(student.id, dateKey);
+      } catch (error) {
+        practiceSummary.message = '当天客观题训练记录读取失败，请以课堂表现素材为准。';
+      }
+    }
+  }
+  const practiceMaterial = formatPracticeMaterial(practiceSummary);
 
   const ids = String(problemIds || '')
     .split(/[,，、\s]+/)
@@ -162,8 +404,13 @@ router.post('/generate', auth, requireTeacher, async (req, res) => {
 - 上课主题：${topic}
 - 题号与题目名称对照：
 ${titleList}
-- 学生课堂表现素材：
+- 学生：${student?.name || '未指定'}
+- 当天客观题训练素材（自动读取；没有记录时不得推断学生表现）：
+${practiceMaterial}
+- 教师补充的课堂表现素材：
 ${performance}
+
+请把客观题训练素材只作为可核对的事实依据；如果提示当天没有客观题记录，不得写成“没有学习”“没有做题”或据此评价学生，只能结合教师补充的课堂表现素材完成反馈。
 
 请严格遵守以下课评风格规则：
 ${styleRules}
@@ -307,3 +554,6 @@ ${timeline}
 
 module.exports = router;
 module.exports.DEFAULT_STYLE = DEFAULT_STYLE;
+module.exports.buildDailyPracticeSummary = buildDailyPracticeSummary;
+module.exports.emptyPracticeSummary = emptyPracticeSummary;
+module.exports.formatPracticeMaterial = formatPracticeMaterial;
