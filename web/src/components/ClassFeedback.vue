@@ -88,6 +88,7 @@
     <div v-if="generating || result" class="fb-result">
       <div class="result-toolbar">
         <span class="result-status">{{ generating ? 'AI 正在生成……' : '已生成课评' }}</span>
+        <span v-if="result && !generating" class="result-hint">生成完成后可直接修改，再保存</span>
         <div class="toolbar-btns">
           <button v-if="result && !generating" class="copy-btn" @click="copyResult">{{ copied ? '✓ 已复制' : '📋 复制' }}</button>
           <button
@@ -101,7 +102,13 @@
           </button>
         </div>
       </div>
-      <pre class="result-text">{{ result }}<span v-if="generating" class="caret"></span></pre>
+      <textarea
+        v-model="result"
+        class="result-editor"
+        :readonly="generating"
+        spellcheck="false"
+        aria-label="课后反馈内容"
+      ></textarea>
     </div>
 
     <!-- 历史课评与阶段分析 -->
@@ -574,12 +581,16 @@ onMounted(() => {
 .fb-result { margin-top: 20px; width: 100%; max-width: 760px; background: #fff; border: 1px solid #e2e8f0; border-radius: 10px; overflow: hidden; }
 .result-toolbar { display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; background: #f8fafc; border-bottom: 1px solid #e2e8f0; gap: 10px; }
 .result-status { color: #4f46e5; font-size: 14px; font-weight: 600; }
+.result-hint { margin-left: auto; color: #64748b; font-size: 12px; }
 .toolbar-btns { display: flex; gap: 8px; }
 .copy-btn, .save-btn { padding: 7px 14px; border: 1px solid #c7d2fe; border-radius: 6px; background: #fff; color: #4338ca; font-size: 13px; cursor: pointer; }
 .copy-btn:hover, .save-btn:hover:not(:disabled) { background: #eef2ff; }
 .save-btn { border-color: #bbf7d0; color: #15803d; }
 .save-btn:hover:not(:disabled) { background: #f0fdf4; }
 .save-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.result-editor { display: block; width: 100%; min-height: 360px; margin: 0; padding: 20px; border: 0; resize: vertical; outline: none; box-sizing: border-box; white-space: pre-wrap; overflow-wrap: anywhere; font-family: inherit; font-size: 15px; line-height: 1.9; color: #1e293b; }
+.result-editor:focus { box-shadow: inset 0 0 0 2px rgba(79, 70, 229, 0.2); }
+.result-editor[readonly] { background: #f8fafc; }
 .result-text { margin: 0; padding: 20px; white-space: pre-wrap; word-break: break-word; font-family: inherit; font-size: 15px; line-height: 1.9; color: #1e293b; }
 .caret { display: inline-block; width: 8px; height: 16px; margin-left: 2px; background: #4f46e5; vertical-align: middle; animation: blink 1s steps(2) infinite; }
 @keyframes blink { 50% { opacity: 0; } }
