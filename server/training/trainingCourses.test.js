@@ -230,6 +230,53 @@ async function main() {
     );
     assert.equal(released.response.status, 200);
 
+    const studentC = await request('/api/auth/students', {
+      method: 'POST',
+      token: teacherToken,
+      body: { username: 'course_student_c', password: '123456', name: '补课学生', class_name: '集训一班' },
+    });
+    assert.equal(studentC.response.status, 200);
+    const addedMakeupStudent = await request(`/api/training-courses/days/${day.day}/assignments`, {
+      method: 'POST',
+      token: teacherToken,
+      body: { studentIds: [studentA.data.id, studentB.data.id, studentC.data.id], questionIds: reducedQuestionIds },
+    });
+    assert.equal(addedMakeupStudent.response.status, 200);
+    assert.equal(addedMakeupStudent.data.students.length, 3);
+    assert.equal(
+      addedMakeupStudent.data.questions.find(item => item.questionId === questionId).submitted,
+      2
+    );
+
+    const studentCLogin = await loginStudent('course_student_c');
+    const studentCCourseBeforeSubmit = await request('/api/training-courses/student', {
+      token: studentCLogin.data.token,
+    });
+    const studentCStateBeforeSubmit = studentCCourseBeforeSubmit.data.courses[0].days[0].states[questionId];
+    assert.equal(studentCStateBeforeSubmit.submitted, false);
+    assert.equal(studentCStateBeforeSubmit.released, false);
+    await request(
+      `/api/training-courses/student/courses/${saved.data.id}/days/${day.day}/questions/${questionId}/start`,
+      { method: 'POST', token: studentCLogin.data.token }
+    );
+    const makeupSubmit = await request(
+      `/api/training-courses/student/courses/${saved.data.id}/days/${day.day}/questions/${questionId}/submit`,
+      { method: 'POST', token: studentCLogin.data.token, body: { answers: { [questionId]: ['D'] } } }
+    );
+    assert.equal(makeupSubmit.response.status, 200);
+    assert.equal(makeupSubmit.data.released, true);
+    const studentCCourseAfterSubmit = await request('/api/training-courses/student', {
+      token: studentCLogin.data.token,
+    });
+    const studentCStateAfterSubmit = studentCCourseAfterSubmit.data.courses[0].days[0].states[questionId];
+    assert.equal(studentCStateAfterSubmit.submitted, true);
+    assert.equal(studentCStateAfterSubmit.released, true);
+    const makeupResubmit = await request(
+      `/api/training-courses/student/courses/${saved.data.id}/days/${day.day}/questions/${questionId}/submit`,
+      { method: 'POST', token: studentCLogin.data.token, body: { answers: { [questionId]: ['C'] } } }
+    );
+    assert.equal(makeupResubmit.response.status, 409);
+
     const afterReleaseSubmit = await request(
       `/api/training-courses/student/courses/${saved.data.id}/days/${day.day}/questions/${questionId}/submit`,
       { method: 'POST', token: studentALogin.data.token, body: { answers: answer } }

@@ -154,6 +154,14 @@ function assignedQuestionIds(course, day) {
   return configured.filter(questionId => available.has(questionId));
 }
 
+function releaseAppliesToAssignment(release, assignment, submission) {
+  if (!release) return false;
+  // A student added after the release gets one first submission. Once that
+  // submission exists, the already-opened answer/analysis becomes final.
+  if (submission) return true;
+  return String(assignment.assigned_at || '') <= String(release.released_at || '');
+}
+
 function publicSession(session) {
   return {
     theme: session?.theme || '',
@@ -379,17 +387,6 @@ router.post('/days/:day/assignments', auth, requireTeacher, (req, res) => {
   const additions = studentIds.filter(id => !currentIds.has(id));
   const removals = current.filter(item => !requestedIds.has(item.student_id));
 
-  if (additions.length) {
-    const released = db.prepare(`
-      SELECT 1 FROM training_question_releases
-      WHERE course_id = ? AND day_number = ?
-      LIMIT 1
-    `).get(course.id, day.day);
-    if (released) {
-      return res.status(409).json({ error: '本日已有题目开放解析，不能再新增学生' });
-    }
-  }
-
   for (const assignment of removals) {
     const answered = db.prepare(
       'SELECT 1 FROM training_question_submissions WHERE assignment_id = ? LIMIT 1'
@@ -408,8 +405,8 @@ router.post('/days/:day/assignments', auth, requireTeacher, (req, res) => {
     `).run(assignmentQuestionsJson, course.id);
     const insert = db.prepare(`
       INSERT OR IGNORE INTO training_day_assignments
-        (course_id, teacher_id, day_number, student_id)
-      VALUES (?, ?, ?, ?)
+        (course_id, teacher_id, day_number, student_id, assigned_at)
+      VALUES (?, ?, ?, ?, strftime('%Y-%m-%d %H:%M:%f','now','localtime'))
     `);
     for (const studentId of additions) insert.run(course.id, req.user.id, day.day, studentId);
     const remove = db.prepare('DELETE FROM training_day_assignments WHERE id = ?');
@@ -458,8 +455,8 @@ router.post('/days/:day/questions/:questionId/release', auth, requireTeacher, (r
 
   db.prepare(`
     INSERT OR IGNORE INTO training_question_releases
-      (course_id, day_number, question_id, released_by)
-    VALUES (?, ?, ?, ?)
+      (course_id, day_number, question_id, released_by, released_at)
+    VALUES (?, ?, ?, ?, strftime('%Y-%m-%d %H:%M:%f','now','localtime'))
   `).run(course.id, day.day, questionId, req.user.id);
   res.json({ message: '本题答案与解析已开放' });
 });
@@ -490,7 +487,7 @@ router.get('/student', auth, (req, res) => {
   const courses = rows.map(row => {
     const content = parseContent(row);
     const assigned = db.prepare(`
-      SELECT id, day_number
+      SELECT id, day_number, assigned_at
       FROM training_day_assignments
       WHERE course_id = ? AND student_id = ?
       ORDER BY day_number
@@ -500,7 +497,10 @@ router.get('/student', auth, (req, res) => {
       SELECT day_number, question_id, released_at
       FROM training_question_releases
       WHERE course_id = ?
-    `).all(row.id).map(item => [`${item.day_number}:${item.question_id}`, item.released_at]));
+    `).all(row.id).map(item => [
+      `${item.day_number}:${item.question_id}`,
+      { releasedAt: item.released_at },
+    ]));
 
     return {
       id: row.id,
@@ -520,14 +520,15 @@ router.get('/student', auth, (req, res) => {
         const states = {};
         for (const questionId of selectedQuestionIds) {
           const submission = submissions.get(questionId);
-          const releasedAt = releases.get(`${day.day}:${questionId}`);
+          const release = releases.get(`${day.day}:${questionId}`);
+          const released = releaseAppliesToAssignment(release, assignment, submission);
           states[questionId] = {
             submitted: Boolean(submission),
             submittedAt: submission?.submitted_at || null,
             answers: submission ? JSON.parse(submission.answers_json) : null,
-            released: Boolean(releasedAt),
-            releasedAt: releasedAt || null,
-            ...(releasedAt && submission ? {
+            released,
+            releasedAt: released ? release.releasedAt : null,
+            ...(released && submission ? {
               score: submission.score,
               maxScore: submission.max_score,
             } : {}),
@@ -581,10 +582,16 @@ router.post('/student/courses/:courseId/days/:day/questions/:questionId/submit',
   );
   if (!assignment) return res.status(404).json({ error: '这道题尚未布置给你' });
   const released = db.prepare(`
-    SELECT 1 FROM training_question_releases
+    SELECT released_at FROM training_question_releases
     WHERE course_id = ? AND day_number = ? AND question_id = ?
   `).get(assignment.course_id, assignment.day_number, questionId);
-  if (released) return res.status(409).json({ error: '本题解析已经开放，不能再提交' });
+  const existingSubmission = db.prepare(`
+    SELECT id FROM training_question_submissions
+    WHERE assignment_id = ? AND question_id = ?
+  `).get(assignment.id, questionId);
+  if (releaseAppliesToAssignment(released, assignment, existingSubmission)) {
+    return res.status(409).json({ error: '本题解析已经开放，不能再提交' });
+  }
 
   try {
     const result = await gradeQuestion(questionId, req.body?.answers);
@@ -604,18 +611,18 @@ router.post('/student/courses/:courseId/days/:day/questions/:questionId/submit',
     db.exec('BEGIN IMMEDIATE');
     try {
       const releasedNow = db.prepare(`
-        SELECT 1 FROM training_question_releases
+        SELECT released_at FROM training_question_releases
         WHERE course_id = ? AND day_number = ? AND question_id = ?
       `).get(assignment.course_id, assignment.day_number, questionId);
-      if (releasedNow) {
-        db.exec('ROLLBACK');
-        return res.status(409).json({ error: '本题解析已经开放，不能再提交' });
-      }
 
       const existing = db.prepare(`
         SELECT id FROM training_question_submissions
         WHERE assignment_id = ? AND question_id = ?
       `).get(assignment.id, questionId);
+      if (releaseAppliesToAssignment(releasedNow, assignment, existing)) {
+        db.exec('ROLLBACK');
+        return res.status(409).json({ error: '本题解析已经开放，不能再提交' });
+      }
       const answersJson = JSON.stringify(result.answers);
       let submissionId;
       if (existing) {
@@ -687,9 +694,14 @@ router.post('/student/courses/:courseId/days/:day/questions/:questionId/submit',
       }
       db.exec('COMMIT');
       res.json({
-        message: existing ? '答案已更新，请等待教师开放答案解析' : '本题已提交，请等待教师开放答案解析',
+        message: released
+          ? '本题已提交，答案与解析已开放'
+          : existing ? '答案已更新，请等待教师开放答案解析' : '本题已提交，请等待教师开放答案解析',
         submitted: true,
         recordId,
+        released: Boolean(released),
+        releasedAt: released?.released_at || null,
+        ...(released ? { score: result.score, maxScore: result.maxScore } : {}),
         leaderboardEligible: isLeaderboardDurationValid(questionType, itemCount, duration),
       });
     } catch (error) {

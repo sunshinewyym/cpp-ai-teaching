@@ -428,6 +428,12 @@ async function submitQuestion() {
     state.submitted = true;
     state.submittedAt = new Date().toISOString();
     state.answers = deepClone(draftAnswers.value);
+    state.released = Boolean(data.released);
+    state.releasedAt = data.releasedAt || null;
+    if (state.released) {
+      state.score = data.score;
+      state.maxScore = data.maxScore;
+    }
     preview.value.state = state;
     showMessage(data.message);
   } catch (error) {
