@@ -1044,13 +1044,26 @@ body {
   color: #1e293b;
 }
 
+html,
+body,
+#app {
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+}
+
 .app-container {
   display: flex;
-  height: 100vh;
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
 }
 
 .main-content {
   flex: 1;
+  min-width: 0;
+  min-height: 0;
   display: flex;
   flex-direction: column;
   overflow: hidden;

@@ -981,7 +981,7 @@ onMounted(loadCourse);
 </script>
 
 <style scoped>
-.training-page { height: 100%; overflow-y: auto; padding: 24px 28px 60px; background: #f7f9fc; color: #172033; }
+.training-page { flex: 1 1 0; min-height: 0; height: auto; overflow-y: auto; padding: 24px 28px 60px; background: #f7f9fc; color: #172033; }
 .page-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 24px; margin-bottom: 20px; }
 .page-head h2 { margin: 2px 0 8px; color: #4f46e5; font-size: 26px; }
 .page-head p { max-width: 850px; margin: 0; color: #64748b; line-height: 1.7; }
