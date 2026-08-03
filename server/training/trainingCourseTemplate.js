@@ -53,8 +53,10 @@ const trainingCourseTemplate = {
         notes: '提高题比较逐个试除、筛法和前缀统计的适用范围，统一用质数、完全平方数和大质数测试。',
       },
       programming: {
-        basic: ['P5710', 'P5723'],
-        advanced: ['P1149', 'P1865'],
+        basic: [],
+        advanced: [],
+        luoguBasic: ['P7071', 'P7909'],
+        luoguAdvanced: ['P7072', 'P8814'],
       },
     },
     {
@@ -289,12 +291,12 @@ const highLevelEnhancements = [
   },
   {
     morningPractice: '顺序：20 分钟进制/位运算选择 → 25 分钟手算示范 → 40 分钟阅读程序（逐位记录）→ 30 分钟完善程序 → 35 分钟 GESP/CSP 选择题 → 20 分钟错因归类。提高线必须说明溢出、前导零和边界位。',
-    afternoonPractice: '顺序：15 分钟质数与进制模板检测 → 50 分钟通关线枚举 → 60 分钟提高线优化 → 35 分钟程序题回放 → 20 分钟过关测。可参考 LeetCode 136/191，使用 OJ 等价题完成训练。',
+    afternoonPractice: '顺序：15 分钟质数与进制模板检测 → 50 分钟通关线枚举 → 60 分钟提高线优化 → 35 分钟 CSP-J 复赛程序题回放 → 20 分钟过关测。通关线完成 P7071、P7909，提高线完成 P7072、P8814，重点练习位运算、区间取模、计数与质因数分解。',
     choice: ['2019-choice-2', '2020-choice-4', '2020-choice-9', '2021-choice-3', '2021-choice-7', '2022-choice-13', '2024-choice-1', '2024-choice-2', '2024-choice-4', '2024-choice-5', 'gesp-cpp3-2023-06-judgment-2', 'gesp-cpp3-2023-06-choice-10', 'gesp-cpp3-2024-09-choice-6', 'csp-s-2020-choice-2', 'csp-s-2020-choice-5', 'csp-s-2020-choice-10'],
     reading: ['2021-reading-1', '2022-reading-1', 'csp-s-2020-reading-1'],
     completion: ['2020-completion-1', 'csp-s-2020-completion-1'],
-    basic: ['P1020', 'P1027', 'P1028'],
-    advanced: ['P1109', 'P1390', 'P1418'],
+    basic: [],
+    advanced: [],
   },
   {
     morningPractice: '顺序：15 分钟字符串/数组选择 → 30 分钟下标与 STL 快速讲解 → 45 分钟阅读程序画状态表 → 30 分钟完善程序 → 30 分钟选择题纠错 → 30 分钟共同讲评。提高线增加比较函数合法性和复杂度说明。',
@@ -372,7 +374,7 @@ const highLevelEnhancements = [
 
 const highLevelLuoguPrograms = [
   { basic: ['P1000', 'P1046', 'P5710', 'P5727', 'P1089'], advanced: ['P1101', 'P1597', 'P1603'] },
-  { basic: ['P5710', 'P5723'], advanced: ['P1149', 'P1865'] },
+  { basic: ['P7071', 'P7909'], advanced: ['P7072', 'P8814'] },
   { basic: ['P1428', 'P5730'], advanced: ['P1598', 'P1125'] },
   { basic: ['P1177', 'P2249'], advanced: ['P1102', 'P1873'] },
   { basic: ['P1706', 'P1605'], advanced: ['P1101', 'P1219'] },

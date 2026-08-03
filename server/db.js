@@ -166,6 +166,57 @@ if (!trainingCourseColumns.some(column => column.name === 'assignment_questions_
   console.log('[DB] 迁移: 添加本日布置题目配置字段');
 }
 
+// 迁移：Day 2 编程题改用 CSP-J 复赛洛谷题；只更新旧默认题单且保留已有作答。
+const day2ProgrammingTarget = {
+  basic: [],
+  advanced: [],
+  luoguBasic: ['P7071', 'P7909'],
+  luoguAdvanced: ['P7072', 'P8814'],
+};
+const day2ProgrammingOld = {
+  advanced: [
+    { basic: ['P1020', 'P1027', 'P1028'], advanced: ['P1109', 'P1390', 'P1418'], luoguBasic: ['P5710', 'P5723'], luoguAdvanced: ['P1149', 'P1865'] },
+  ],
+  progress: [
+    { basic: ['P1288', 'P1293'], advanced: ['P1359', 'P1547'], luoguBasic: [], luoguAdvanced: [] },
+    { basic: ['P1288', 'P1293'], advanced: ['P1359', 'P1547'], luoguBasic: ['P5710', 'P5723'], luoguAdvanced: ['P1149', 'P1865'] },
+  ],
+};
+const sameProgrammingList = (left, right) => JSON.stringify(left || []) === JSON.stringify(right);
+const day2Courses = db.prepare('SELECT id, variant, content_json FROM training_courses WHERE active = 1').all();
+const updateDay2Course = db.prepare(
+  "UPDATE training_courses SET content_json = ?, updated_at = datetime('now', 'localtime') WHERE id = ?"
+);
+for (const course of day2Courses) {
+  const content = JSON.parse(course.content_json);
+  const day = (content.days || []).find(item => Number(item.day) === 2);
+  const programming = day?.programming || {};
+  const variant = course.variant === 'progress' ? 'progress' : 'advanced';
+  const isOldDefault = day2ProgrammingOld[variant].some(old =>
+    sameProgrammingList(programming.basic, old.basic)
+    && sameProgrammingList(programming.advanced, old.advanced)
+    && sameProgrammingList(programming.luoguBasic, old.luoguBasic)
+    && sameProgrammingList(programming.luoguAdvanced, old.luoguAdvanced)
+  );
+  if (!day || !isOldDefault) continue;
+  const submitted = db.prepare(`
+    SELECT COUNT(*) AS count
+    FROM training_question_submissions s
+    JOIN training_day_assignments a ON a.id = s.assignment_id
+    WHERE a.course_id = ? AND a.day_number = 2
+  `).get(course.id).count;
+  const marked = db.prepare(`
+    SELECT COUNT(*) AS count
+    FROM training_programming_completions c
+    JOIN training_day_assignments a ON a.id = c.assignment_id
+    WHERE a.course_id = ? AND a.day_number = 2 AND c.completed = 1
+  `).get(course.id).count;
+  if (Number(submitted) || Number(marked)) continue;
+  day.programming = JSON.parse(JSON.stringify(day2ProgrammingTarget));
+  updateDay2Course.run(JSON.stringify(content), course.id);
+  console.log(`[DB] 迁移: 更新课程 ${course.id} 的 Day 2 编程题`);
+}
+
 // 确保 admin 账号拥有管理员权限（兼容旧数据）
 db.exec("UPDATE users SET is_admin = 1 WHERE username = 'admin' AND role = 'teacher' AND is_admin = 0");
 
