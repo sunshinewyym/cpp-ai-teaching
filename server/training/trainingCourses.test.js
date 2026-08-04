@@ -206,7 +206,7 @@ async function main() {
       { method: 'POST', token: studentBLogin.data.token, body: { answers: { [questionId]: ['D'] } } }
     );
     assert.equal(secondSubmit.response.status, 200);
-    assert.equal(secondSubmit.data.leaderboardEligible, false);
+    assert.equal(secondSubmit.data.leaderboardEligible, true);
     const studentBCourseAfterRelease = await request('/api/training-courses/student', {
       token: studentBLogin.data.token,
     });

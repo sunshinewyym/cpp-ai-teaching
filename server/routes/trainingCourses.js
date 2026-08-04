@@ -8,7 +8,6 @@ const {
   buildTrainingPracticeRecord,
   buildTrainingPracticeRecordFromSubmission,
 } = require('../training/trainingRecord');
-const { isLeaderboardDurationValid } = require('../leaderboardRules');
 
 const router = express.Router();
 
@@ -760,10 +759,6 @@ router.post('/student/courses/:courseId/days/:day/questions/:questionId/submit',
     `).get(assignment.id, questionId);
     const duration = Number.isFinite(timing?.duration_seconds) ? timing.duration_seconds : 0;
     const record = buildTrainingPracticeRecord(questionId, result, duration);
-    const questionType = record?.question_type || (questionId.includes('-reading-')
-      ? 'reading'
-      : questionId.includes('-completion-') ? 'completion' : 'choice');
-    const itemCount = result.parts.length;
 
     db.exec('BEGIN IMMEDIATE');
     try {
@@ -859,7 +854,7 @@ router.post('/student/courses/:courseId/days/:day/questions/:questionId/submit',
         released: Boolean(released),
         releasedAt: released?.released_at || null,
         ...(released ? { score: result.score, maxScore: result.maxScore } : {}),
-        leaderboardEligible: isLeaderboardDurationValid(questionType, itemCount, duration),
+        leaderboardEligible: true,
       });
     } catch (error) {
       db.exec('ROLLBACK');

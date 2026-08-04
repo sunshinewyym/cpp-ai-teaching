@@ -2,7 +2,6 @@ const express = require('express');
 const db = require('../db');
 const { auth, requireTeacher } = require('../middleware/auth');
 const { chatStream } = require('../services/deepseek');
-const { isLeaderboardDurationValid } = require('../leaderboardRules');
 const { loadQuestionBank } = require('../training/questionBank');
 const { buildTrainingPracticeRecordFromSubmission } = require('../training/trainingRecord');
 
@@ -96,14 +95,13 @@ router.post('/submit', auth, (req, res) => {
   const duration = Number.isFinite(parsedDuration) && parsedDuration >= 0
     ? Math.round(parsedDuration)
     : 0;
-  const itemCount = Array.isArray(answers?.questions) ? answers.questions.length : 0;
   const result = db.prepare(
     'INSERT INTO practice_records (user_id, level, year, question_type, total_score, max_score, answers_json, duration_seconds) VALUES (?, ?, ?, ?, ?, ?, ?, ?)'
   ).run(req.user.id, level, year, question_type, total_score, max_score, answersJson, duration);
   res.json({
     id: Number(result.lastInsertRowid),
     message: '记录已保存',
-    leaderboardEligible: isLeaderboardDurationValid(question_type, itemCount, duration),
+    leaderboardEligible: true,
   });
 });
 
