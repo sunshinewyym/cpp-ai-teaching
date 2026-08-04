@@ -909,6 +909,9 @@ function quizCardClass(question, index) {
 function formatDebugVerification(verification) {
   const textFence = '```text';
   const fence = '```';
+  if (verification?.mode === 'static' || verification?.status === 'runner_unavailable') {
+    return `## 静态分析模式\n\n### 生产代码执行 runner 当前不可用\n\n本次未执行 C++ 编译和样例运行，下面的分析只依据题目描述与学生代码进行。修复 runner 后重新点击“分析代码”，才能获得真实的编译错误、运行结果和超时信息。`;
+  }
   if (!verification?.compiled) {
     return `## 本地验证结果\n\n### 编译未通过\n\n${textFence}\n${verification?.compilerError || '未收到编译器报错。'}\n${fence}`;
   }
@@ -959,6 +962,26 @@ async function debugCodeAction() {
       signal: controller.signal,
     });
     const verification = await response.json().catch(() => ({}));
+    const compilerUnavailable = response.ok
+      && verification.runner === 'local'
+      && verification.compiled === false
+      && /(?:未找到.*(?:g\+\+|C\+\+|编译器)|(?:g\+\+|C\+\+|编译器).*(?:不存在|ENOENT|not found))/i.test(String(verification.compilerError || ''));
+    if ((!response.ok && response.status === 503) || compilerUnavailable) {
+      if (runId !== debugRunId) return;
+      const staticVerification = {
+        mode: 'static',
+        runner: 'static',
+        status: 'runner_unavailable',
+        message: verification.error || '生产代码执行 runner 当前不可用。',
+      };
+      result.value = formatDebugVerification(staticVerification);
+      debugVerification.value = staticVerification;
+      debugCanAnalyze.value = true;
+      loading.value = false;
+      debugPhase.value = 'idle';
+      await requestDebugAnalysis();
+      return;
+    }
     if (!response.ok) throw new Error(verification.error || `本地验证失败（${response.status}）。`);
     if (runId !== debugRunId) return;
 
@@ -1009,15 +1032,24 @@ async function requestDebugAnalysis() {
       result.value += `\n\n---\n\n${analysis.content}`;
       debugCanAnalyze.value = false;
     } else {
-      result.value += `\n\n### AI 分析暂不可用\n\n${analysis.message || 'AI 没有返回可展示的分析。'}\n\n本地验证结果仍然有效，可以稍后重试。`;
+      const preservedResult = debugVerification.value?.mode === 'static'
+        ? '静态分析模式提示仍然保留'
+        : '本地验证结果仍然有效';
+      result.value += `\n\n### AI 分析暂不可用\n\n${analysis.message || 'AI 没有返回可展示的分析。'}\n\n${preservedResult}，可以稍后重试。`;
       debugCanAnalyze.value = Boolean(analysis.retryable);
     }
   } catch (error) {
     if (runId !== debugRunId) return;
     if (error.name === 'AbortError') {
-      result.value += '\n\n⚠️ AI 分析已取消，本地验证结果仍然保留。';
+      const preservedResult = debugVerification.value?.mode === 'static'
+        ? '静态分析模式提示仍然保留'
+        : '本地验证结果仍然保留';
+      result.value += `\n\n⚠️ AI 分析已取消，${preservedResult}。`;
     } else {
-      result.value += `\n\n### AI 分析暂时不可用\n\n${error.message || '请稍后重试。'}\n\n本地验证结果仍然有效。`;
+      const preservedResult = debugVerification.value?.mode === 'static'
+        ? '静态分析模式提示仍然保留'
+        : '本地验证结果仍然保留';
+      result.value += `\n\n### AI 分析暂时不可用\n\n${error.message || '请稍后重试。'}\n\n${preservedResult}。`;
     }
     debugCanAnalyze.value = true;
   } finally {
