@@ -617,6 +617,7 @@ router.post('/days/:day/questions/:questionId/release', auth, requireTeacher, (r
 
 router.get('/student/access', auth, (req, res) => {
   if (req.user.role !== 'student') return res.json({ hasAccess: false });
+  res.setHeader('Cache-Control', 'no-store');
   const assignment = db.prepare(`
     SELECT 1
     FROM training_day_assignments a
@@ -629,6 +630,7 @@ router.get('/student/access', auth, (req, res) => {
 
 router.get('/student', auth, (req, res) => {
   if (req.user.role !== 'student') return res.status(403).json({ error: '需要学生账号' });
+  res.setHeader('Cache-Control', 'no-store');
   const rows = db.prepare(`
     SELECT DISTINCT c.*, u.name AS teacher_name
     FROM training_courses c
@@ -662,7 +664,8 @@ router.get('/student', auth, (req, res) => {
       variant: row.variant || 'advanced',
       summary: content.summary || '',
       teacherName: row.teacher_name,
-      days: (content.days || []).filter(day => assignmentByDay.has(Number(day.day))).map(day => {
+      days: (content.days || []).filter(day => assignmentByDay.has(Number(day.day)))
+        .sort((a, b) => Number(a.day) - Number(b.day)).map(day => {
         const assignment = assignmentByDay.get(Number(day.day));
         const selectedQuestionIds = assignedQuestionIds(row, day);
         const selectedQuestionSet = new Set(selectedQuestionIds);

@@ -133,6 +133,22 @@ async function main() {
       studentCourseAfterSelection.data.courses[0].days[0].states[published.data.questionIds[1]],
       undefined
     );
+    assert.equal(studentCourseAfterSelection.response.headers.get('cache-control'), 'no-store');
+
+    const secondDay = saved.data.days[1];
+    const publishedSecondDay = await request(`/api/training-courses/days/${secondDay.day}/assignments`, {
+      method: 'POST',
+      token: teacherToken,
+      body: { studentIds: [studentA.data.id] },
+    });
+    assert.equal(publishedSecondDay.response.status, 200);
+    const studentCourseAfterSecondDay = await request('/api/training-courses/student', {
+      token: studentALogin.data.token,
+    });
+    assert.deepEqual(
+      studentCourseAfterSecondDay.data.courses[0].days.map(item => item.day),
+      [day.day, secondDay.day]
+    );
 
     const answer = { [questionId]: ['C'] };
     const started = await request(

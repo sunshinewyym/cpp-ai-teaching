@@ -199,7 +199,7 @@
 </template>
 
 <script setup>
-import { computed, defineComponent, h, onMounted, ref } from 'vue';
+import { computed, defineComponent, h, onMounted, onUnmounted, ref } from 'vue';
 import { authFetch } from '../utils/auth';
 import { renderCspMarkdown as renderMd, renderCspInline as renderInline } from '../utils/cspMarkdown';
 import { cspChoicePapers } from '../data/cspChoicePapers';
@@ -330,14 +330,27 @@ function showMessage(text, type = 'ok') {
 }
 
 async function loadCourses() {
+  const previousCourseId = currentCourse.value?.id;
+  const previousDayNumber = currentDay.value?.day;
+  const previousDayCount = currentCourse.value?.days?.length || 0;
   loading.value = true;
   try {
-    const response = await authFetch('/api/training-courses/student');
+    const response = await authFetch('/api/training-courses/student', { cache: 'no-store' });
     const data = await response.json();
     if (!response.ok) throw new Error(data.error || '课程读取失败');
     courses.value = data.courses || [];
     if (selectedCourse.value >= courses.value.length) selectedCourse.value = 0;
-    if (selectedDay.value >= (currentCourse.value?.days?.length || 0)) selectedDay.value = 0;
+    const days = currentCourse.value?.days || [];
+    if (!days.length) {
+      selectedDay.value = 0;
+    } else {
+      const previousDayIndex = days.findIndex(day => String(day.day) === String(previousDayNumber));
+      const newDayAssigned = currentCourse.value?.id !== previousCourseId
+        || days.length > previousDayCount;
+      selectedDay.value = newDayAssigned || previousDayIndex < 0
+        ? days.length - 1
+        : previousDayIndex;
+    }
     if (preview.value) {
       const state = questionState(preview.value.id);
       preview.value.state = state;
@@ -347,6 +360,10 @@ async function loadCourses() {
   } finally {
     loading.value = false;
   }
+}
+
+function refreshWhenVisible() {
+  if (document.visibilityState === 'visible' && !loading.value) loadCourses();
 }
 
 function selectCourse(index) {
@@ -502,7 +519,16 @@ function formatFullDate(value) {
   return value ? value.replaceAll('-', ' / ') : '日期待定';
 }
 
-onMounted(loadCourses);
+onMounted(() => {
+  loadCourses();
+  window.addEventListener('focus', refreshWhenVisible);
+  document.addEventListener('visibilitychange', refreshWhenVisible);
+});
+
+onUnmounted(() => {
+  window.removeEventListener('focus', refreshWhenVisible);
+  document.removeEventListener('visibilitychange', refreshWhenVisible);
+});
 </script>
 
 <style scoped>
