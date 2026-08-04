@@ -1,6 +1,8 @@
 const { DatabaseSync } = require('node:sqlite');
 const path = require('path');
 const fs = require('fs');
+const { trainingCourseTemplate } = require('./training/trainingCourseTemplate');
+const { trainingCourseProgressTemplate } = require('./training/trainingCourseProgressTemplate');
 
 const DATA_DIR = process.env.DATA_DIR || path.join(__dirname, 'data');
 if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR, { recursive: true });
@@ -221,6 +223,71 @@ for (const course of day2Courses) {
   day.programming = JSON.parse(JSON.stringify(day2ProgrammingTarget));
   updateDay2Course.run(JSON.stringify(content), course.id);
   console.log(`[DB] 迁移: 更新课程 ${course.id} 的 Day 2 编程题`);
+}
+
+// 迁移：Day 3 题库调整为指针、链表和字符串专题；只替换旧默认题单且保留已开始作答的课程。
+const day3QuestionTarget = {
+  advanced: trainingCourseTemplate.days.find(item => Number(item.day) === 3).questions,
+  progress: trainingCourseProgressTemplate.days.find(item => Number(item.day) === 3).questions,
+};
+const day3QuestionOld = {
+  advanced: {
+    choice: ['2022-choice-3', '2022-choice-4', '2022-choice-10', '2022-choice-11', '2022-choice-14', '2023-choice-3', '2023-choice-4', 'gesp-cpp4-2023-12-judgment-1', 'gesp-cpp4-2023-12-judgment-8', 'gesp-cpp4-2024-03-choice-11', 'csp-s-2021-choice-3', 'csp-s-2021-choice-8', 'csp-s-2021-choice-12'],
+    reading: ['2020-reading-1', '2021-reading-2', 'csp-s-2021-reading-2'],
+    completion: ['2019-completion-2', 'csp-s-2021-completion-1'],
+  },
+  progress: {
+    choice: ['gesp-cpp4-2023-12-judgment-1', 'gesp-cpp4-2023-12-judgment-8', 'gesp-cpp4-2024-03-choice-11', '2022-choice-12', '2023-choice-10', 'csp-s-2021-choice-8'],
+    reading: ['2022-reading-3', 'csp-s-2021-reading-2'],
+    completion: ['2023-completion-1', 'csp-s-2021-completion-1'],
+  },
+};
+const day3Courses = db.prepare('SELECT id, variant, content_json, assignment_questions_json FROM training_courses WHERE active = 1').all();
+const updateDay3Course = db.prepare(
+  "UPDATE training_courses SET content_json = ?, assignment_questions_json = ?, updated_at = datetime('now', 'localtime') WHERE id = ?"
+);
+for (const course of day3Courses) {
+  const content = JSON.parse(course.content_json);
+  const day = (content.days || []).find(item => Number(item.day) === 3);
+  const variant = course.variant === 'progress' ? 'progress' : 'advanced';
+  const old = day3QuestionOld[variant];
+  const target = day3QuestionTarget[variant];
+  if (!day || !old || !target
+    || !sameProgrammingList(day.questions?.choice, old.choice)
+    || !sameProgrammingList(day.questions?.reading, old.reading)
+    || !sameProgrammingList(day.questions?.completion, old.completion)) continue;
+  const submitted = db.prepare(`
+    SELECT COUNT(*) AS count
+    FROM training_question_submissions s
+    JOIN training_day_assignments a ON a.id = s.assignment_id
+    WHERE a.course_id = ? AND a.day_number = 3
+  `).get(course.id).count;
+  const attempted = db.prepare(`
+    SELECT COUNT(*) AS count
+    FROM training_question_attempts t
+    JOIN training_day_assignments a ON a.id = t.assignment_id
+    WHERE a.course_id = ? AND a.day_number = 3
+  `).get(course.id).count;
+  if (Number(submitted) || Number(attempted)) continue;
+
+  day.questions = {
+    choice: [...target.choice],
+    reading: [...target.reading],
+    completion: [...target.completion],
+  };
+  let assignmentQuestionsJson = course.assignment_questions_json || '{}';
+  try {
+    const assignmentQuestions = JSON.parse(assignmentQuestionsJson);
+    const oldIds = [...old.choice, ...old.reading, ...old.completion];
+    if (Array.isArray(assignmentQuestions['3']) && sameProgrammingList(assignmentQuestions['3'], oldIds)) {
+      assignmentQuestions['3'] = [...target.choice, ...target.reading, ...target.completion];
+      assignmentQuestionsJson = JSON.stringify(assignmentQuestions);
+    }
+  } catch {
+    assignmentQuestionsJson = '{}';
+  }
+  updateDay3Course.run(JSON.stringify(content), assignmentQuestionsJson, course.id);
+  console.log(`[DB] 迁移: 更新课程 ${course.id} 的 Day 3 题库`);
 }
 
 // 确保 admin 账号拥有管理员权限（兼容旧数据）

@@ -869,7 +869,8 @@ function questionOptionLabel(item, type) {
     }
     return `${year} 选择题第 ${item.number} 题 — ${plain}`;
   }
-  return `${year} ${type === 'reading' ? '阅读程序' : '完善程序'}第 ${item.number} 题`;
+  const level = item.source?.level || 'CSP-J';
+  return `${level} ${item.source?.year || year} ${type === 'reading' ? '阅读程序' : '完善程序'}第 ${item.number} 题`;
 }
 
 function addQuestion(type) {
@@ -924,7 +925,7 @@ function questionLabel(id) {
   }
   if (choice) return `${id.slice(0, 4)} 选择题第 ${choice.number} 题`;
   const problem = programMap.get(id);
-  if (problem) return `${problem.year} ${questionTypeLabel(problem.type)}第 ${problem.number} 题`;
+  if (problem) return `${problem.source?.level || 'CSP-J'} ${problem.source?.year || problem.year} ${questionTypeLabel(problem.type)}第 ${problem.number} 题`;
   return id;
 }
 

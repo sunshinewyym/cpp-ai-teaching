@@ -483,7 +483,7 @@ function questionLabel(id) {
   }
   if (choice) return `${id.slice(0, 4)} 选择题第 ${choice.number} 题`;
   const problem = programMap.get(id);
-  if (problem) return `${problem.year} ${questionTypeLabel(problem.type)}第 ${problem.number} 题`;
+  if (problem) return `${problem.source?.level || 'CSP-J'} ${problem.source?.year || problem.year} ${questionTypeLabel(problem.type)}第 ${problem.number} 题`;
   return id;
 }
 

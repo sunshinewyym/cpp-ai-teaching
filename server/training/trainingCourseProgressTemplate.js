@@ -29,7 +29,7 @@ const trainingCourseProgressTemplate = {
     {
       day: 3, date: '2026-08-05',
       morning: session('三大基础排序与 std::sort', '冒泡、选择、插入排序；稳定性；std::sort 与自定义 cmp；多关键字排序。', 'GESP C++4级专项：gesp-cpp4-2023-12-judgment-1、8、gesp-cpp4-2024-03-choice-11；CSP-J 真题：2022-choice-12、2023-choice-10；阅读 2022-reading-3；完善 2023-completion-1。', '能手算排序过程，判断稳定性与复杂度，并能读懂比较函数和排序后的相对位置。'),
-      questions: { choice: ['gesp-cpp4-2023-12-judgment-1', 'gesp-cpp4-2023-12-judgment-8', 'gesp-cpp4-2024-03-choice-11', '2022-choice-12', '2023-choice-10', 'csp-s-2021-choice-8'], reading: ['2022-reading-3', 'csp-s-2021-reading-2'], completion: ['2023-completion-1', 'csp-s-2021-completion-1'] },
+      questions: { choice: ['gesp-cpp4-2023-12-judgment-1', 'gesp-cpp4-2023-12-judgment-8', 'gesp-cpp4-2024-03-choice-11', '2022-choice-12', '2023-choice-10', 'csp-s-2021-choice-10'], reading: ['2022-reading-3', 'csp-s-2021-reading-2'], completion: ['2023-completion-1', '2023-completion-2', 'csp-s-2021-completion-1'] },
       afternoon: session('排序实战与规则排序', '整数、字符串和结构化数据排序；排序后去重；按多个关键字稳定输出。', '东方博宜 OJ：P1010、P1178（基础）；P1233、P1236（提高）。基础题重正确性，提高题补充复杂度和稳定性说明。', '能根据题目要求设计 cmp，处理相等关键字、逆序和空数据等边界。'),
       programming: { basic: ['P1010', 'P1178'], advanced: ['P1233', 'P1236'] },
     },

@@ -72,9 +72,9 @@ const trainingCourseTemplate = {
         notes: '阅读字符串程序时画“下标—字符—当前状态”表，重点检查越界、字符与整数混用以及 size() 的类型。',
       },
       questions: {
-        choice: ['2022-choice-3', '2022-choice-4', '2022-choice-10', '2022-choice-11', '2022-choice-14', '2023-choice-3', '2023-choice-4'],
-        reading: ['2020-reading-1', '2021-reading-2'],
-        completion: ['2019-completion-2'],
+        choice: ['2022-choice-3', '2022-choice-4', '2022-choice-11', '2022-choice-14', '2023-choice-3', '2023-choice-4', '2019-choice-6', 'csp-s-2021-choice-10', 'gesp-cpp4-2023-12-judgment-1', 'gesp-cpp4-2023-12-judgment-8', 'gesp-cpp4-2024-03-choice-11', 'csp-s-2021-choice-12'],
+        reading: ['2020-reading-1', '2021-reading-2', 'csp-s-2021-reading-2'],
+        completion: ['2019-completion-2', '2023-completion-2', 'csp-s-2021-completion-1'],
       },
       afternoon: {
         theme: '数组统计、字符串处理与综合模拟',
@@ -301,11 +301,11 @@ const highLevelEnhancements = [
     advanced: ['P1358', 'P1379'],
   },
   {
-    morningPractice: '顺序：15 分钟字符串/数组选择 → 30 分钟下标与 STL 快速讲解 → 45 分钟阅读程序画状态表 → 30 分钟完善程序 → 30 分钟选择题纠错 → 30 分钟共同讲评。提高线增加比较函数合法性和复杂度说明。',
-    afternoonPractice: '顺序：10 分钟 sort/vector 模板检测 → 55 分钟统计与字符串基础题 → 60 分钟多关键字与去重挑战 → 35 分钟阅读代码改错 → 20 分钟过关测。可选 LeetCode 26/88，优先使用 OJ 中的排序与数组题。',
-    choice: ['2022-choice-3', '2022-choice-4', '2022-choice-10', '2022-choice-11', '2022-choice-14', '2023-choice-3', '2023-choice-4', 'gesp-cpp4-2023-12-judgment-1', 'gesp-cpp4-2023-12-judgment-8', 'gesp-cpp4-2024-03-choice-11', 'csp-s-2021-choice-3', 'csp-s-2021-choice-8', 'csp-s-2021-choice-12'],
+    morningPractice: '顺序：15 分钟指针、链表、字符串选择 → 30 分钟下标与 STL 快速讲解 → 45 分钟阅读程序画状态表 → 30 分钟完善程序 → 30 分钟选择题纠错 → 30 分钟共同讲评。提高线增加比较函数合法性和复杂度说明。',
+    afternoonPractice: '顺序：10 分钟 sort/vector 模板检测 → 55 分钟指针、链表与字符串基础题 → 60 分钟多关键字与去重挑战 → 35 分钟阅读代码改错 → 20 分钟过关测。可选 LeetCode 26/88，优先使用 OJ 中的排序、数组和字符串题。',
+    choice: ['2022-choice-3', '2022-choice-4', '2022-choice-11', '2022-choice-14', '2023-choice-3', '2023-choice-4', '2019-choice-6', 'csp-s-2021-choice-10', 'gesp-cpp4-2023-12-judgment-1', 'gesp-cpp4-2023-12-judgment-8', 'gesp-cpp4-2024-03-choice-11', 'csp-s-2021-choice-12'],
     reading: ['2020-reading-1', '2021-reading-2', 'csp-s-2021-reading-2'],
-    completion: ['2019-completion-2', 'csp-s-2021-completion-1'],
+    completion: ['2019-completion-2', '2023-completion-2', 'csp-s-2021-completion-1'],
     basic: ['P1097', 'P1100', 'P1177'],
     advanced: ['P1101', 'P1233', 'P1399'],
   },
