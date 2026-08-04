@@ -153,7 +153,7 @@ async function main() {
     const teacherB = teacherBoard.data.rows.find(item => item.id === studentB.data.id);
     assert.deepEqual(
       [teacherA.solvedCount, teacherA.correctCount, teacherA.practiceRank, teacherA.accuracyRank],
-      [11, 9, 1, 2]
+      [13, 11, 1, 2]
     );
     assert.deepEqual(
       [teacherB.solvedCount, teacherB.correctCount, teacherB.practiceRank, teacherB.accuracyRank],
@@ -166,7 +166,7 @@ async function main() {
     const hiddenA = studentBoardBeforeRelease.data.rows.find(item => item.id === studentA.data.id);
     assert.deepEqual(
       [hiddenA.solvedCount, hiddenA.accuracyAnswered, hiddenA.correctCount],
-      [11, 10, 8]
+      [13, 11, 9]
     );
     assert.equal(hiddenA.name, '学生甲');
 
@@ -181,7 +181,7 @@ async function main() {
     const visibleA = studentBoardAfterRelease.data.rows.find(item => item.id === studentA.data.id);
     assert.deepEqual(
       [visibleA.accuracyAnswered, visibleA.correctCount],
-      [11, 9]
+      [12, 10]
     );
 
     const classBoard = await request(
@@ -248,7 +248,7 @@ async function main() {
       [2, 1, 2]
     );
 
-    console.log('leaderboard verified: CSP/GESP grouping, deduplication, first attempt, anomaly filtering, release visibility and class scope passed');
+    console.log('leaderboard verified: CSP/GESP grouping, deduplication, first attempt, rapid-answer inclusion, release visibility and class scope passed');
   } finally {
     await new Promise(resolve => server.close(resolve));
     db.close();

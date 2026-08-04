@@ -2,7 +2,6 @@ const express = require('express');
 const db = require('../db');
 const { auth } = require('../middleware/auth');
 const { loadQuestionBank } = require('../training/questionBank');
-const { isLeaderboardDurationValid } = require('../leaderboardRules');
 
 const router = express.Router();
 
@@ -170,11 +169,6 @@ router.get('/', auth, async (req, res, next) => {
         continue;
       }
       if (!Array.isArray(questions)) continue;
-      if (!isLeaderboardDurationValid(
-        record.question_type,
-        questions.length,
-        record.duration_seconds
-      )) continue;
       questions.forEach((question, index) => {
         events.push({
           studentId: record.user_id,
@@ -209,11 +203,6 @@ router.get('/', auth, async (req, res, next) => {
         const questionType = submission.question_id.includes('-reading-')
           ? 'reading'
           : submission.question_id.includes('-completion-') ? 'completion' : 'choice';
-        if (!isLeaderboardDurationValid(
-          questionType,
-          definition.parts.length,
-          submission.duration_seconds
-        )) continue;
         let answers;
         try {
           answers = JSON.parse(submission.answers_json);
