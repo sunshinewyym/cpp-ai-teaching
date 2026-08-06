@@ -130,5 +130,6 @@ export function buildSProgramExplanation(question, problem) {
   const usefulSpecific = oldSpecific && !/建议从题目给定|正确选项代入后|本题关注/.test(oldSpecific) ? oldSpecific : '';
   const subject = plain(question.text).replace(/\s+/g, ' ').trim();
   const specific = usefulSpecific || `这小问要求判断“${subject.slice(0, 160)}”。先用上面的状态定义解释变量，再沿一次循环、递归或状态转移检查结论；如果题干用了“一定、总是、可能”等词，还要用边界输入或最小反例验证量词。`;
-  return `${main}\n\n${invariant}\n\n${specific}\n\n${questionRoute(question, problem)}\n\n结论：${answer}（${answerText}）。`;
+  const context = usefulSpecific ? '' : `${main}\n\n${invariant}\n\n`;
+  return `${context}${specific}\n\n${questionRoute(question, problem)}\n\n结论：${answer}（${answerText}）。`;
 }
