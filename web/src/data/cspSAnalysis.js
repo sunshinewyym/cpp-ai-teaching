@@ -72,6 +72,15 @@ const regeneratedChoiceReasons = {
   ,'2023-choice-15':'函数在每一层都独立调用两次 quick_power(x,n/2)，没有缓存子结果，因此 T(n)=2T(n/2)+O(1)=O(n)，不能只看递归深度 O(log n)。'
 };
 
+const regeneratedProgramExplanations = {
+  '2021-reading-2-1': 'Node 的四个字段分别保存区间的最大前缀和、最大子段和、最大后缀和以及区间总和。operator+ 的四个转移正是把左、右区间合并：最大子段要么完全在左边、完全在右边，要么跨过中点。solve1 返回根结点的 j；solve2 对每个区间分别求左右答案和跨中点答案，求解的是同一个最大子段和，因此两行输出始终相等且能正常结束，选 A。',
+  '2021-reading-2-2': '第 28 行和第 38 行都是 h>m 的空区间边界。初始区间为 [1,n]，递归在 h==m 时直接返回，只有非空区间才继续二分，所以不会产生 h>m 的调用；两行都不可能执行两次或以上，选 B。',
+  '2021-reading-2-3': '数组为 [-10,11,-9,5,-7]。单独取第二个元素的子段和为 11，而题目所说的连续子段 [11,-9,5] 只有 7；最大子段应取 [11]，solve2(1,5) 返回 11，不是 7，选 B。',
+  '2021-reading-2-4': 'solve1 每次把区间分成左右两半，operator+ 只做固定次数的 max 和加法，递推为 T(n)=2T(n/2)+O(1)。按主定理得 T(n)=Θ(n)，选 B。',
+  '2021-reading-2-5': 'solve2 每层递归都要从中点向左右扫描，计算跨中点的最大后缀和与最大前缀和，当前层总扫描量为 Θ(n)；递归深度为 Θ(log n)，所以总复杂度为 Θ(n log n)，选 C。',
+  '2021-reading-2-6': '数组为 [-3,2,10,0,-8,9,-4,-5,9,4]。从第二个元素到最后一个元素的和为 2+10+0-8+9-4-5+9+4=17；包含首个 -3 的前缀只会更小，其他子段也不超过 17，因此 solve1(1,n).j 输出 17，选 B。',
+};
+
 function plain(value) {
   return String(value || '').replace(/[`$]/g, '').replace(/\\text\{([^}]*)\}/g, '$1').replace(/\\n/g, '\n').trim();
 }
@@ -127,9 +136,12 @@ export function buildSProgramExplanation(question, problem) {
   const guideKey = String(problem.id || '').replace(/^csp-s-/u, '');
   const [main, invariant] = programGuides[guideKey] || ['先确定程序输入、输出和核心算法，再沿控制流追踪影响答案的状态。', '记录每个关键变量的数学含义，以及循环或递归每一步必须保持的关系。'];
   const oldSpecific = question.explanation && !isMojibake(question.explanation) ? stripOldHeader(question.explanation) : '';
-  const usefulSpecific = oldSpecific && !/建议从题目给定|正确选项代入后|本题关注/.test(oldSpecific) ? oldSpecific : '';
+  const questionKey = String(question.id || '').replace(/^csp-s-/u, '');
+  const regeneratedSpecific = regeneratedProgramExplanations[question.id] || regeneratedProgramExplanations[questionKey] || '';
+  const usefulSpecific = regeneratedSpecific || (oldSpecific && !/建议从题目给定|正确选项代入后|本题关注/.test(oldSpecific) ? oldSpecific : '');
   const subject = plain(question.text).replace(/\s+/g, ' ').trim();
   const specific = usefulSpecific || `这小问要求判断“${subject.slice(0, 160)}”。先用上面的状态定义解释变量，再沿一次循环、递归或状态转移检查结论；如果题干用了“一定、总是、可能”等词，还要用边界输入或最小反例验证量词。`;
   const context = usefulSpecific ? '' : `${main}\n\n${invariant}\n\n`;
-  return `${context}${specific}\n\n${questionRoute(question, problem)}\n\n结论：${answer}（${answerText}）。`;
+  const route = usefulSpecific ? '' : `\n\n${questionRoute(question, problem)}`;
+  return `${context}${specific}${route}\n\n结论：${answer}（${answerText}）。`;
 }
