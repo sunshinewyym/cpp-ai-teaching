@@ -34826,9 +34826,19 @@ const gespExplanationOverrides = {
   'gesp-cpp4-2024-12-judgment-5': '参考答案为 A（正确）。\n\n**解析：**\n\n递推算法由两部分组成：一组已知的初始值，以及描述当前结果如何由前面结果得到的递推公式。算法从初始值出发，按照公式逐步计算，直到得到题目要求的目标项。\n\n例如斐波那契数列可写为 fib(1) = fib(2) = 1，fib(n) = fib(n - 1) + fib(n - 2)。先知道前两项，再依次计算第 3、4、… 项，正是题干所说的过程。递推既可以用循环实现，也可以作为递归函数的数学依据，不能因为没有函数自调用就否定递推思想。\n\n因此题干给出的定义准确，选择 A。',
 };
 
+const gespQuestionOverrides = {
+  'gesp-cpp4-2023-06-judgment-2': '数列 1，1，2，3，5，8，… 是以意大利数学家列昂多·斐波那契命名的数列，从第三个数开始，每个数是前面两项之和。如果计算该数列的第 n 项（其中 n > 3）fib(n)，我们采用如下方法：  \n① 令 fib(1) = fib(2) = 1。  \n② 用循环 for i = 3 to n 分别计算 f(i)。  \n③ 输出 fib(n)。  \n这体现了递推的编程思想。',
+};
+
 function withGespExplanation(question) {
+  const questionText = gespQuestionOverrides[question.id];
   const explanation = gespExplanationOverrides[question.id];
-  return explanation ? { ...question, explanation } : question;
+  if (!questionText && !explanation) return question;
+  return {
+    ...question,
+    ...(questionText ? { question: questionText } : {}),
+    ...(explanation ? { explanation } : {}),
+  };
 }
 
 
