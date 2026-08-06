@@ -186,6 +186,9 @@
             本题得分：{{ preview.state.score }} / {{ preview.state.maxScore }}，答案与解析已开放。
           </p>
           <p v-else-if="preview.state.submitted" class="waiting">本题已提交，教师开放解析前可以修改答案。</p>
+          <span v-if="preview.type === 'choice' && !preview.state.released" class="auto-advance-note">
+            提交成功后自动进入下一题
+          </span>
           <button
             v-if="!preview.state.released"
             class="primary"
@@ -309,6 +312,7 @@ const message = ref('');
 const messageType = ref('ok');
 const preview = ref(null);
 const draftAnswers = ref({});
+let autoAdvanceTimer = null;
 
 const currentCourse = computed(() => courses.value[selectedCourse.value]);
 const currentDay = computed(() => currentCourse.value?.days?.[selectedDay.value]);
@@ -426,7 +430,39 @@ async function openQuestion(id) {
 }
 
 function closePreview() {
-  if (!submitting.value) preview.value = null;
+  if (submitting.value) return;
+  clearAutoAdvance();
+  preview.value = null;
+}
+
+function clearAutoAdvance() {
+  if (autoAdvanceTimer !== null) {
+    window.clearTimeout(autoAdvanceTimer);
+    autoAdvanceTimer = null;
+  }
+}
+
+function nextUnsubmittedChoiceId(currentId) {
+  const ids = currentDay.value?.questions?.choice || [];
+  const currentIndex = ids.indexOf(currentId);
+  for (let offset = 1; offset < ids.length; offset += 1) {
+    const id = ids[(currentIndex + offset + ids.length) % ids.length];
+    const state = questionState(id);
+    if (!state.submitted && !state.released) return id;
+  }
+  return null;
+}
+
+function scheduleChoiceAdvance(questionId) {
+  const nextId = nextUnsubmittedChoiceId(questionId);
+  clearAutoAdvance();
+  autoAdvanceTimer = window.setTimeout(async () => {
+    autoAdvanceTimer = null;
+    if (preview.value?.id !== questionId || submitting.value) return;
+    preview.value = null;
+    if (nextId) await openQuestion(nextId);
+  }, 1000);
+  return nextId;
 }
 
 function choicePart(item) {
@@ -465,7 +501,12 @@ async function submitQuestion() {
       state.maxScore = data.maxScore;
     }
     preview.value.state = state;
-    showMessage(data.message);
+    if (preview.value.type === 'choice') {
+      const nextId = scheduleChoiceAdvance(preview.value.id);
+      showMessage(nextId ? '提交成功，1 秒后进入下一道未完成题。' : '提交成功，1 秒后关闭本题。');
+    } else {
+      showMessage(data.message);
+    }
   } catch (error) {
     showMessage(error.message, 'error');
   } finally {
@@ -528,6 +569,7 @@ onMounted(() => {
 });
 
 onUnmounted(() => {
+  clearAutoAdvance();
   window.removeEventListener('focus', refreshWhenVisible);
   document.removeEventListener('visibilitychange', refreshWhenVisible);
 });
@@ -613,6 +655,7 @@ button.primary { border-color: #4f46e5; background: #4f46e5; color: #fff; font-w
 .answer-box :deep(.markdown) { margin-top: 8px; }
 .submit-bar { position: sticky; bottom: 0; display: flex; align-items: center; justify-content: flex-end; gap: 12px; border-top: 1px solid #e2e8f0; background: #fff; padding: 14px 22px; }
 .submit-bar p { flex: 1; width: auto; margin: 0; border-radius: 6px; padding: 10px 13px; }
+.auto-advance-note { color: #64748b; font-size: 12px; }
 .submit-bar .waiting { background: #fff7ed; color: #9a3412; }
 .submit-bar .released { background: #dcfce7; color: #166534; }
 @media (max-width: 900px) {

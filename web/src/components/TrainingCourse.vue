@@ -263,6 +263,10 @@
                 <h4>历年真题题池</h4>
                 <p>点击题目可查看题面、答案和解析；课堂精做，其余可作为作业或机动。</p>
               </div>
+              <span class="review-legend">
+                实时正确率，每 5 秒刷新；橙色表示有人答错，建议讲解
+                <template v-if="liveNeedsReviewCount">（{{ liveNeedsReviewCount }} 题）</template>
+              </span>
             </div>
             <div class="question-groups">
               <QuestionGroup
@@ -271,6 +275,7 @@
                 :ids="currentDay.questions.choice"
                 :editing="editing"
                 :locked-ids="answeredQuestionIds"
+                :stats="liveQuestionStats"
                 :options="availableQuestions('choice')"
                 v-model:selected="questionSelections.choice"
                 @open="openQuestion"
@@ -283,6 +288,7 @@
                 :ids="currentDay.questions.reading"
                 :editing="editing"
                 :locked-ids="answeredQuestionIds"
+                :stats="liveQuestionStats"
                 :options="availableQuestions('reading')"
                 v-model:selected="questionSelections.reading"
                 @open="openQuestion"
@@ -295,6 +301,7 @@
                 :ids="currentDay.questions.completion"
                 :editing="editing"
                 :locked-ids="answeredQuestionIds"
+                :stats="liveQuestionStats"
                 :options="availableQuestions('completion')"
                 v-model:selected="questionSelections.completion"
                 @open="openQuestion"
@@ -454,7 +461,7 @@
 </template>
 
 <script setup>
-import { computed, defineComponent, h, onMounted, ref } from 'vue';
+import { computed, defineComponent, h, onBeforeUnmount, onMounted, ref } from 'vue';
 import { authFetch } from '../utils/auth';
 import { renderCspMarkdown as renderMd, renderCspInline as renderInline } from '../utils/cspMarkdown';
 import { cspChoicePapers } from '../data/cspChoicePapers';
@@ -465,6 +472,7 @@ import { problemUrl } from '../data/problemIndex';
 import { cspSTrainingChoices, cspSTrainingPrograms } from '../data/trainingCspS';
 import { buildLegacyChoiceExplanation, buildLegacyProgramExplanation } from '../data/cspLegacyAnalysis';
 import { buildSChoiceExplanation, buildSProgramExplanation } from '../data/cspSAnalysis';
+import { buildLiveQuestionStats } from '../utils/trainingReview';
 
 function programUrl(id, platform = 'oj') {
   return platform === 'luogu'
@@ -514,6 +522,7 @@ const QuestionGroup = defineComponent({
     ids: Array,
     editing: Boolean,
     lockedIds: Object,
+    stats: Object,
     options: Array,
     selected: String,
   },
@@ -522,8 +531,21 @@ const QuestionGroup = defineComponent({
     return () => h('section', { class: 'question-group' }, [
       h('h5', props.title),
       h('div', { class: 'question-chips' }, [
-        ...(props.ids || []).map(id => h('span', { class: 'question-chip', key: id }, [
+        ...(props.ids || []).map(id => {
+          const stat = props.stats?.[id];
+          const needsReview = stat?.averagePercent < 100;
+          return h('span', {
+            class: ['question-chip', {
+              'needs-review': needsReview,
+              perfect: stat?.averagePercent === 100,
+            }],
+            key: id,
+            title: stat
+              ? `已提交 ${stat.submitted}/${stat.total} 人，当前正确率 ${stat.averagePercent}%${needsReview ? '，建议讲解' : ''}`
+              : '暂无学生提交',
+          }, [
           h('button', { type: 'button', onClick: () => emit('open', id) }, questionLabel(id)),
+          stat ? h('span', { class: 'accuracy-rate' }, `${stat.averagePercent}%`) : null,
           props.editing ? h('button', {
             type: 'button',
             class: 'remove',
@@ -531,7 +553,8 @@ const QuestionGroup = defineComponent({
             title: props.lockedIds?.has(id) ? '已有学生作答，不能移除' : '移除',
             onClick: () => emit('remove', id),
           }, '×') : null,
-        ])),
+          ]);
+        }),
         !(props.ids || []).length ? h('span', { class: 'empty-text' }, '暂未添加') : null,
       ]),
       props.editing ? h('div', { class: 'add-row' }, [
@@ -656,6 +679,11 @@ const lockedAssignmentQuestionIds = computed(() => new Set(
     .filter(item => item.submitted > 0 || item.released)
     .map(item => item.questionId)
 ));
+const liveQuestionStats = computed(() => buildLiveQuestionStats(assignment.value.questions));
+const liveNeedsReviewCount = computed(() => Object.values(liveQuestionStats.value)
+  .filter(item => item.averagePercent < 100).length);
+let assignmentSilentRefreshPending = false;
+let assignmentRefreshTimer = null;
 
 function deepClone(value) {
   return JSON.parse(JSON.stringify(value));
@@ -696,10 +724,11 @@ async function loadStudents() {
   }
 }
 
-async function loadAssignments() {
+async function loadAssignments(silent = false) {
   const day = currentDay.value?.day;
-  if (!day) return;
-  assignmentLoading.value = true;
+  if (!day || (silent && assignmentSilentRefreshPending)) return;
+  if (silent) assignmentSilentRefreshPending = true;
+  else assignmentLoading.value = true;
   try {
     const response = await authFetch(`/api/training-courses/days/${day}/assignments`);
     const data = await response.json();
@@ -709,11 +738,14 @@ async function loadAssignments() {
     selectedStudentIds.value = data.students.map(item => item.id);
     selectedAssignmentQuestionIds.value = data.questionIds || [...assignmentQuestionIds.value];
   } catch (error) {
-    assignment.value = { students: [], questions: [], questionIds: [] };
-    selectedAssignmentQuestionIds.value = [...assignmentQuestionIds.value];
-    showMessage(error.message, 'error');
+    if (!silent) {
+      assignment.value = { students: [], questions: [], questionIds: [] };
+      selectedAssignmentQuestionIds.value = [...assignmentQuestionIds.value];
+      showMessage(error.message, 'error');
+    }
   } finally {
-    assignmentLoading.value = false;
+    if (silent) assignmentSilentRefreshPending = false;
+    else assignmentLoading.value = false;
   }
 }
 
@@ -1000,7 +1032,13 @@ function formatFullDate(value) {
   return `${value.replaceAll('-', ' / ')}`;
 }
 
-onMounted(loadCourse);
+onMounted(async () => {
+  await loadCourse();
+  assignmentRefreshTimer = window.setInterval(() => {
+    if (!document.hidden && !editing.value && !assignmentLoading.value) loadAssignments(true);
+  }, 5000);
+});
+onBeforeUnmount(() => window.clearInterval(assignmentRefreshTimer));
 </script>
 
 <style scoped>
@@ -1119,6 +1157,7 @@ input:focus, textarea:focus, select:focus { outline: 2px solid #c7d2fe; border-c
 .info-block p { margin: 7px 0 0; color: #475569; line-height: 1.7; white-space: pre-line; }
 .edit-field.wide { grid-column: 1 / -1; }
 .question-section, .program-section { margin-top: 22px; border-top: 1px solid #e2e8f0; padding-top: 19px; }
+.section-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
 .section-heading h4 { margin: 0; color: #1e293b; font-size: 17px; }
 .section-heading p { margin: 5px 0 0; color: #64748b; font-size: 13px; }
 .question-groups { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: 14px; }
@@ -1159,6 +1198,7 @@ input:focus, textarea:focus, select:focus { outline: 2px solid #c7d2fe; border-c
 .sub-question { border-top: 1px solid #e2e8f0; padding: 18px 0; }
 .sub-question h4 { line-height: 1.7; }
 @media (max-width: 900px) {
+  .section-heading { flex-direction: column; }
   .day-tabs { grid-template-columns: repeat(2, 1fr); }
   .question-groups, .program-groups, .info-grid, .edit-grid { grid-template-columns: 1fr; }
   .student-checks { grid-template-columns: repeat(2, 1fr); }
@@ -1225,6 +1265,37 @@ input:focus, textarea:focus, select:focus { outline: 2px solid #c7d2fe; border-c
   cursor: pointer;
 }
 .training-page .question-chip > button:first-child { color: #4338ca; font-size: 12px; }
+.training-page .question-chip.needs-review { border-color: #fb923c; background: #fff7ed; }
+.training-page .question-chip.needs-review > button:first-child { color: #c2410c; }
+.training-page .question-chip.perfect { border-color: #4ade80; background: #f0fdf4; }
+.training-page .question-chip.perfect > button:first-child { color: #15803d; }
+.training-page .question-chip .accuracy-rate {
+  display: inline-flex;
+  align-items: center;
+  border-left: 1px solid #86efac;
+  background: #dcfce7;
+  color: #166534;
+  padding: 0 7px;
+  font-size: 11px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+.training-page .question-chip.needs-review .accuracy-rate {
+  border-left-color: #fdba74;
+  background: #ffedd5;
+  color: #9a3412;
+}
+.training-page .review-legend {
+  align-self: center;
+  border: 1px solid #fdba74;
+  border-radius: 999px;
+  background: #fff7ed;
+  color: #9a3412;
+  padding: 5px 10px;
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+}
 .training-page .question-chip > button.remove,
 .training-page .program-link > button { border-left: 1px solid #c7d2fe; color: #dc2626; padding-inline: 7px; }
 .training-page .program-link > a { padding: 7px 10px; color: #2563eb; font-weight: 800; text-decoration: none; }
