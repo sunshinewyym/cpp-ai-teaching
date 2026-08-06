@@ -129,6 +129,15 @@ const programGuides = {
   '2024-completion-2':'汉诺塔递归分三步：把 n-1 个盘移到辅助柱，移动最大盘，再把 n-1 个盘移到目标柱。参数顺序必须与源、辅助、目标角色一致。'
 };
 
+const programQuestionExplanations = {
+  '2024-reading-3-1': '递归出口是 b=0 时返回 a。对 customFunction(2,3) 展开：2+customFunction(2,2)=2+2+customFunction(2,1)=2+2+2+customFunction(2,0)=8。主函数随后才把这个返回值平方得到 64；题目问的是函数返回值，却把主函数输出 64 当成返回值，所以说法错误。',
+  '2024-reading-3-2': '当 b<0 时，b 永远不等于 0，函数每次调用都只执行 b-1。参数序列会从 -1 变成 -2、-3……，永远到不了递归出口 b==0，最终因调用栈耗尽而停止，因此会陷入无限递归。',
+  '2024-reading-3-3': '在 b≥0 时，函数每递归一层把 b 减 1，直到 0，共有 b 层调用，时间复杂度为 O(b)。因此 b 越大，需要执行的加法和函数调用越多，运行时间越长；若 b 为负数则属于上一问的无限递归边界。',
+  '2024-reading-3-4': '对非负 b，递推式为 F(a,b)=a+F(a,b-1)，出口 F(a,0)=a。每减少一次 b 就多加一个 a，所以 F(a,b)=a(b+1)。代入 a=5、b=4，得到 5×5=25。',
+  '2024-reading-3-5': 'customFunction(3,3)=3×(3+1)=12。main 函数把返回值放入 result，再计算 pow(result,2)，所以最终输出是 12²=144，而不是函数本身的返回值 12。',
+  '2024-reading-3-6': '修改后的递推为 G(a,b)=a+G(a-1,b-1)，出口仍是 b=0。输入 (3,3) 的调用链为 G(3,3)=3+G(2,2)=3+2+G(1,1)=3+2+1+G(0,0)=6；主函数平方后输出 6²=36。'
+};
+
 function plain(value) {
   return String(value || '').replace(/[`$]/g, '').replace(/\\text\{([^}]*)\}/g, '$1').trim();
 }
@@ -159,6 +168,8 @@ function programQuestionTip(question, problem) {
 export function buildLegacyProgramExplanation(question, problem) {
   const answer = question.answers.join('、');
   const answerText = question.answers.map(key => plain(question.options?.[key])).join('、');
+  const questionSpecific = programQuestionExplanations[question.id];
+  if (questionSpecific) return `${questionSpecific}\n\n结论：${answer}（${answerText}）。`;
   const guide = programGuides[problem.id] || '先确定程序输入、输出和关键状态，再沿控制流程验证题干所问语句。';
   const stored = plain(question.explanation)
     .replace(/^参考答案[^\n]*\n+/u, '')
