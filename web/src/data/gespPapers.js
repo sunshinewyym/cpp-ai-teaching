@@ -34828,6 +34828,7 @@ const gespExplanationOverrides = {
 
 const gespQuestionOverrides = {
   'gesp-cpp4-2023-06-judgment-2': '数列 1，1，2，3，5，8，… 是以意大利数学家列昂多·斐波那契命名的数列，从第三个数开始，每个数是前面两项之和。如果计算该数列的第 n 项（其中 n > 3）fib(n)，我们采用如下方法：  \n① 令 fib(1) = fib(2) = 1。  \n② 用循环 for i = 3 to n 分别计算 f(i)。  \n③ 输出 fib(n)。  \n这体现了递推的编程思想。',
+  'gesp-cpp4-2024-12-judgment-5': '递推是一种通过已知的初始值和递推公式，逐步求解目标值的算法。',
 };
 
 function withGespExplanation(question) {
