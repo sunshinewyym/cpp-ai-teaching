@@ -34820,13 +34820,24 @@ export const gespPapers = {
   }
 };
 
+const gespExplanationOverrides = {
+  'gesp-cpp4-2023-06-judgment-2': '参考答案为 A（正确）。\n\n**解析：**\n\n斐波那契数列的前两项是已知的初始值：fib(1) = fib(2) = 1；从第 3 项开始，每一项都由前两项确定，即 fib(i) = fib(i - 1) + fib(i - 2)。因此可以按 i = 3、4、…、n 的顺序，用循环逐项计算并输出 fib(n)。\n\n这种“先给出初始值，再根据递推公式求出后续值”的过程就是递推思想。它虽然使用循环实现，而不是函数调用自身的递归写法，但并不影响其属于递推算法。比如 n = 5 时，得到的序列为 1、1、2、3、5。\n\n所以题干描述正确，选择 A。',
+  'gesp-cpp4-2024-12-choice-9': '参考答案为 A（result = f1 + f2；f1 = f2；f2 = result）。\n\n**解析：**\n\n函数已经处理了 n = 0 和 n = 1 的边界情况。进入循环时，f1 保存前一项，f2 保存当前项；每轮先计算下一项 result = f1 + f2，再把两个状态向后移动：f1 = f2，f2 = result。这样下一轮仍然能够使用连续的前两项。\n\n以 n = 5 为例：初始 f1 = 0、f2 = 1；各轮依次得到 result = 1、2、3、5，最终返回 5。\n\nA 的赋值顺序完整地完成了“求和并向后移动”两个步骤。B 使用 += 会把历次结果累加，不再表示当前斐波那契项；C 先改写 f2，再令 f1 = f2，会丢失原来的 f2；D 同样先改写 f2，随后 f1 和 f2 变成相同的值。\n\n循环执行 n - 1 次，时间复杂度为 O(n)，只使用常数个变量，空间复杂度为 O(1)。因此选择 A。',
+  'gesp-cpp4-2024-12-judgment-5': '参考答案为 A（正确）。\n\n**解析：**\n\n递推算法由两部分组成：一组已知的初始值，以及描述当前结果如何由前面结果得到的递推公式。算法从初始值出发，按照公式逐步计算，直到得到题目要求的目标项。\n\n例如斐波那契数列可写为 fib(1) = fib(2) = 1，fib(n) = fib(n - 1) + fib(n - 2)。先知道前两项，再依次计算第 3、4、… 项，正是题干所说的过程。递推既可以用循环实现，也可以作为递归函数的数学依据，不能因为没有函数自调用就否定递推思想。\n\n因此题干给出的定义准确，选择 A。',
+};
+
+function withGespExplanation(question) {
+  const explanation = gespExplanationOverrides[question.id];
+  return explanation ? { ...question, explanation } : question;
+}
+
 
 export function listGespQuestions() {
   return Object.entries(gespPapers).flatMap(([level, sessions]) =>
     Object.values(sessions).flatMap(paper =>
       Object.entries(paper.sections).flatMap(([questionType, section]) =>
         section.questions.map(question => ({
-          ...question,
+          ...withGespExplanation(question),
           source: { level, paperId: paper.id, year: paper.year, session: paper.session,
             questionType, typeLabel: section.label, scorePerQuestion: section.scorePerQuestion },
         }))
@@ -34840,7 +34851,7 @@ export function findGespQuestion(id) {
     for (const paper of Object.values(sessions)) {
       for (const section of Object.values(paper.sections)) {
         const question = section.questions.find(item => item.id === id);
-        if (question) return { paper, question };
+        if (question) return { paper, question: withGespExplanation(question) };
       }
     }
   }
