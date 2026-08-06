@@ -85,10 +85,50 @@ export function cleanCspMarkdown(value) {
   return String(value || '').split('```').map((part, index) => index % 2 ? part : cleanCspMathText(part)).join('```');
 }
 
+// A C++ bitwise-not expression such as `~0ull` can be mistaken for the
+// opening delimiter of Markdown strikethrough when another tilde appears
+// later in the same paragraph. Escape tildes only in prose; code spans and
+// fenced code must remain byte-for-byte unchanged.
+function protectMarkdownTildes(value) {
+  const text = String(value || '');
+  let result = '';
+  let index = 0;
+  while (index < text.length) {
+    if (text.startsWith('```', index)) {
+      const end = text.indexOf('```', index + 3);
+      if (end < 0) {
+        result += text.slice(index);
+        break;
+      }
+      const closeEnd = end + 3;
+      result += text.slice(index, closeEnd);
+      index = closeEnd;
+      continue;
+    }
+    if (text[index] === '`') {
+      let ticks = 1;
+      while (text[index + ticks] === '`') ticks += 1;
+      const marker = '`'.repeat(ticks);
+      const end = text.indexOf(marker, index + ticks);
+      if (end < 0) {
+        result += text.slice(index);
+        break;
+      }
+      const closeEnd = end + ticks;
+      result += text.slice(index, closeEnd);
+      index = closeEnd;
+      continue;
+    }
+    result += text[index] === '~' ? '&#126;' : text[index];
+    index += 1;
+  }
+  return result;
+}
+
 export function renderCspMarkdown(value) {
-  return marked.parse(cleanCspMarkdown(value));
+  return marked.parse(protectMarkdownTildes(cleanCspMarkdown(value)));
 }
 
 export function renderCspInline(value) {
-  return marked.parseInline(cleanCspMathText(value));
+  return marked.parseInline(protectMarkdownTildes(cleanCspMathText(value)));
 }
