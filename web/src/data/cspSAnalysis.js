@@ -81,7 +81,11 @@ function isMojibake(value) {
 }
 
 function stripOldHeader(value) {
-  return plain(value).replace(/^参考答案[\s\S]*?\*\*解析：?\*\*\s*/u, '').trim();
+  return plain(value)
+    .replace(/^参考答案[^\n]*\n+/u, '')
+    .replace(/^\*\*解析：?\*\*\s*/u, '')
+    .replace(/\*\*(?:程序主线|本题判断|选项核对|解题技巧|易错点|本大题整体思路|本大题完善程序方法|专项技巧)\*\*：?\s*/gu, '')
+    .trim();
 }
 
 function choiceTip(question) {
@@ -97,8 +101,7 @@ export function buildSChoiceExplanation(question) {
   const option = plain(question.options?.[question.answer]);
   const stored = question.explanation && !isMojibake(question.explanation) ? stripOldHeader(question.explanation) : '';
   const reason = regeneratedChoiceReasons[question.id] || stored || `把题干条件逐项代入定义并排除不满足条件的选项，可得到 ${option}；关键是所有限制必须同时成立。`;
-  const summary = question.number === 15 ? '\n\n**本年选择题整体方法：** 基础概念抓定义边界；数制和表达式逐步写中间值；数据结构画图模拟；组合计数先分类再查重；复杂度只统计主导操作。做完后用数量级、边界值和反例完成一次反向验算。' : '';
-  return `参考答案为 ${question.answer}（${option}）。\n\n**详细推导：**\n\n${reason}\n\n**选项核对：** 正确项满足题目全部条件；其余项至少在定义范围、计算顺序、边界或数量级中的一处不成立。\n\n**解题技巧：** ${choiceTip(question)}\n\n**易错点：** 不要看到熟悉术语就立即作答；计算后要代回题干，特别检查取整、下标、严格大于、是否允许重复等细节。${summary}`;
+  return `${reason}\n\n结论：选择 ${question.answer}（${option}）。`;
 }
 
 function questionRoute(question, problem) {
@@ -123,10 +126,8 @@ export function buildSProgramExplanation(question, problem) {
   const answerText = answers.map(key => plain(question.options?.[key])).join('、');
   const [main, invariant] = programGuides[problem.id] || ['先确定程序输入、输出和核心算法，再沿控制流追踪影响答案的状态。', '记录每个关键变量的数学含义，以及循环或递归每一步必须保持的关系。'];
   const oldSpecific = question.explanation && !isMojibake(question.explanation) ? stripOldHeader(question.explanation) : '';
-  const specific = oldSpecific || `本题关注“${plain(question.text).replace(/\s+/g, ' ').slice(0, 120)}”。应按上述状态含义代入题设条件，逐分支核对后得到答案 ${answer}。`;
-  const isLast = problem.questions?.at(-1)?.id === question.id;
-  const summary = !isLast ? '' : problem.type === 'reading'
-    ? '\n\n**本大题整体解题思路：** 先用一句话写出程序功能，再给关键变量贴标签；随后按“判断与反例—具体输入—代码修改—复杂度”分类作答。计算量大时不要全程手算：优先找单调性、周期、对称、前缀和、组合计数或状态合并，只保留会影响输出的变量。递归画调用树前两层，DP 写状态含义和转移来源，位运算固定宽度分组。最后用边界输入复核结论。'
-    : '\n\n**本大题完善程序方法：** 先遮住选项还原算法骨架，给每个数组和变量写一句职责；按“初始化—循环条件—状态转移—指针/下标推进—最终答案”定位空格。单独代入一个选项不够，必须把五个空连起来运行最小样例。计算量大时依靠不变量、单调性和状态含义排除，不必展开所有数据；重点防止越界、死循环、重复计数、整型溢出和最短/次短等严格条件混淆。';
-  return `参考答案为 ${answer}（${answerText}）。\n\n**程序主线：**\n\n${main}\n\n**关键状态与不变量：**\n\n${invariant}\n\n**本题验证路径：**\n\n${specific}\n\n${questionRoute(question, problem)}\n\n**选项核对：** ${optionAudit(question, problem)}\n\n**专项技巧：** 先写变量含义再计算；只追踪会影响答案的状态。遇到大数值，先尝试公式、分块、计数或二分边界，并用最小样例校验。\n\n**易错点：** 区分数组下标与题目编号、赋值前与赋值后、函数返回值与最终输出；还要检查整数除法、溢出、短路求值和循环端点。${summary}`;
+  const usefulSpecific = oldSpecific && !/建议从题目给定|正确选项代入后|本题关注/.test(oldSpecific) ? oldSpecific : '';
+  const subject = plain(question.text).replace(/\s+/g, ' ').trim();
+  const specific = usefulSpecific || `这小问要求判断“${subject.slice(0, 160)}”。先用上面的状态定义解释变量，再沿一次循环、递归或状态转移检查结论；如果题干用了“一定、总是、可能”等词，还要用边界输入或最小反例验证量词。`;
+  return `${main}\n\n${invariant}\n\n${specific}\n\n${questionRoute(question, problem)}\n\n结论：${answer}（${answerText}）。`;
 }

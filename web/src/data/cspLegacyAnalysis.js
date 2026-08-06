@@ -23,7 +23,7 @@ const choiceReasons = {
   '2020-choice-6':'递归先求前 `n-1` 个元素的结果，再与 `A[n]` 比较并保留较小者，因此最终返回整个数组的最小值。',
   '2020-choice-7':'链表的结点地址不连续，访问第 k 个元素需要从头沿链接走过，因而不支持常数时间的随机访问。',
   '2020-choice-8':'含 10 个顶点的连通无向图至少是一棵树，而树恰有 `10-1=9` 条边。',
-  '2020-choice-9':'`1011₂=1×2^3+0×2^2+1×2+1=8+2+1=11`。',
+  '2020-choice-9':'二进制各位按从右到左依次对应 2^0、2^1、2^2、2^3，因此 `1011₂=1×2^3+0×2^2+1×2^1+1×2^0=8+2+1=11`。',
   '2020-choice-10':'把双胞胎看成一个整体，与另外 3 人共 4 个对象，有 `4!` 种；双胞胎内部可交换，乘 `2!`，共 48 种。',
   '2020-choice-11':'图示操作只允许在同一端插入和删除，符合后进先出的栈；若两端分工则应是队列。',
   '2020-choice-12':'高度为 h 的完全二叉树结点数范围为 `2^(h-1)` 到 `2^h-1`。61 位于 32 到 63 之间，所以高度为 6。',
@@ -59,7 +59,7 @@ const choiceReasons = {
   '2022-choice-10':'两个栈可以实现一个队列：入队压入栈 1，出队时把元素倒入栈 2，因此“无法实现”不恰当。',
   '2022-choice-11':'应先保存并连接原后继，再改写 `p->next`，正确顺序是连接 `s` 与旧后继、设置 `s->prev=p`、最后令 `p->next=s`。',
   '2022-choice-12':'简单选择排序可能用后面的较小元素跨越相等元素，改变相等关键字的相对顺序，所以通常不稳定。',
-  '2022-choice-13':'`32.1₈=3×8+2+1/8=26.125`。',
+  '2022-choice-13':'八进制小数点左侧按 8^1、8^0 计权，小数点右侧第一位按 8^-1 计权，所以 `32.1₈=3×8+2×1+1/8=26.125`。不能把小数部分当作十进制的 0.1。',
   '2022-choice-14':'长度 1 到 5 的所有连续片段共有 15 个，再把内容相同的片段合并去重，得到 13 个不同子串。',
   '2022-choice-15':'递归的定义特征是函数直接或间接调用自身，并用规模更小的同类问题和递归出口完成求解。',
 
@@ -144,8 +144,7 @@ function choiceTip(question) {
 
 export function buildLegacyChoiceExplanation(question) {
   const reason = choiceReasons[question.id] || `正确选项符合题干定义与条件，代入或逐项核对可得到 ${plain(question.options?.[question.answer])}。`;
-  const summary = question.number === 15 ? '\n\n**本年选择题整体方法：** 基础概念题抓定义中的限定词；进制与位运算先统一表示；排列组合先判断对象是否相同及顺序是否重要；栈、树、图题画最小结构模拟；算法题先数基本操作。计算后务必用选项反查数量级和边界。' : '';
-  return `参考答案为 ${question.answer}（${plain(question.options?.[question.answer])}）。\n\n**详细解析：**\n\n${reason}\n\n**解题技巧：** ${choiceTip(question)}\n\n**易错点：** 不要只凭选项外观作答；计算题完成后代回原条件，概念题要检查题干中的“至少、至多、不正确”等限定词。${summary}`;
+  return `${reason}\n\n结论：选择 ${question.answer}（${plain(question.options?.[question.answer])}）。`;
 }
 
 function programQuestionTip(question, problem) {
@@ -161,9 +160,12 @@ export function buildLegacyProgramExplanation(question, problem) {
   const answer = question.answers.join('、');
   const answerText = question.answers.map(key => plain(question.options?.[key])).join('、');
   const guide = programGuides[problem.id] || '先确定程序输入、输出和关键状态，再沿控制流程验证题干所问语句。';
-  const isLast = problem.questions?.at(-1)?.id === question.id;
-  const summary = !isLast ? '' : problem.type === 'reading'
-    ? '\n\n**本大题阅读方法：** 先写出程序功能和关键变量含义，再分别处理输入输出、代码修改、复杂度与边界四类问题。具体数值只列表记录必要状态；“一定”“总是”优先寻找最小反例；递归先找出口和参数变化；动态规划先解释状态再计算。'
-    : '\n\n**本大题填空方法：** 先遮住选项还原算法步骤，再从空格左右反推表达式类型和变量职责。按初始化、循环条件、状态转移、循环推进、最终输出的顺序检查；将所有空代回后，用最小样例完整运行一次，重点排查越界、死循环和少算边界。';
-  return `参考答案为 ${answer}（${answerText}）。\n\n**程序主线：**\n\n${guide}\n\n**本题判断：**\n\n题干关注“${plain(question.text).replace(/\s+/g, ' ').slice(0, 100)}”。沿上述程序主线代入题目条件，正确结果与 ${answer} 选项一致。\n\n**选项核对：** 正确选项代入后能保持上述变量含义和控制流程；其余选项会造成状态含义不一致、边界错误，或得到与题设不符的输出。\n\n**解题技巧：** ${programQuestionTip(question, problem)}\n\n**易错点：** 区分函数返回值与主程序最终输出，并留意数组 0 号位置、循环端点、整数除法和短路求值。${summary}`;
+  const stored = plain(question.explanation)
+    .replace(/^参考答案[^\n]*\n+/u, '')
+    .replace(/^\*\*解析：?\*\*\s*/u, '')
+    .trim();
+  const usefulStored = stored && !/建议从题目给定|请按题干的定义|正确选项代入后/.test(stored) ? stored : '';
+  const subject = plain(question.text).replace(/\s+/g, ' ').trim();
+  const detail = usefulStored || `这小问围绕“${subject.slice(0, 160)}”展开。先把程序中的关键状态写成一句话，再沿循环或递归顺序更新它；题干中的输入、边界和修改位置都必须代回同一个状态定义，不能只凭选项表面判断。`;
+  return `${guide}\n\n${detail}\n\n${programQuestionTip(question, problem)}\n\n结论：${answer}（${answerText}）。`;
 }
