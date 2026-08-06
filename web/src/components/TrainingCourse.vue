@@ -464,6 +464,7 @@ import { listGespQuestions } from '../data/gespPapers';
 import { problemUrl } from '../data/problemIndex';
 import { cspSTrainingChoices, cspSTrainingPrograms } from '../data/trainingCspS';
 import { buildLegacyChoiceExplanation, buildLegacyProgramExplanation } from '../data/cspLegacyAnalysis';
+import { buildSChoiceExplanation, buildSProgramExplanation } from '../data/cspSAnalysis';
 
 function programUrl(id, platform = 'oj') {
   return platform === 'luogu'
@@ -976,13 +977,14 @@ function questionTypeLabel(type) {
 }
 
 function choiceExplanation(item) {
-  if (item.source?.level === 'CSP-S' || item.source?.level?.startsWith('GESP-')) return item.explanation;
+  if (item.source?.level === 'CSP-S') return buildSChoiceExplanation(item);
+  if (item.source?.level?.startsWith('GESP-')) return item.explanation;
   const year = Number(item.id.slice(0, 4));
   return year >= 2019 && year <= 2024 ? buildLegacyChoiceExplanation(item) : item.explanation;
 }
 
 function programExplanation(item, problem) {
-  if (problem.source?.level === 'CSP-S') return item.explanation;
+  if (problem.source?.level === 'CSP-S') return buildSProgramExplanation(item, problem);
   const year = Number(problem.year);
   return year >= 2019 && year <= 2024 ? buildLegacyProgramExplanation(item, problem) : item.explanation;
 }

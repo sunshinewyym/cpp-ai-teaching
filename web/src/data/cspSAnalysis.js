@@ -124,7 +124,8 @@ export function buildSProgramExplanation(question, problem) {
   const answers = question.answers || [];
   const answer = answers.join('、');
   const answerText = answers.map(key => plain(question.options?.[key])).join('、');
-  const [main, invariant] = programGuides[problem.id] || ['先确定程序输入、输出和核心算法，再沿控制流追踪影响答案的状态。', '记录每个关键变量的数学含义，以及循环或递归每一步必须保持的关系。'];
+  const guideKey = String(problem.id || '').replace(/^csp-s-/u, '');
+  const [main, invariant] = programGuides[guideKey] || ['先确定程序输入、输出和核心算法，再沿控制流追踪影响答案的状态。', '记录每个关键变量的数学含义，以及循环或递归每一步必须保持的关系。'];
   const oldSpecific = question.explanation && !isMojibake(question.explanation) ? stripOldHeader(question.explanation) : '';
   const usefulSpecific = oldSpecific && !/建议从题目给定|正确选项代入后|本题关注/.test(oldSpecific) ? oldSpecific : '';
   const subject = plain(question.text).replace(/\s+/g, ' ').trim();
