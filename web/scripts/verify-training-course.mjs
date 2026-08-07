@@ -109,6 +109,10 @@ assert.match(advancedDay6.afternoon.theme, /树.*二叉树.*哈夫曼树.*图论
 for (const id of ['2021-choice-9', '2022-choice-6', '2019-choice-14', '2022-choice-7', '2020-choice-8', '2024-choice-11']) {
   assert.ok(advancedDay6.questions.choice.includes(id), `advanced day 6 is missing expression/tree/graph question ${id}`);
 }
+for (const id of ['2019-reading-3', 'csp-s-2020-reading-3']) {
+  assert.ok(advancedDay6.questions.reading.includes(id), `advanced day 6 is missing graph/queue reading problem ${id}`);
+}
+assert.ok(!advancedDay4.questions.reading.includes('2019-reading-3'), 'advanced day 4 should move the tree reading problem to day 6');
 for (const id of ['P1449', 'P1030', 'P1090', 'P5318', 'P3916']) {
   assert.ok(
     ['luoguBasic', 'luoguPopular', 'luoguAdvanced']
