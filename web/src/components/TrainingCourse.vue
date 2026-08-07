@@ -735,8 +735,10 @@ async function loadAssignments(silent = false) {
     if (!response.ok) throw new Error(data.error || '布置进度读取失败');
     if (Number(currentDay.value?.day) !== Number(day)) return;
     assignment.value = data;
-    selectedStudentIds.value = data.students.map(item => item.id);
-    selectedAssignmentQuestionIds.value = data.questionIds || [...assignmentQuestionIds.value];
+    if (!silent) {
+      selectedStudentIds.value = data.students.map(item => item.id);
+      selectedAssignmentQuestionIds.value = data.questionIds || [...assignmentQuestionIds.value];
+    }
   } catch (error) {
     if (!silent) {
       assignment.value = { students: [], questions: [], questionIds: [] };

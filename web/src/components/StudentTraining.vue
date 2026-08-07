@@ -461,7 +461,7 @@ function scheduleChoiceAdvance(questionId) {
     if (preview.value?.id !== questionId || submitting.value) return;
     preview.value = null;
     if (nextId) await openQuestion(nextId);
-  }, 1000);
+  }, 500);
   return nextId;
 }
 
@@ -503,7 +503,7 @@ async function submitQuestion() {
     preview.value.state = state;
     if (preview.value.type === 'choice') {
       const nextId = scheduleChoiceAdvance(preview.value.id);
-      showMessage(nextId ? '提交成功，1 秒后进入下一道未完成题。' : '提交成功，1 秒后关闭本题。');
+      showMessage(nextId ? '提交成功，0.5 秒后进入下一道未完成题。' : '提交成功，0.5 秒后关闭本题。');
     } else {
       showMessage(data.message);
     }
