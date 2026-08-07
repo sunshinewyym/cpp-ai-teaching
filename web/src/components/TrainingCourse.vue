@@ -263,10 +263,13 @@
                 <h4>历年真题题池</h4>
                 <p>点击题目可查看题面、答案和解析；课堂精做，其余可作为作业或机动。</p>
               </div>
-              <span class="review-legend">
-                实时正确率，每 5 秒刷新；橙色表示有人答错，建议讲解
-                <template v-if="liveNeedsReviewCount">（{{ liveNeedsReviewCount }} 题）</template>
-              </span>
+            </div>
+            <div class="review-controls">
+              <label class="accuracy-toggle" title="每 5 秒刷新；关闭后隐藏题目颜色、百分比和悬停统计">
+                <input v-model="showLiveAccuracy" type="checkbox">
+                <span class="toggle-track" aria-hidden="true"></span>
+                <span>显示正确率</span>
+              </label>
             </div>
             <div class="question-groups">
               <QuestionGroup
@@ -276,6 +279,7 @@
                 :editing="editing"
                 :locked-ids="answeredQuestionIds"
                 :stats="liveQuestionStats"
+                :show-stats="showLiveAccuracy"
                 :options="availableQuestions('choice')"
                 v-model:selected="questionSelections.choice"
                 @open="openQuestion"
@@ -289,6 +293,7 @@
                 :editing="editing"
                 :locked-ids="answeredQuestionIds"
                 :stats="liveQuestionStats"
+                :show-stats="showLiveAccuracy"
                 :options="availableQuestions('reading')"
                 v-model:selected="questionSelections.reading"
                 @open="openQuestion"
@@ -302,6 +307,7 @@
                 :editing="editing"
                 :locked-ids="answeredQuestionIds"
                 :stats="liveQuestionStats"
+                :show-stats="showLiveAccuracy"
                 :options="availableQuestions('completion')"
                 v-model:selected="questionSelections.completion"
                 @open="openQuestion"
@@ -523,6 +529,7 @@ const QuestionGroup = defineComponent({
     editing: Boolean,
     lockedIds: Object,
     stats: Object,
+    showStats: Boolean,
     options: Array,
     selected: String,
   },
@@ -532,7 +539,7 @@ const QuestionGroup = defineComponent({
       h('h5', props.title),
       h('div', { class: 'question-chips' }, [
         ...(props.ids || []).map(id => {
-          const stat = props.stats?.[id];
+          const stat = props.showStats ? props.stats?.[id] : null;
           const needsReview = stat?.averagePercent < 100;
           return h('span', {
             class: ['question-chip', {
@@ -540,9 +547,11 @@ const QuestionGroup = defineComponent({
               perfect: stat?.averagePercent === 100,
             }],
             key: id,
-            title: stat
-              ? `已提交 ${stat.submitted}/${stat.total} 人，当前正确率 ${stat.averagePercent}%${needsReview ? '，建议讲解' : ''}`
-              : '暂无学生提交',
+            title: props.showStats
+              ? (stat
+                ? `已提交 ${stat.submitted}/${stat.total} 人，当前正确率 ${stat.averagePercent}%${needsReview ? '，建议讲解' : ''}`
+                : '暂无学生提交')
+              : undefined,
           }, [
           h('button', { type: 'button', onClick: () => emit('open', id) }, questionLabel(id)),
           stat ? h('span', { class: 'accuracy-rate' }, `${stat.averagePercent}%`) : null,
@@ -661,6 +670,7 @@ const assigning = ref(false);
 const releasingId = ref('');
 const detailOpen = ref({});
 const programmingSavingKey = ref('');
+const showLiveAccuracy = ref(true);
 
 const workingCourse = computed(() => editing.value ? draft.value : course.value);
 const currentDay = computed(() => workingCourse.value?.days?.[selectedDay.value]);
@@ -680,8 +690,6 @@ const lockedAssignmentQuestionIds = computed(() => new Set(
     .map(item => item.questionId)
 ));
 const liveQuestionStats = computed(() => buildLiveQuestionStats(assignment.value.questions));
-const liveNeedsReviewCount = computed(() => Object.values(liveQuestionStats.value)
-  .filter(item => item.averagePercent < 100).length);
 let assignmentSilentRefreshPending = false;
 let assignmentRefreshTimer = null;
 
@@ -1287,16 +1295,16 @@ input:focus, textarea:focus, select:focus { outline: 2px solid #c7d2fe; border-c
   background: #ffedd5;
   color: #9a3412;
 }
-.training-page .review-legend {
-  align-self: center;
-  border: 1px solid #fdba74;
-  border-radius: 999px;
-  background: #fff7ed;
-  color: #9a3412;
-  padding: 5px 10px;
-  font-size: 12px;
-  font-weight: 700;
-  white-space: nowrap;
+.training-page .review-controls { position: fixed; top: 96px; right: 38px; z-index: 30; display: flex; width: max-content; align-items: center; padding: 7px 10px; border: 1px solid #e2e8f0; border-radius: 999px; background: rgba(255, 255, 255, .96); box-shadow: 0 6px 18px rgba(15, 23, 42, .12); }
+.training-page .accuracy-toggle { position: relative; display: inline-flex; align-items: center; gap: 7px; color: #475569; font-size: 12px; font-weight: 700; cursor: pointer; white-space: nowrap; }
+.training-page .accuracy-toggle input { position: absolute; inset: 0; z-index: 1; width: 100%; height: 100%; margin: 0; padding: 0; opacity: 0; cursor: pointer; }
+.training-page .toggle-track { position: relative; width: 34px; height: 20px; border-radius: 999px; background: #cbd5e1; transition: background 0.18s ease; }
+.training-page .toggle-track::after { content: ''; position: absolute; top: 3px; left: 3px; width: 14px; height: 14px; border-radius: 50%; background: #fff; box-shadow: 0 1px 3px rgba(15, 23, 42, 0.25); transition: transform 0.18s ease; }
+.training-page .accuracy-toggle input:checked + .toggle-track { background: #4f46e5; }
+.training-page .accuracy-toggle input:checked + .toggle-track::after { transform: translateX(14px); }
+.training-page .accuracy-toggle input:focus-visible + .toggle-track { outline: 3px solid #c7d2fe; outline-offset: 2px; }
+@media (max-width: 900px) {
+  .training-page .review-controls { top: 72px; right: 12px; }
 }
 .training-page .question-chip > button.remove,
 .training-page .program-link > button { border-left: 1px solid #c7d2fe; color: #dc2626; padding-inline: 7px; }

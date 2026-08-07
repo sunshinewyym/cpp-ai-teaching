@@ -58,26 +58,44 @@ const advancedDay5 = trainingCourseTemplate.days.find(item => item.day === 5);
 const advancedDay6 = trainingCourseTemplate.days.find(item => item.day === 6);
 const advancedDay7 = trainingCourseTemplate.days.find(item => item.day === 7);
 const advancedDay8 = trainingCourseTemplate.days.find(item => item.day === 8);
+const advancedDay9 = trainingCourseTemplate.days.find(item => item.day === 9);
+const advancedDay10 = trainingCourseTemplate.days.find(item => item.day === 10);
 assert.match(advancedDay4.afternoon.theme, /前缀和.*贪心/);
 assert.ok(advancedDay4.questions.choice.includes('2019-choice-11'));
 assert.match(advancedDay5.morning.theme, /DFS.*回溯.*BFS/);
 assert.match(advancedDay5.afternoon.theme, /回溯.*BFS/);
 assert.match(advancedDay5.morning.knowledge, /加法原理.*乘法原理.*排列数.*组合数/);
-const combinatoricsChoiceIds2019To2025 = [
+const day5CoreCombinatoricsChoiceIds = [
   '2019-choice-7', '2019-choice-12', '2019-choice-13',
   '2020-choice-10', '2020-choice-14', '2020-choice-15',
   '2021-choice-10', '2021-choice-12', '2022-choice-14',
   '2023-choice-6', '2023-choice-14', '2024-choice-3', '2024-choice-14',
   '2025-choice-6', '2025-choice-11',
-  'csp-s-2019-choice-6', 'csp-s-2019-choice-8', 'csp-s-2019-choice-9', 'csp-s-2019-choice-10',
-  'csp-s-2020-choice-8', 'csp-s-2020-choice-13',
-  'csp-s-2021-choice-7', 'csp-s-2021-choice-13', 'csp-s-2021-choice-14',
-  'csp-s-2022-choice-9', 'csp-s-2022-choice-10', 'csp-s-2022-choice-11',
-  'csp-s-2023-choice-2', 'csp-s-2024-choice-4', 'csp-s-2024-choice-12',
-  'csp-s-2025-choice-1', 'csp-s-2025-choice-5', 'csp-s-2025-choice-13',
+  'csp-s-2019-choice-6', 'csp-s-2019-choice-9', 'csp-s-2019-choice-10',
+  'csp-s-2020-choice-8',
 ];
-for (const id of combinatoricsChoiceIds2019To2025) {
+for (const id of day5CoreCombinatoricsChoiceIds) {
   assert.ok(advancedDay5.questions.choice.includes(id), `advanced day 5 is missing combinatorics question ${id}`);
+}
+const graphChoiceIds = [
+  'csp-s-2019-choice-8', 'csp-s-2021-choice-7', 'csp-s-2022-choice-9',
+  'csp-s-2024-choice-12', 'csp-s-2025-choice-5',
+];
+for (const id of graphChoiceIds) {
+  assert.ok(!advancedDay5.questions.choice.includes(id), `graph question ${id} should not remain on day 5`);
+  assert.ok(advancedDay6.questions.choice.includes(id), `advanced day 6 is missing graph question ${id}`);
+}
+const deferredCombinatoricsByDay = new Map([
+  [advancedDay7, ['csp-s-2020-choice-13', 'csp-s-2021-choice-13', 'gesp-cpp8-2023-12-judgment-2', 'gesp-cpp8-2024-12-judgment-6']],
+  [advancedDay8, ['csp-s-2021-choice-14', 'csp-s-2022-choice-10', 'gesp-cpp8-2024-09-choice-7']],
+  [advancedDay9, ['csp-s-2022-choice-11', 'csp-s-2023-choice-2', 'gesp-cpp8-2024-09-choice-8']],
+  [advancedDay10, ['csp-s-2024-choice-4', 'csp-s-2025-choice-1', 'csp-s-2025-choice-13']],
+]);
+for (const [day, ids] of deferredCombinatoricsByDay) {
+  for (const id of ids) {
+    assert.ok(!advancedDay5.questions.choice.includes(id), `deferred question ${id} should not remain on day 5`);
+    assert.ok(day.questions.choice.includes(id), `advanced day ${day.day} is missing deferred question ${id}`);
+  }
 }
 for (const id of ['P1706', 'P1157', 'P1219', 'P1746', 'P1443', 'P1135', 'P2895']) {
   assert.ok(
