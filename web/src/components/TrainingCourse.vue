@@ -415,13 +415,29 @@
     </template>
 
     <div v-if="preview" class="modal-mask" @click.self="preview = null">
-      <section class="question-modal" role="dialog" aria-modal="true" aria-label="真题详情">
+      <section ref="questionModal" class="question-modal" role="dialog" aria-modal="true" aria-label="真题详情">
         <header>
           <div>
             <span>{{ questionTypeLabel(preview.type) }}</span>
             <h3>{{ questionLabel(preview.id) }}</h3>
           </div>
-          <button class="close" aria-label="关闭" @click="preview = null">×</button>
+          <div class="question-modal-actions">
+            <button
+              v-if="preview.type === 'choice'"
+              type="button"
+              class="question-nav"
+              :disabled="choicePreviewIndex <= 0"
+              @click="navigateChoice(-1)"
+            >上一题</button>
+            <button
+              v-if="preview.type === 'choice'"
+              type="button"
+              class="question-nav"
+              :disabled="choicePreviewIndex < 0 || choicePreviewIndex >= choicePreviewIds.length - 1"
+              @click="navigateChoice(1)"
+            >下一题</button>
+            <button type="button" class="close" aria-label="关闭" @click="preview = null">×</button>
+          </div>
         </header>
 
         <div class="answer-controls">
@@ -433,11 +449,22 @@
 
         <div v-if="preview.type === 'choice'" class="question-body">
           <div class="markdown" v-html="renderMd(preview.item.question)"></div>
-          <ol class="option-list">
-            <li v-for="(text, key) in preview.item.options" :key="key">
-              <b>{{ key }}</b><span v-html="renderInline(text)"></span>
+          <ol class="option-list choice-practice-list">
+            <li
+              v-for="(text, key) in preview.item.options"
+              :key="key"
+              :class="previewChoiceClass(key)"
+            >
+              <button type="button" @click="answerPreviewChoice(key)">
+                <b>{{ key }}</b><span v-html="renderInline(text)"></span>
+              </button>
             </li>
           </ol>
+          <p
+            v-if="previewChoiceAnswer && answerVisible"
+            class="choice-judgment"
+            :class="{ correct: previewChoiceCorrect, wrong: !previewChoiceCorrect }"
+          >{{ previewChoiceCorrect ? '回答正确' : `回答错误，正确答案是 ${preview.item.answer}` }}</p>
           <AnswerBox
             v-if="answerVisible"
             :answer="preview.item.answer"
@@ -656,7 +683,9 @@ const loadError = ref('');
 const message = ref('');
 const messageType = ref('ok');
 const preview = ref(null);
+const questionModal = ref(null);
 const answerVisible = ref(false);
+const previewChoiceAnswer = ref('');
 const questionSelections = ref({ choice: '', reading: '', completion: '' });
 const problemInputs = ref({ basic: '', advanced: '', luoguBasic: '', luoguPopular: '', luoguAdvanced: '', csp: '' });
 const students = ref([]);
@@ -674,6 +703,11 @@ const showLiveAccuracy = ref(true);
 
 const workingCourse = computed(() => editing.value ? draft.value : course.value);
 const currentDay = computed(() => workingCourse.value?.days?.[selectedDay.value]);
+const choicePreviewIds = computed(() => currentDay.value?.questions?.choice || []);
+const choicePreviewIndex = computed(() => preview.value?.type === 'choice'
+  ? choicePreviewIds.value.indexOf(preview.value.id)
+  : -1);
+const previewChoiceCorrect = computed(() => previewChoiceAnswer.value === preview.value?.item?.answer);
 const classNames = computed(() => [...new Set(students.value
   .map(item => item.class_name)
   .filter(Boolean))].sort((a, b) => a.localeCompare(b, 'zh-CN')));
@@ -949,11 +983,33 @@ function openQuestion(id) {
     showMessage(`题库中未找到 ${id}`, 'error');
     return;
   }
+  previewChoiceAnswer.value = '';
   answerVisible.value = false;
   preview.value = {
     id,
     item,
     type: choiceMap.has(id) ? 'choice' : item.type,
+  };
+}
+
+function navigateChoice(offset) {
+  const id = choicePreviewIds.value[choicePreviewIndex.value + offset];
+  if (!id) return;
+  openQuestion(id);
+  questionModal.value?.scrollTo({ top: 0 });
+}
+
+function answerPreviewChoice(key) {
+  previewChoiceAnswer.value = key;
+  answerVisible.value = true;
+}
+
+function previewChoiceClass(key) {
+  const selected = previewChoiceAnswer.value === key;
+  return {
+    selected,
+    'result-correct': answerVisible.value && preview.value?.item?.answer === key,
+    'result-wrong': answerVisible.value && selected && preview.value?.item?.answer !== key,
   };
 }
 
@@ -1191,6 +1247,10 @@ input:focus, textarea:focus, select:focus { outline: 2px solid #c7d2fe; border-c
 .question-modal > header { position: sticky; top: 0; z-index: 2; display: flex; justify-content: space-between; align-items: flex-start; gap: 20px; border-bottom: 1px solid #e2e8f0; background: #fff; padding: 18px 22px; }
 .question-modal > header span { color: #6366f1; font-size: 12px; font-weight: 800; }
 .question-modal > header h3 { margin: 4px 0 0; color: #1e293b; }
+.question-modal-actions { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+.question-nav { border: 1px solid #c7d2fe; border-radius: 6px; background: #eef2ff; color: #4338ca; padding: 6px 12px; font-weight: 700; cursor: pointer; }
+.question-nav:hover:not(:disabled) { background: #e0e7ff; }
+.question-nav:disabled { opacity: .45; cursor: not-allowed; }
 .question-modal .close { border: 0; padding: 0 7px; color: #64748b; font-size: 28px; line-height: 1; }
 .answer-controls { display: flex; align-items: center; gap: 10px; border-bottom: 1px solid #e2e8f0; background: #f8fafc; padding: 10px 22px; color: #64748b; font-size: 13px; }
 .answer-toggle { border: 1px solid #c7d2fe; border-radius: 6px; background: #eef2ff; color: #4338ca; padding: 6px 12px; font-weight: 700; cursor: pointer; }
@@ -1202,6 +1262,17 @@ input:focus, textarea:focus, select:focus { outline: 2px solid #c7d2fe; border-c
 .option-list { display: grid; gap: 8px; padding: 0; list-style: none; }
 .option-list li { display: flex; gap: 10px; border: 1px solid #e2e8f0; border-radius: 7px; padding: 10px 12px; }
 .option-list li b { color: #4f46e5; }
+.choice-practice-list li { padding: 0; overflow: hidden; }
+.choice-practice-list button { display: flex; width: 100%; gap: 10px; border: 0; background: transparent; color: inherit; padding: 10px 12px; font: inherit; text-align: left; cursor: pointer; }
+.choice-practice-list li:hover { border-color: #818cf8; background: #f8faff; }
+.choice-practice-list li.selected { border-color: #6366f1; background: #eef2ff; color: #3730a3; }
+.choice-practice-list li.result-correct { border-color: #22c55e; background: #f0fdf4; color: #166534; }
+.choice-practice-list li.result-wrong { border-color: #ef4444; background: #fef2f2; color: #b91c1c; }
+.choice-practice-list li.result-correct b { color: #166534; }
+.choice-practice-list li.result-wrong b { color: #b91c1c; }
+.choice-judgment { margin: 14px 0 0; border-radius: 6px; padding: 10px 13px; font-weight: 700; }
+.choice-judgment.correct { background: #dcfce7; color: #166534; }
+.choice-judgment.wrong { background: #fee2e2; color: #b91c1c; }
 .answer-box { margin-top: 14px; border-left: 4px solid #22c55e; border-radius: 5px; background: #f0fdf4; padding: 13px 15px; }
 .answer-box > b { color: #166534; }
 .answer-box .markdown { margin-top: 8px; }
