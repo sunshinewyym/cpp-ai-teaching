@@ -37,6 +37,8 @@ services:
       - "3000"
     env_file:
       - ../server/.env
+    environment:
+      - TZ=Asia/Shanghai
     volumes:
       - runner-socket:/run/cpp-runner
       - ../knowledge:/knowledge

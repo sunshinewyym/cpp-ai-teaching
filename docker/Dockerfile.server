@@ -1,5 +1,8 @@
 FROM node:24-alpine
 
+RUN apk add --no-cache tzdata
+ENV TZ=Asia/Shanghai
+
 WORKDIR /app
 
 COPY server/package*.json ./
