@@ -176,6 +176,7 @@ async function buildTeacherDetail(req, assignment) {
     const details = students.map(student => {
       const submission = submissionsByStudentQuestion.get(`${student.assignmentStudentId}:${questionId}`);
       const answers = parseAnswers(submission?.answers_json);
+      const parts = submission ? qDefinition.parts.map(part => partView(part, answers)) : [];
       return {
         studentId: student.studentId,
         name: student.name,
@@ -183,10 +184,10 @@ async function buildTeacherDetail(req, assignment) {
         submitted: Boolean(submission),
         answers,
         submittedAt: submission?.submitted_at || null,
-        score: submission ? Number(submission.score) : 0,
-        maxScore: submission ? Number(submission.max_score) : qDefinition.parts.reduce((sum, part) => sum + Number(part.score || 0), 0),
+        score: parts.reduce((sum, part) => sum + part.score, 0),
+        maxScore: qDefinition.parts.reduce((sum, part) => sum + Number(part.score || 0), 0),
         correct: submission ? isCorrectSubmission(submission, qDefinition) : false,
-        parts: submission ? qDefinition.parts.map(part => partView(part, answers)) : [],
+        parts,
       };
     });
     const answered = details.filter(item => item.submitted);
@@ -203,14 +204,16 @@ async function buildTeacherDetail(req, assignment) {
     };
   });
   const studentResults = students.map(student => {
-    const rows = definition.questionIds
-      .map(questionId => submissionsByStudentQuestion.get(`${student.assignmentStudentId}:${questionId}`))
-      .filter(Boolean);
-    const score = rows.reduce((sum, row) => sum + Number(row.score || 0), 0);
-    const maxScore = rows.reduce((sum, row) => sum + Number(row.max_score || 0), 0);
+    const results = definition.questionIds.map(questionId => {
+      const submission = submissionsByStudentQuestion.get(`${student.assignmentStudentId}:${questionId}`);
+      if (!submission) return null;
+      const qDefinition = bank.get(questionId);
+      return qDefinition.parts.map(part => partView(part, parseAnswers(submission.answers_json)));
+    }).filter(Boolean);
+    const score = results.flat().reduce((sum, part) => sum + part.score, 0);
     return {
       ...student,
-      submitted: rows.length,
+      submitted: results.length,
       total: definition.questionIds.length,
       score,
       maxScore: definition.maxScore,
@@ -251,10 +254,10 @@ async function buildStudentDetail(req, assignment) {
     };
     if (assignment.analysis_released_at) {
       const qDefinition = bank.get(questionId);
-      item.score = Number(submission.score);
-      item.maxScore = Number(submission.max_score);
-      item.correct = isCorrectSubmission(submission, qDefinition);
       item.parts = qDefinition.parts.map(part => partView(part, item.answers));
+      item.score = item.parts.reduce((sum, part) => sum + part.score, 0);
+      item.maxScore = item.parts.reduce((sum, part) => sum + part.maxScore, 0);
+      item.correct = isCorrectSubmission(submission, qDefinition);
     }
     submissions[questionId] = item;
   }
@@ -385,7 +388,7 @@ router.get('/student/assignments', auth, async (req, res, next) => {
   try {
     const rows = db.prepare(`
       SELECT a.id, a.title, a.level, a.year, a.deadline, a.analysis_released_at AS analysisReleasedAt,
-        ps.completed_at AS completedAt,
+        ps.id AS assignmentStudentId, ps.completed_at AS completedAt,
         COUNT(s.id) AS submittedCount
       FROM csp_paper_students ps
       JOIN csp_paper_assignments a ON a.id = ps.assignment_id
@@ -395,13 +398,25 @@ router.get('/student/assignments', auth, async (req, res, next) => {
       ORDER BY a.created_at DESC, a.id DESC
     `).all(req.user.id);
     const result = [];
+    const bank = await loadQuestionBank();
+    const studentSubmissions = db.prepare('SELECT * FROM csp_paper_submissions WHERE assignment_student_id = ?');
     for (const row of rows) {
       const definition = await getPaperDefinition(row.level, row.year);
+      const { assignmentStudentId, ...assignment } = row;
+      const score = row.analysisReleasedAt
+        ? studentSubmissions.all(row.assignmentStudentId).reduce((total, submission) => {
+          const question = bank.get(submission.question_id);
+          if (!question) return total;
+          const answers = parseAnswers(submission.answers_json);
+          return total + question.parts.reduce((sum, part) => sum + partView(part, answers).score, 0);
+        }, 0)
+        : null;
       result.push({
-        ...row,
+        ...assignment,
         submittedCount: Number(row.submittedCount || 0),
         total: definition.questionIds.length,
         maxScore: definition.maxScore,
+        score,
       });
     }
     res.json(result);

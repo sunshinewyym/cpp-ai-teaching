@@ -39,7 +39,7 @@ async function loadQuestionBank() {
             id: item.id,
             answers: [item.answer],
             options: Object.keys(item.options || {}),
-            score: 1,
+            score: 2,
           }],
         });
       }
@@ -62,7 +62,7 @@ async function loadQuestionBank() {
             id: item.id,
             answers: [item.answer],
             options: Object.keys(item.options || {}),
-            score: 1,
+            score: 2,
           }],
         });
       }
