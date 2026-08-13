@@ -75,6 +75,8 @@ const sections = computed(() => {
     makeTool('csp-practice', '🏆', 'CSP-J/S 练习'),
     makeTool('gesp-practice', '🎯', 'GESP 考级练习'),
     makeTool('leaderboard', '🏅', '学习排行榜'),
+    ...(isTeacher.value ? [makeTool('csp-paper-assignments', '📝', 'CSP 整卷测评')] : []),
+    ...(!isTeacher.value ? [makeTool('student-csp-papers', '📝', 'CSP 整卷任务')] : []),
   ];
   if (isTeacher.value && hasTrainingCourse.value) {
     competitionItems.push(makeTool('training-course', '📅', '集训课程'));

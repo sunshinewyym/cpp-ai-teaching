@@ -113,6 +113,9 @@
 
       <StudentTraining v-else-if="activeTool === 'student-training'" />
 
+      <CspPaperAssignments v-else-if="activeTool === 'csp-paper-assignments'" />
+      <StudentCspPapers v-else-if="activeTool === 'student-csp-papers'" />
+
       <!-- Edge case mode -->
       <div v-else-if="activeTool === 'edge-case'" class="tool-panel">
         <h2>🧨 边界盲盒</h2>
@@ -342,6 +345,8 @@ import TeacherManage from './components/TeacherManage.vue';
 import ClassFeedback from './components/ClassFeedback.vue';
 import TrainingCourse from './components/TrainingCourse.vue';
 import StudentTraining from './components/StudentTraining.vue';
+import CspPaperAssignments from './components/CspPaperAssignments.vue';
+import StudentCspPapers from './components/StudentCspPapers.vue';
 import { streamPost } from './utils/api';
 import { isLoggedIn, isTeacher, clearAuth, authHeaders } from './utils/auth';
 

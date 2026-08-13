@@ -14,6 +14,7 @@ const authRouter = require('./routes/auth');
 const practiceRouter = require('./routes/practice');
 const feedbackRouter = require('./routes/feedback');
 const trainingCoursesRouter = require('./routes/trainingCourses');
+const cspPapersRouter = require('./routes/cspPapers');
 const leaderboardRouter = require('./routes/leaderboard');
 const { loadQuestionBank } = require('./training/questionBank');
 
@@ -60,6 +61,7 @@ app.use('/api/auth', authRouter);
 app.use('/api/practice', practiceRouter);
 app.use('/api/feedback', feedbackRouter);
 app.use('/api/training-courses', trainingCoursesRouter);
+app.use('/api/csp-papers', cspPapersRouter);
 app.use('/api/leaderboard', leaderboardRouter);
 
 // Error handler

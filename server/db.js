@@ -116,6 +116,56 @@ db.exec(`
   )
 `);
 
+// CSP 整卷任务：独立于十天集训日，题目只保存 ID 快照，正文继续来自统一题库。
+db.exec(`
+  CREATE TABLE IF NOT EXISTS csp_paper_assignments (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    teacher_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    level TEXT NOT NULL CHECK(level IN ('CSP-J','CSP-S')),
+    year INTEGER NOT NULL,
+    title TEXT NOT NULL,
+    question_ids_json TEXT NOT NULL,
+    deadline TEXT DEFAULT '',
+    analysis_released_at TEXT DEFAULT NULL,
+    created_at TEXT DEFAULT (datetime('now','localtime')),
+    updated_at TEXT DEFAULT (datetime('now','localtime'))
+  )
+`);
+
+db.exec(`
+  CREATE TABLE IF NOT EXISTS csp_paper_students (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    assignment_id INTEGER NOT NULL REFERENCES csp_paper_assignments(id) ON DELETE CASCADE,
+    student_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    assigned_at TEXT DEFAULT (datetime('now','localtime')),
+    completed_at TEXT DEFAULT NULL,
+    UNIQUE(assignment_id, student_id)
+  )
+`);
+
+db.exec(`
+  CREATE TABLE IF NOT EXISTS csp_paper_question_attempts (
+    assignment_student_id INTEGER NOT NULL REFERENCES csp_paper_students(id) ON DELETE CASCADE,
+    question_id TEXT NOT NULL,
+    started_at TEXT DEFAULT (datetime('now','localtime')),
+    PRIMARY KEY (assignment_student_id, question_id)
+  )
+`);
+
+db.exec(`
+  CREATE TABLE IF NOT EXISTS csp_paper_submissions (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    assignment_student_id INTEGER NOT NULL REFERENCES csp_paper_students(id) ON DELETE CASCADE,
+    question_id TEXT NOT NULL,
+    answers_json TEXT NOT NULL,
+    score REAL NOT NULL,
+    max_score REAL NOT NULL,
+    duration_seconds INTEGER,
+    submitted_at TEXT DEFAULT (datetime('now','localtime')),
+    UNIQUE(assignment_student_id, question_id)
+  )
+`);
+
 db.exec(`
   CREATE TABLE IF NOT EXISTS feedback_records (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -158,6 +208,10 @@ if (!practiceColumns.some(column => column.name === 'training_submission_id')) {
   console.log('[DB] 迁移: 添加集训练习记录关联字段');
 }
 
+if (!practiceColumns.some(column => column.name === 'paper_submission_id')) {
+  db.exec('ALTER TABLE practice_records ADD COLUMN paper_submission_id INTEGER');
+  console.log('[DB] 迁移: 添加 CSP 整卷练习记录关联字段');
+}
 const trainingCourseColumns = db.prepare("PRAGMA table_info(training_courses)").all();
 if (!trainingCourseColumns.some(column => column.name === 'variant')) {
   db.exec("ALTER TABLE training_courses ADD COLUMN variant TEXT NOT NULL DEFAULT 'advanced'");
