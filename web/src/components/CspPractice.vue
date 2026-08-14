@@ -5,23 +5,29 @@
       <div class="switch"><button :class="{ on: level === 'J' }" @click="switchLevel('J')">CSP-J</button><button :class="{ on: level === 'S' }" @click="switchLevel('S')">CSP-S</button></div>
     </header>
 
+    <div v-if="practiceLocked" class="practice-lock" role="alert">
+      <strong>练习模块暂时锁定</strong>
+      <span>{{ practiceLockMessage }}</span>
+    </div>
+
       <nav class="tabs"><button v-for="item in types" :key="item.id" :class="{ on:type===item.id }" @click="setType(item.id)">{{ item.label }}</button></nav>
 
       <section v-if="type === 'choice'">
         <YearTabs :items="level === 'S' ? sChoiceYears : choiceYears" :value="year" show-status @change="selectYear" />
         <div v-if="!paper.length" class="empty"><b>{{ year }} 年 CSP-{{ level }} 题面正在整理</b><span>当前年份暂未完成题面校对，先不展示不完整内容。</span></div>
         <template v-else>
-          <header class="summary"><div><b>{{ year }} 年 CSP-{{ level }} 第一轮选择题</b><span>共 {{ paper.length }} 题；答案仅作学习参考</span></div><strong>{{ choiceSetSubmitted ? `${choiceScore}/${choiceTotal} 分` : `已答 ${answered}/${paper.length} 题` }}</strong></header>
+          <header class="summary"><div><b>{{ year }} 年 CSP-{{ level }} 第一轮选择题</b><span>共 {{ paper.length }} 题；答案仅作学习参考</span></div><strong>{{ choiceSetSubmitted && !practiceLocked ? `${choiceScore}/${choiceTotal} 分` : `已答 ${answered}/${paper.length} 题` }}</strong></header>
           <article v-for="q in displayPaper" :key="q.id" class="card">
             <h3><i>{{ q.number }}</i><div class="choice-question" v-html="renderMd(q.question)"></div></h3>
-            <div class="options"><button v-for="(text,key) in q.options" :key="key" :class="choiceClass(q,key)" :disabled="choiceSetSubmitted" @click="choiceAnswers[q.id]=key"><b>{{ key }}</b><span v-html="renderInline(text)"></span></button></div>
-            <AnswerAnalysis v-if="choiceSetSubmitted" :correct="choiceAnswers[q.id]===q.answer" :answer="q.answer" :text="choiceExplanation(q)" />
+            <div class="options"><button v-for="(text,key) in q.options" :key="key" :class="choiceClass(q,key)" :disabled="practiceLocked || choiceSetSubmitted" @click="choiceAnswers[q.id]=key"><b>{{ key }}</b><span v-html="renderInline(text)"></span></button></div>
+            <AnswerAnalysis v-if="choiceSetSubmitted && !practiceLocked" :correct="choiceAnswers[q.id]===q.answer" :answer="q.answer" :text="choiceExplanation(q)" />
           </article>
           <section class="set-submit">
-            <div v-if="choiceSetSubmitted"><b>本套得分：{{ choiceScore }}/{{ choiceTotal }} 分</b><span>解析已在每道题下方展开。</span></div>
+            <div v-if="practiceLocked" class="locked-inline"><b>暂不能提交</b><span>请先完成整卷测评，等待老师开放解析。</span></div>
+            <div v-else-if="choiceSetSubmitted"><b>本套得分：{{ choiceScore }}/{{ choiceTotal }} 分</b><span>解析已在每道题下方展开。</span></div>
             <div v-else><b>已完成 {{ answered }}/{{ paper.length }} 题</b><span>全部作答后统一提交，提交前不会显示答案。</span></div>
-            <button v-if="!choiceSetSubmitted" :disabled="answered !== paper.length" @click="submitChoiceSet">提交整套试卷</button>
-            <button v-else class="secondary" @click="resetChoiceSet">重新作答</button>
+            <button v-if="!choiceSetSubmitted && !practiceLocked" :disabled="answered !== paper.length" @click="submitChoiceSet">提交整套试卷</button>
+            <button v-else-if="choiceSetSubmitted && !practiceLocked" class="secondary" @click="resetChoiceSet">重新作答</button>
           </section>
         </template>
       </section>
@@ -42,15 +48,16 @@
             <article v-for="q in problem.questions" :key="q.id" class="sub-question">
               <h4>第 {{ q.number }} 小题　<span v-html="renderInline(q.text)"></span><em>{{ q.multiple ? '多选题' : `${q.score} 分` }}</em></h4>
               <div class="options">
-                <button v-for="(text,key) in q.options" :key="key" :class="programClass(q,key)" :disabled="programSetSubmitted" @click="selectProgram(q,key)"><b>{{ key }}</b><span v-html="renderInline(text)"></span></button>
+                <button v-for="(text,key) in q.options" :key="key" :class="programClass(q,key)" :disabled="practiceLocked || programSetSubmitted" @click="selectProgram(q,key)"><b>{{ key }}</b><span v-html="renderInline(text)"></span></button>
               </div>
-              <AnswerAnalysis v-if="programSetSubmitted" :correct="isCorrect(q)" :answer="q.answers.join('、')" :text="programExplanation(q)" />
+              <AnswerAnalysis v-if="programSetSubmitted && !practiceLocked" :correct="isCorrect(q)" :answer="q.answers.join('、')" :text="programExplanation(q)" />
             </article>
             <section class="set-submit compact-submit">
-              <div v-if="programSetSubmitted"><b>本题得分：{{ programScore }}/{{ programTotal }} 分</b><span>所有小题解析已展开。</span></div>
+              <div v-if="practiceLocked" class="locked-inline"><b>暂不能提交</b><span>请先完成整卷测评，等待老师开放解析。</span></div>
+              <div v-else-if="programSetSubmitted"><b>本题得分：{{ programScore }}/{{ programTotal }} 分</b><span>所有小题解析已展开。</span></div>
               <div v-else><b>已完成 {{ programAnswered }}/{{ problem.questions.length }} 小题</b><span>多选题可点击多个选项，再统一提交。</span></div>
-              <button v-if="!programSetSubmitted" :disabled="!programReady" @click="submitProgramSet">提交本题</button>
-              <button v-else class="secondary" @click="resetProgramSet">重新作答</button>
+              <button v-if="!programSetSubmitted && !practiceLocked" :disabled="!programReady" @click="submitProgramSet">提交本题</button>
+              <button v-else-if="programSetSubmitted && !practiceLocked" class="secondary" @click="resetProgramSet">重新作答</button>
             </section>
           </section>
           <footer><button @click="selectProblem(index-1)" :disabled="index===0">上一题</button><strong>第 {{ index+1 }}/{{ problems.length }} 题</strong><button @click="selectProblem(index+1)" :disabled="index===problems.length-1">下一题</button></footer>
@@ -60,7 +67,7 @@
 </template>
 
 <script setup>
-import { computed, defineComponent, h, ref } from 'vue';
+import { computed, defineComponent, h, onMounted, ref } from 'vue';
 import { cspChoicePapers, cspYearSources } from '../data/cspChoicePapers';
 import { cspProgramProblems } from '../data/cspProgramProblems';
 import { csp2025ChoicePapers, csp2025ProgramProblems, csp2025YearSource } from '../data/csp2025';
@@ -81,6 +88,7 @@ const AnswerAnalysis=defineComponent({props:{correct:Boolean,answer:String,text:
 const types=[{id:'choice',label:'选择题'},{id:'reading',label:'阅读程序题'},{id:'completion',label:'完善程序题'}];
 const level=ref('J'),type=ref('choice'),year=ref('2025'),index=ref(0),choiceAnswers=ref({}),programAnswers=ref({}),submittedSets=ref({});
 const practiceStartTime=ref(Date.now());
+const practiceLocked=ref(false),practiceLockMessage=ref('');
 const allChoicePapers={...cspChoicePapers,...csp2025ChoicePapers},allYearSources={...cspYearSources,...csp2025YearSource},allProgramProblems=[...cspProgramProblems,...csp2025ProgramProblems],allSProgramProblems=cspSProgramProblems||[];
 const choiceYears=computed(()=>Object.entries(allYearSources).map(([itemYear,source])=>({year:String(itemYear),...source})).sort((a,b)=>+b.year-+a.year));
 const sChoiceYears=computed(()=>Object.entries(cspSYearSources).map(([itemYear,source])=>({year:String(itemYear),...source})).sort((a,b)=>+b.year-+a.year));
@@ -226,34 +234,39 @@ function restartTimer(){practiceStartTime.value=Date.now()}
 function switchLevel(value){level.value=value;type.value='choice';year.value=value==='S'?'2025':'2025';index.value=0;choiceAnswers.value={};programAnswers.value={};submittedSets.value={};restartTimer()}
 function setType(value){type.value=value;year.value=level.value==='S'?(value==='choice'?'2025':'2025'):'2025';index.value=0;restartTimer()} function selectYear(value){year.value=value;index.value=0;restartTimer()}
 function selectProblem(value){index.value=value;restartTimer()}
-function choiceClass(q,key){const answer=choiceAnswers.value[q.id];if(!choiceSetSubmitted.value)return{selected:answer===key};return{correct:key===q.answer,wrong:answer===key&&key!==q.answer}}
+function applyPracticeLock(data){practiceLocked.value=Boolean(data?.locked||data?.code==='CSP_PAPER_ANALYSIS_LOCKED');practiceLockMessage.value=data?.message||data?.error||'请先完成整卷测评，等待老师开放解析。'}
+async function loadPracticeLock(){if(!isLoggedIn.value)return;try{const resp=await authFetch('/api/practice/csp-lock');if(resp.ok)applyPracticeLock(await resp.json())}catch{} }
+onMounted(loadPracticeLock);
+function choiceClass(q,key){const answer=choiceAnswers.value[q.id];if(practiceLocked.value||!choiceSetSubmitted.value)return{selected:answer===key};return{correct:key===q.answer,wrong:answer===key&&key!==q.answer}}
 function choiceExplanation(q){if(level.value==='S')return buildSChoiceExplanation(q);if(/^20(1[9]|2[0-4])-choice-/.test(q.id))return buildLegacyChoiceExplanation(q);if(q.explanation&&q.explanation.length>50)return q.explanation;return `参考答案为 ${q.answer}（${cleanPlainText(q.options[q.answer])}）。请按题干的定义、计算顺序或程序执行过程逐项核对。`}
 function programExplanation(q){if(level.value==='S'&&problem.value)return buildSProgramExplanation(q,problem.value);if(problem.value&&+problem.value.year>=2019&&+problem.value.year<=2024)return buildLegacyProgramExplanation(q,problem.value);return q.explanation}
 function selectProgram(q,key){const current=programAnswers.value[q.id]||[];if(q.multiple)programAnswers.value[q.id]=current.includes(key)?current.filter(x=>x!==key):[...current,key];else programAnswers.value[q.id]=[key]}
 function isCorrect(q){return [...(programAnswers.value[q.id]||[])].sort().join('')===[...q.answers].sort().join('')}
-function programClass(q,key){const picked=(programAnswers.value[q.id]||[]).includes(key);if(!programSetSubmitted.value)return{selected:picked};return{correct:q.answers.includes(key),wrong:picked&&!q.answers.includes(key)}}
+function programClass(q,key){const picked=(programAnswers.value[q.id]||[]).includes(key);if(practiceLocked.value||!programSetSubmitted.value)return{selected:picked};return{correct:q.answers.includes(key),wrong:picked&&!q.answers.includes(key)}}
 function submitChoiceSet(){
-  if(answered.value!==paper.value.length)return;
+  if(practiceLocked.value||answered.value!==paper.value.length)return;
   submittedSets.value={...submittedSets.value,[choiceSetKey.value]:true};
   saveRecord('choice',choiceScore.value,choiceTotal.value,paper.value.map(q=>({id:q.id,number:q.number,user_answer:choiceAnswers.value[q.id]||'',correct_answer:q.answer,correct:choiceAnswers.value[q.id]===q.answer,score:choiceAnswers.value[q.id]===q.answer?2:0})));
 }
 function submitProgramSet(){
-  if(!programReady.value)return;
+  if(practiceLocked.value||!programReady.value)return;
   submittedSets.value={...submittedSets.value,[problem.value.id]:true};
   const p=problem.value;
   saveRecord(type.value,programScore.value,programTotal.value,p.questions.map(q=>({id:q.id,number:q.number,user_answer:(programAnswers.value[q.id]||[]).join(','),correct_answer:q.answers.join(','),correct:isCorrect(q),score:isCorrect(q)?Number(q.score||0):0})));
 }
-function resetChoiceSet(){const next={...choiceAnswers.value};paper.value.forEach(q=>delete next[q.id]);choiceAnswers.value=next;submittedSets.value={...submittedSets.value,[choiceSetKey.value]:false};practiceStartTime.value=Date.now()}
+function resetChoiceSet(){if(practiceLocked.value)return;const next={...choiceAnswers.value};paper.value.forEach(q=>delete next[q.id]);choiceAnswers.value=next;submittedSets.value={...submittedSets.value,[choiceSetKey.value]:false};practiceStartTime.value=Date.now()}
 
 async function saveRecord(questionType,totalScore,maxScore,questions){
   if(!isLoggedIn.value)return;
   const duration=Math.round((Date.now()-practiceStartTime.value)/1000);
   practiceStartTime.value=Date.now();
   try{
-    await authFetch('/api/practice/submit',{method:'POST',body:JSON.stringify({level:'CSP-'+level.value,year:Number(year.value),question_type:questionType,total_score:totalScore,max_score:maxScore,answers:{questions},duration_seconds:duration})});
+    const resp=await authFetch('/api/practice/submit',{method:'POST',body:JSON.stringify({level:'CSP-'+level.value,year:Number(year.value),question_type:questionType,total_score:totalScore,max_score:maxScore,answers:{questions},duration_seconds:duration})});
+    if(resp.status===423)applyPracticeLock(await resp.json());
+    else if(!resp.ok)throw new Error(`提交失败（${resp.status}）`);
   }catch(e){console.warn('保存练习记录失败:',e.message)}
 }
-function resetProgramSet(){const next={...programAnswers.value};problem.value.questions.forEach(q=>delete next[q.id]);programAnswers.value=next;submittedSets.value={...submittedSets.value,[problem.value.id]:false};practiceStartTime.value=Date.now()}
+function resetProgramSet(){if(practiceLocked.value)return;const next={...programAnswers.value};problem.value.questions.forEach(q=>delete next[q.id]);programAnswers.value=next;submittedSets.value={...submittedSets.value,[problem.value.id]:false};practiceStartTime.value=Date.now()}
 </script>
 
 <style scoped>
@@ -271,5 +284,6 @@ function resetProgramSet(){const next={...programAnswers.value};problem.value.qu
 .choice-question :deep(.math-fraction),.options :deep(.math-fraction),.sub-question :deep(.math-fraction){display:inline-flex;flex-direction:column;vertical-align:middle;line-height:1.05;text-align:center;margin:0 .12em}.choice-question :deep(.math-fraction)>span:first-child,.options :deep(.math-fraction)>span:first-child,.sub-question :deep(.math-fraction)>span:first-child{border-bottom:1px solid currentColor;padding:0 .18em}.choice-question :deep(.math-fraction)>span:last-child,.options :deep(.math-fraction)>span:last-child,.sub-question :deep(.math-fraction)>span:last-child{padding:0 .18em}.choice-question :deep(.math-radical),.options :deep(.math-radical),.sub-question :deep(.math-radical){display:inline-flex;align-items:flex-start;vertical-align:middle}.choice-question :deep(.math-radical)>span,.options :deep(.math-radical)>span,.sub-question :deep(.math-radical)>span{border-top:1px solid currentColor;padding:0 .12em}
 .set-submit{position:static;display:flex;align-items:center;justify-content:space-between;gap:18px;margin-top:28px;padding:16px 20px;border:1px solid #c7d2fe;border-radius:8px;background:#fff;box-shadow:0 5px 18px rgba(15,23,42,.08)}
 .set-submit>div{display:grid;gap:4px}.set-submit>div b{color:#312e81;font-size:18px}.set-submit>div span{color:#64748b}.set-submit button{border:0;border-radius:6px;padding:11px 22px;background:#4f46e5;color:#fff;font-weight:700;cursor:pointer}.set-submit button:disabled{background:#cbd5e1;cursor:not-allowed}.set-submit button.secondary{background:#fff;color:#4f46e5;border:1px solid #6366f1}.compact-submit{position:static;margin-top:18px;box-shadow:none;background:#eef2ff}
+.practice-lock{display:flex;align-items:center;gap:12px;margin:16px 0;padding:14px 18px;border:1px solid #fbbf24;border-radius:8px;background:#fffbeb;color:#92400e}.practice-lock strong{white-space:nowrap}.practice-lock span{line-height:1.6}.locked-inline{display:grid;gap:4px}.locked-inline b{color:#92400e!important}
 @media(max-width:760px){.set-submit{align-items:stretch;flex-direction:column}.set-submit button{width:100%}}
 </style>

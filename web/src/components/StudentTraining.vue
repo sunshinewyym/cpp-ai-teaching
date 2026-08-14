@@ -145,13 +145,13 @@
           <OptionList
             :question="choicePart(preview.item)"
             :selected="draftAnswers[preview.id] || []"
-            :disabled="preview.state.released"
-            :show-result="preview.state.released"
+            :disabled="preview.state.released || preview.state.locked"
+            :show-result="preview.state.released && !preview.state.locked"
             :correct-answers="[preview.item.answer]"
             @select="selectOption(choicePart(preview.item), $event)"
           />
           <AnswerBox
-            v-if="preview.state.released"
+            v-if="preview.state.released && !preview.state.locked"
             :answer="preview.item.answer"
             :explanation="choiceExplanation(preview.item)"
           />
@@ -167,13 +167,13 @@
               <OptionList
                 :question="item"
                 :selected="draftAnswers[item.id] || []"
-                :disabled="preview.state.released"
-                :show-result="preview.state.released"
+                :disabled="preview.state.released || preview.state.locked"
+                :show-result="preview.state.released && !preview.state.locked"
                 :correct-answers="item.answers"
                 @select="selectOption(item, $event)"
               />
               <AnswerBox
-                v-if="preview.state.released"
+                v-if="preview.state.released && !preview.state.locked"
                 :answer="item.answers.join('、')"
                 :explanation="programExplanation(item, preview.item)"
               />
@@ -182,15 +182,18 @@
         </div>
 
         <footer class="submit-bar">
-          <p v-if="preview.state.released" class="released">
+          <p v-if="preview.state.locked" class="locked">
+            整卷测评进行中，本题已暂时锁定；{{ preview.state.released ? '原有解析已开放，整卷完成后恢复查看。' : '整卷完成后才能继续作答。' }}
+          </p>
+          <p v-else-if="preview.state.released" class="released">
             本题得分：{{ preview.state.score }} / {{ preview.state.maxScore }}，答案与解析已开放。
           </p>
           <p v-else-if="preview.state.submitted" class="waiting">本题已提交，教师开放解析前可以修改答案。</p>
-          <span v-if="preview.type === 'choice' && !preview.state.released" class="auto-advance-note">
+          <span v-if="preview.type === 'choice' && !preview.state.released && !preview.state.locked" class="auto-advance-note">
             提交成功后自动进入下一题
           </span>
           <button
-            v-if="!preview.state.released"
+            v-if="!preview.state.released && !preview.state.locked"
             class="primary"
             :disabled="submitting || !canSubmit"
             @click="submitQuestion"
@@ -377,10 +380,18 @@ function selectCourse(index) {
 }
 
 function questionState(id) {
-  return currentDay.value?.states?.[id] || { submitted: false, released: false, answers: null };
+  return currentDay.value?.states?.[id] || {
+    submitted: false,
+    released: false,
+    locked: false,
+    answers: null,
+  };
 }
 
 function statusLabel(state, id) {
+  if (state.locked) {
+    return state.released ? '整卷进行中，原解析已开放但暂时锁定' : '整卷进行中，暂时锁定';
+  }
   if (state.released) {
     const item = choiceMap.get(id) || programMap.get(id);
     if (choiceMap.has(id)) return isChoiceCorrect(item, state) ? '正确' : '错误';
@@ -391,6 +402,7 @@ function statusLabel(state, id) {
 }
 
 function statusClass(state, id) {
+  if (state.locked) return 'locked';
   if (state.released) {
     if (choiceMap.has(id)) return isChoiceCorrect(choiceMap.get(id), state) ? 'correct' : 'wrong';
     return 'score';
@@ -448,7 +460,7 @@ function nextUnsubmittedChoiceId(currentId) {
   for (let offset = 1; offset < ids.length; offset += 1) {
     const id = ids[(currentIndex + offset + ids.length) % ids.length];
     const state = questionState(id);
-    if (!state.submitted && !state.released) return id;
+    if (!state.submitted && !state.released && !state.locked) return id;
   }
   return null;
 }
@@ -470,7 +482,7 @@ function choicePart(item) {
 }
 
 function selectOption(question, key) {
-  if (preview.value?.state.released) return;
+  if (preview.value?.state.released || preview.value?.state.locked) return;
   const selected = draftAnswers.value[question.id] || [];
   const nextSelected = question.multiple
     ? (selected.includes(key) ? selected.filter(item => item !== key) : [...selected, key])
@@ -481,7 +493,7 @@ function selectOption(question, key) {
 }
 
 async function submitQuestion() {
-  if (!preview.value || !canSubmit.value) return;
+  if (!preview.value || preview.value.state.locked || !canSubmit.value) return;
   submitting.value = true;
   try {
     const response = await authFetch(
@@ -495,6 +507,7 @@ async function submitQuestion() {
     state.submittedAt = new Date().toISOString();
     state.answers = deepClone(draftAnswers.value);
     state.released = Boolean(data.released);
+    state.locked = false;
     state.releasedAt = data.releasedAt || null;
     if (state.released) {
       state.score = data.score;
@@ -618,6 +631,7 @@ button.primary { border-color: #4f46e5; background: #4f46e5; color: #fff; font-w
 .question-card b { flex-shrink: 0; border-radius: 999px; padding: 3px 7px; font-size: 11px; }
 .question-card b.pending { background: #f1f5f9; color: #64748b; }
 .question-card b.waiting { background: #fff7ed; color: #c2410c; }
+.question-card b.locked { background: #fef3c7; color: #92400e; }
 .question-card b.released { background: #dcfce7; color: #15803d; }
 .question-card b.correct { background: #dcfce7; color: #15803d; }
 .question-card b.wrong { background: #fee2e2; color: #b91c1c; }
@@ -657,6 +671,7 @@ button.primary { border-color: #4f46e5; background: #4f46e5; color: #fff; font-w
 .submit-bar p { flex: 1; width: auto; margin: 0; border-radius: 6px; padding: 10px 13px; }
 .auto-advance-note { color: #64748b; font-size: 12px; }
 .submit-bar .waiting { background: #fff7ed; color: #9a3412; }
+.submit-bar .locked { background: #fef3c7; color: #92400e; }
 .submit-bar .released { background: #dcfce7; color: #166534; }
 @media (max-width: 900px) {
   .question-groups, .program-groups, .info-grid { grid-template-columns: 1fr; }

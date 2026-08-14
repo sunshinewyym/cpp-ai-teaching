@@ -8,6 +8,11 @@ const {
   buildTrainingPracticeRecord,
   buildTrainingPracticeRecordFromSubmission,
 } = require('../training/trainingRecord');
+const {
+  isCspPracticeQuestionId,
+  getPendingCspPaper,
+  lockPayload,
+} = require('../services/cspPracticeLock');
 
 const router = express.Router();
 
@@ -628,6 +633,7 @@ router.get('/student/access', auth, (req, res) => {
 });
 
 router.get('/student', auth, (req, res) => {
+  const pendingCspPaper = getPendingCspPaper(req.user?.id, req.user?.role);
   if (req.user.role !== 'student') return res.status(403).json({ error: '需要学生账号' });
   res.setHeader('Cache-Control', 'no-store');
   const rows = db.prepare(`
@@ -678,13 +684,20 @@ router.get('/student', auth, (req, res) => {
           const submission = submissions.get(questionId);
           const release = releases.get(`${day.day}:${questionId}`);
           const released = releaseAppliesToAssignment(release, submission);
+          // A pending CSP full-paper assignment locks every CSP practice item,
+          // including items whose explanation had already been released.
+          // Keep `released` independent so the UI can explain that distinction.
+          const lockedByPaper = Boolean(
+            pendingCspPaper && isCspPracticeQuestionId(questionId)
+          );
           states[questionId] = {
             submitted: Boolean(submission),
             submittedAt: submission?.submitted_at || null,
-            answers: submission ? JSON.parse(submission.answers_json) : null,
+            answers: submission && !lockedByPaper ? JSON.parse(submission.answers_json) : null,
             released,
+            locked: lockedByPaper,
             releasedAt: released ? release.releasedAt : null,
-            ...(released && submission ? {
+            ...(!lockedByPaper && released && submission ? {
               score: submission.score,
               maxScore: submission.max_score,
             } : {}),
@@ -737,6 +750,10 @@ router.post('/student/courses/:courseId/days/:day/questions/:questionId/submit',
     questionId
   );
   if (!assignment) return res.status(404).json({ error: '这道题尚未布置给你' });
+  if (isCspPracticeQuestionId(questionId)) {
+    const pendingPaper = getPendingCspPaper(req.user.id, req.user.role);
+    if (pendingPaper) return res.status(423).json(lockPayload(pendingPaper));
+  }
   const released = db.prepare(`
     SELECT released_at FROM training_question_releases
     WHERE course_id = ? AND day_number = ? AND question_id = ?
