@@ -2954,7 +2954,6 @@ export const cspProgramProblems = [
           "D": "`false`"
         },
         "answers": [
-          "A",
           "C"
         ],
         "multiple": true,

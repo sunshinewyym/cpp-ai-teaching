@@ -166,6 +166,103 @@ db.exec(`
   )
 `);
 
+// 数据修正：CSP-J 2024 完善程序第 1 题第 4 小问的系统答案为 C。
+// 该迁移同时修正已经提交的整卷记录，保证历史分数与新题库一致。
+db.exec(`
+  CREATE TABLE IF NOT EXISTS app_migrations (
+    name TEXT PRIMARY KEY,
+    applied_at TEXT DEFAULT (datetime('now','localtime'))
+  )
+`);
+
+const cspJ2024CompletionAnswerMigration = 'fix-csp-j-2024-completion-1-4-answer-c';
+if (!db.prepare('SELECT 1 FROM app_migrations WHERE name = ?').get(cspJ2024CompletionAnswerMigration)) {
+  const normalizeCorrectionAnswers = value => {
+    const values = Array.isArray(value) ? value : [value];
+    return [...new Set(values.map(item => String(item || '').trim()).filter(Boolean))].sort();
+  };
+  const sameCorrectionAnswers = (left, right) => {
+    const a = normalizeCorrectionAnswers(left);
+    const b = normalizeCorrectionAnswers(right);
+    return a.length === b.length && a.every((item, index) => item === b[index]);
+  };
+  const expectedCompletionAnswers = {
+    '2024-completion-1-1': ['A'],
+    '2024-completion-1-2': ['B'],
+    '2024-completion-1-3': ['D'],
+    '2024-completion-1-4': ['C'],
+    '2024-completion-1-5': ['D'],
+  };
+  const submissions = db.prepare(`
+    SELECT s.id, s.answers_json
+    FROM csp_paper_submissions s
+    JOIN csp_paper_students ps ON ps.id = s.assignment_student_id
+    JOIN csp_paper_assignments a ON a.id = ps.assignment_id
+    WHERE a.level = 'CSP-J'
+      AND a.year = 2024
+      AND s.question_id = '2024-completion-1'
+  `).all();
+  const updateSubmission = db.prepare(
+    'UPDATE csp_paper_submissions SET score = ?, max_score = 15 WHERE id = ?'
+  );
+  const findPracticeRecord = db.prepare(
+    'SELECT id, answers_json FROM practice_records WHERE paper_submission_id = ?'
+  );
+  const updatePracticeRecord = db.prepare(
+    'UPDATE practice_records SET total_score = ?, max_score = 15, answers_json = ? WHERE id = ?'
+  );
+  let updatedSubmissions = 0;
+  let updatedPracticeRecords = 0;
+
+  db.exec('BEGIN IMMEDIATE');
+  try {
+    for (const submission of submissions) {
+      let answers = {};
+      try {
+        answers = JSON.parse(submission.answers_json || '{}');
+      } catch {
+        answers = {};
+      }
+      const partResults = Object.entries(expectedCompletionAnswers).map(([id, expected]) => {
+        const selected = normalizeCorrectionAnswers(answers[id]);
+        return { id, selected, expected, correct: sameCorrectionAnswers(selected, expected) };
+      });
+      const score = partResults.reduce((total, part) => total + (part.correct ? 3 : 0), 0);
+      updateSubmission.run(score, submission.id);
+      updatedSubmissions += 1;
+
+      const practiceRecord = findPracticeRecord.get(submission.id);
+      if (!practiceRecord) continue;
+      let record;
+      try {
+        record = JSON.parse(practiceRecord.answers_json || '{}');
+      } catch {
+        record = {};
+      }
+      if (!Array.isArray(record.questions)) continue;
+      for (const part of partResults) {
+        const item = record.questions.find(question => question.id === part.id);
+        if (!item) continue;
+        item.correct_answer = part.expected.join('、');
+        item.correct_answer_label = item.correct_answer;
+        item.correct = part.correct;
+        item.score = part.correct ? 3 : 0;
+      }
+      record.total_score = score;
+      updatePracticeRecord.run(score, JSON.stringify(record), practiceRecord.id);
+      updatedPracticeRecords += 1;
+    }
+    db.prepare('INSERT INTO app_migrations (name) VALUES (?)').run(cspJ2024CompletionAnswerMigration);
+    db.exec('COMMIT');
+  } catch (error) {
+    db.exec('ROLLBACK');
+    throw error;
+  }
+  if (updatedSubmissions || updatedPracticeRecords) {
+    console.log(`[DB] 修正 CSP-J 2024 完善程序第 1 题第 4 小问：${updatedSubmissions} 份整卷提交，${updatedPracticeRecords} 条练习记录`);
+  }
+}
+
 db.exec(`
   CREATE TABLE IF NOT EXISTS feedback_records (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
