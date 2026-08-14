@@ -5,6 +5,7 @@
       <div class="filters">
         <select v-model="filterLevel"><option value="">全部级别</option><option value="CSP-J">CSP-J</option><option value="CSP-S">CSP-S</option><option value="GESP-2">GESP C++ 二级</option><option value="GESP-3">GESP C++ 三级</option><option value="GESP-4">GESP C++ 四级</option><option value="GESP-5">GESP C++ 五级</option><option value="GESP-6">GESP C++ 六级</option><option value="GESP-7">GESP C++ 七级</option><option value="GESP-8">GESP C++ 八级</option></select>
         <select v-model="filterType"><option value="">全部题型</option><option value="choice">选择题</option><option value="judgment">判断题</option><option value="reading">阅读程序</option><option value="completion">完善程序</option></select>
+        <button class="export-button" @click="exportRecords" :disabled="loading || !records.length">导出记录</button>
       </div>
     </header>
 
@@ -69,6 +70,7 @@ const labels = ['\u4e00', '\u4e8c', '\u4e09', '\u56db', '\u4e94', '\u516d', '\u4
 import { ref, computed, onMounted, watch } from 'vue';
 import { marked } from 'marked';
 import { authFetch, authHeaders } from '../utils/auth';
+import { downloadCsv } from '../utils/downloadCsv';
 
 const records = ref([]);
 const loading = ref(false);
@@ -137,6 +139,26 @@ function recordSession(record) { return record.answers?.session || String(record
 function formatTime(t) { return t ? t.replace('T', ' ').slice(0, 16) : ''; }
 function formatDuration(s) { const m = Math.floor(s / 60); return m > 0 ? `${m}分${s % 60}秒` : `${s}秒`; }
 
+function exportRecords() {
+  const headers = ['提交时间', '级别', '考期', '题型', '得分', '满分', '得分率', '用时（秒）', '题目明细'];
+  const rows = records.value.map(record => [
+    formatTime(record.created_at),
+    levelLabel(record.level),
+    recordSession(record),
+    typeLabel(record.question_type),
+    record.total_score,
+    record.max_score,
+    `${rate(record)}%`,
+    record.duration_seconds || '',
+    (record.answers?.questions || []).map(question => {
+      const number = question.number || question.id || '';
+      const answer = question.user_answer_label || question.user_answer || '未作答';
+      return `第${number}题：${answer}（${question.correct ? '正确' : '错误'}，${question.score ?? 0}/${question.max_score ?? ''}）`;
+    }).join('；'),
+  ]);
+  downloadCsv(`我的集训练习记录-${new Date().toLocaleDateString('sv-SE')}.csv`, headers, rows);
+}
+
 async function loadRecords() {
   loading.value = true;
   try {
@@ -159,6 +181,9 @@ onMounted(loadRecords);
 .records-head h2 { margin: 0; color: #4f46e5; font-size: 22px; }
 .filters { display: flex; gap: 10px; }
 .filters select { padding: 8px 12px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 14px; }
+.export-button { padding: 8px 12px; border: 1px solid #c7d2fe; border-radius: 6px; background: #eef2ff; color: #4338ca; font-size: 14px; cursor: pointer; }
+.export-button:hover:not(:disabled) { background: #e0e7ff; }
+.export-button:disabled { opacity: 0.5; cursor: not-allowed; }
 .loading, .empty { text-align: center; padding: 60px 0; color: #64748b; font-size: 16px; }
 .stats-row { display: flex; gap: 16px; margin-bottom: 20px; }
 .stat-card { flex: 1; padding: 18px; background: #fff; border: 1px solid #e2e8f0; border-radius: 10px; text-align: center; }
