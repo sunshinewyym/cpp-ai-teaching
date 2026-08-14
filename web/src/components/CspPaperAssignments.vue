@@ -219,7 +219,7 @@
 import { computed, onMounted, ref } from 'vue';
 import { authFetch } from '../utils/auth';
 import { renderCspMarkdown } from '../utils/cspMarkdown';
-import { downloadCsv } from '../utils/downloadCsv';
+import { downloadMarkdown } from '../utils/downloadMarkdown';
 
 const years = [2019, 2020, 2021, 2022, 2023, 2024, 2025];
 const students = ref([]);
@@ -281,7 +281,7 @@ function exportPaperHistory() {
       return `${item.typeLabel}第${item.number}题 ${item.score}/${item.maxScore}分${item.knowledgeTags?.length ? `（${item.knowledgeTags.join('、')}）` : ''}${parts ? `：${parts}` : ''}`;
     }).join('；'),
   ]);
-  downloadCsv(`CSP整卷练习记录-${history.value.student.name}-${new Date().toLocaleDateString('sv-SE')}.csv`, headers, rows);
+  downloadMarkdown(`CSP整卷练习记录-${history.value.student.name}-${new Date().toLocaleDateString('sv-SE')}.md`, `CSP整卷练习记录（${history.value.student.name}）`, headers, rows);
 }
 
 function exportAssignmentDetail() {
@@ -310,7 +310,7 @@ function exportAssignmentDetail() {
     student.percent == null ? '' : `${student.percent}%`,
     questions.join('；'),
   ]);
-  downloadCsv(`CSP整卷记录-${detail.value.level}-${detail.value.year}-${new Date().toLocaleDateString('sv-SE')}.csv`, headers, rows);
+  downloadMarkdown(`CSP整卷记录-${detail.value.level}-${detail.value.year}-${new Date().toLocaleDateString('sv-SE')}.md`, `${detail.value.level} ${detail.value.year} CSP整卷记录`, headers, rows);
 }
 
 function questionDetailOpen(questionId) {

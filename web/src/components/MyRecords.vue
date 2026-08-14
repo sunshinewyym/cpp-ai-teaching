@@ -70,7 +70,7 @@ const labels = ['\u4e00', '\u4e8c', '\u4e09', '\u56db', '\u4e94', '\u516d', '\u4
 import { ref, computed, onMounted, watch } from 'vue';
 import { marked } from 'marked';
 import { authFetch, authHeaders } from '../utils/auth';
-import { downloadCsv } from '../utils/downloadCsv';
+import { downloadMarkdown } from '../utils/downloadMarkdown';
 
 const records = ref([]);
 const loading = ref(false);
@@ -156,7 +156,7 @@ function exportRecords() {
       return `第${number}题：${answer}（${question.correct ? '正确' : '错误'}，${question.score ?? 0}/${question.max_score ?? ''}）`;
     }).join('；'),
   ]);
-  downloadCsv(`我的集训练习记录-${new Date().toLocaleDateString('sv-SE')}.csv`, headers, rows);
+  downloadMarkdown(`我的集训练习记录-${new Date().toLocaleDateString('sv-SE')}.md`, '我的集训练习记录', headers, rows);
 }
 
 async function loadRecords() {
