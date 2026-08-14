@@ -1,6 +1,7 @@
 const express = require('express');
 const db = require('../db');
 const { auth, requireTeacher } = require('../middleware/auth');
+const { chatWithMeta } = require('../services/deepseek');
 const { gradeQuestion, loadQuestionBank } = require('../training/questionBank');
 const { buildTrainingPracticeRecord } = require('../training/trainingRecord');
 
@@ -235,6 +236,264 @@ async function buildTeacherDetail(req, assignment) {
   };
 }
 
+const PAPER_SECTION_LABELS = {
+  choice: '选择题',
+  reading: '阅读程序题',
+  completion: '完善程序题',
+};
+
+function emptyPaperSection(type) {
+  return {
+    type,
+    label: PAPER_SECTION_LABELS[type] || type,
+    totalQuestions: 0,
+    submittedQuestions: 0,
+    score: 0,
+    maxScore: 0,
+    percent: null,
+  };
+}
+
+// CSP 历年题库没有统一的知识点字段；优先使用题库已有标签，缺失时
+// 根据题干、选项或程序描述提取可解释的主题，供教师分析错题时参考。
+function inferQuestionKnowledge(question) {
+  const explicit = Array.isArray(question?.tags) ? question.tags.filter(Boolean) : [];
+  const text = [
+    question?.question,
+    question?.title,
+    question?.description,
+    question?.statement,
+    ...Object.values(question?.options || {}),
+  ].filter(Boolean).join(' ').toLowerCase();
+  const rules = [
+    ['递归与递推', /递归|递推|斐波那契|factorial|fibonacci/],
+    ['分支与循环', /循环|for\s*\(|while\s*\(|if\s*\(|switch\s*\(|条件/],
+    ['数组与字符串', /数组|字符串|string|char|strlen|字符|vector/],
+    ['指针与引用', /指针|引用|pointer|reference|\*[a-z_]|&[a-z_]/],
+    ['排序与查找', /排序|sort|二分|binary|查找|search/],
+    ['数学与数论', /质数|因数|最大公约数|最小公倍数|进制|取模|素数|factor|gcd|模运算/],
+    ['图论与搜索', /图论|图\s*遍历|bfs|dfs|广度优先|深度优先|最短路|连通/],
+    ['动态规划', /动态规划|\bdp\b|背包|状态转移/],
+    ['树与二叉树', /二叉树|哈夫曼|树节点|树的高度|前序|中序|后序/],
+    ['数据类型与运算', /数据类型|整型|浮点|运算符|位运算|sizeof|ascii|整数除法/],
+    ['复杂度分析', /复杂度|时间复杂度|空间复杂度|o\s*\(/],
+  ];
+  const inferred = rules.filter(([, pattern]) => pattern.test(text)).map(([name]) => name);
+  return [...new Set([...explicit, ...inferred])].slice(0, 4).length
+    ? [...new Set([...explicit, ...inferred])].slice(0, 4)
+    : ['综合程序分析'];
+}
+
+function buildPaperScoreSummary(definition, bank, submissions) {
+  const byQuestion = new Map(submissions.map(item => [item.question_id, item]));
+  const sections = {
+    choice: emptyPaperSection('choice'),
+    reading: emptyPaperSection('reading'),
+    completion: emptyPaperSection('completion'),
+  };
+  const wrongQuestions = [];
+  let score = 0;
+  let maxScore = 0;
+
+  for (const questionId of definition.questionIds) {
+    const type = questionType(questionId);
+    const section = sections[type] || (sections[type] = emptyPaperSection(type));
+    const qDefinition = bank.get(questionId);
+    if (!qDefinition) continue;
+    const questionMaxScore = qDefinition.parts.reduce((sum, part) => sum + Number(part.score || 0), 0);
+    section.totalQuestions += 1;
+    section.maxScore += questionMaxScore;
+    maxScore += questionMaxScore;
+
+    const submission = byQuestion.get(questionId);
+    if (!submission) continue;
+    const parts = qDefinition.parts.map(part => partView(part, parseAnswers(submission.answers_json)));
+    const questionScore = parts.reduce((sum, part) => sum + part.score, 0);
+    section.submittedQuestions += 1;
+    section.score += questionScore;
+    score += questionScore;
+    if (questionScore < questionMaxScore) {
+      const questionText = [
+        qDefinition.question,
+        qDefinition.title,
+        qDefinition.description,
+        qDefinition.statement,
+      ].filter(Boolean).join('\n').trim();
+      const optionText = Object.entries(qDefinition.options || {})
+        .map(([key, value]) => `${key}. ${value}`)
+        .join('\n');
+      wrongQuestions.push({
+        questionId,
+        type,
+        typeLabel: PAPER_SECTION_LABELS[type] || type,
+        number: questionNumber(questionId),
+        score: questionScore,
+        maxScore: questionMaxScore,
+        knowledgeTags: inferQuestionKnowledge(qDefinition),
+        questionText: questionText.slice(0, 700),
+        optionText: optionText.slice(0, 500),
+        parts: parts.filter(part => !part.correct).map(part => ({
+          id: part.id,
+          selected: part.selected,
+          correctAnswers: part.correctAnswers,
+        })),
+      });
+    }
+  }
+
+  for (const section of Object.values(sections)) {
+    section.percent = section.maxScore
+      ? Math.round(section.score * 1000 / section.maxScore) / 10
+      : null;
+  }
+  return {
+    score,
+    maxScore,
+    percent: maxScore ? Math.round(score * 1000 / maxScore) / 10 : null,
+    submittedCount: submissions.length,
+    totalQuestions: definition.questionIds.length,
+    sections,
+    wrongQuestions,
+  };
+}
+
+async function buildStudentPaperSummary(row) {
+  const definition = await getPaperDefinition(row.level, row.year);
+  const bank = await loadQuestionBank();
+  const submissions = db.prepare(`
+    SELECT * FROM csp_paper_submissions
+    WHERE assignment_student_id = ?
+  `).all(row.assignmentStudentId);
+  return {
+    assignmentId: row.id,
+    assignmentStudentId: row.assignmentStudentId,
+    title: row.title,
+    level: row.level,
+    year: row.year,
+    deadline: row.deadline || '',
+    assignedAt: row.assignedAt || null,
+    completedAt: row.completedAt || null,
+    analysisReleasedAt: row.analysisReleasedAt || null,
+    ...buildPaperScoreSummary(definition, bank, submissions),
+  };
+}
+
+function getTeacherStudent(req, studentId) {
+  const id = Number(studentId);
+  if (!Number.isInteger(id) || id <= 0) return null;
+  const sql = `SELECT u.id, u.name, u.username, u.class_name AS className
+    FROM users u WHERE u.id = ? AND u.role = 'student'${studentScope(req)}`;
+  return db.prepare(sql).get(...studentScopeParams(req, [id]));
+}
+
+async function buildStudentPaperHistory(req, studentId) {
+  const student = getTeacherStudent(req, studentId);
+  if (!student) return null;
+  const rows = db.prepare(`
+    SELECT a.id, a.title, a.level, a.year, a.deadline,
+      a.analysis_released_at AS analysisReleasedAt,
+      ps.id AS assignmentStudentId, ps.assigned_at AS assignedAt,
+      ps.completed_at AS completedAt
+    FROM csp_paper_students ps
+    JOIN csp_paper_assignments a ON a.id = ps.assignment_id
+    WHERE a.teacher_id = ? AND ps.student_id = ?
+    ORDER BY a.created_at DESC, a.id DESC
+  `).all(req.user.id, student.id);
+  const papers = [];
+  for (const row of rows) papers.push(await buildStudentPaperSummary(row));
+  return { student, papers };
+}
+
+function paperPromptSummary(paper, includeWrongQuestions = true, maxWrongQuestions = 12) {
+  const sectionText = Object.values(paper.sections)
+    .map(section => `${section.label}${section.score}/${section.maxScore}分（完成${section.submittedQuestions}/${section.totalQuestions}题）`)
+    .join('；');
+  const wrongText = includeWrongQuestions && paper.wrongQuestions.length
+    ? paper.wrongQuestions.slice(0, maxWrongQuestions).map(item => {
+      const parts = item.parts.map(part => `${part.id}：作答${part.selected.join('/') || '未答'}，正确${part.correctAnswers.join('/')}`).join('；');
+      const tags = item.knowledgeTags?.length ? `；知识点：${item.knowledgeTags.join('、')}` : '';
+      const source = [item.questionText, item.optionText ? `选项：\n${item.optionText}` : '']
+        .filter(Boolean)
+        .join('\n');
+      return `${item.typeLabel}第${item.number}题 ${item.score}/${item.maxScore}分${tags}${parts ? `（${parts}）` : ''}${source ? `\n题面：${source}` : ''}`;
+    }).join('\n')
+    : '无已提交错题';
+  return `试卷：${paper.level} ${paper.year}《${paper.title}》\n总分：${paper.score}/${paper.maxScore}（${paper.percent ?? '—'}%）\n分部分数：${sectionText}\n错题明细：\n${wrongText}`;
+}
+
+function buildPaperAnalysisPrompt(paper, student) {
+  return `你是一位经验丰富的信息学竞赛教师，请分析学生「${student.name}」这一次 CSP 整卷练习。
+
+${paperPromptSummary(paper)}
+
+请严格使用 Markdown 输出，且只使用二级标题、普通段落和列表，不要输出代码块或额外开场白。必须包含以下四个标题：
+## 总体表现
+结合总分、各部分得分和完成数量，说明优势与主要问题；如果只完成了部分题目，请明确指出样本不完整。
+## 错题知识点
+先按知识点聚合错题，列出出现次数和对应题号，再逐题解释失分原因。题面、选项或程序描述已给出时，必须引用其中的具体变量、数字、条件、代码行或选项差异；若单条题面确实为空，请明确指出缺少哪一项字段，不得把有题面的错题笼统写成“题库未提供足够信息”。
+## 分数分析
+比较选择题、阅读程序题和完善程序题的得分占比，指出最需要优先讲解的部分。
+## 后续建议
+给出 2-4 条具体、可执行的复习或课堂讲解建议，并对应到上面的知识点和题号；建议必须包含练习动作或讲解重点，不要写“加强练习”等空话。
+不要把未提交的题目写成错题，也不要重复套用通用模板。只输出分析正文。`;
+}
+
+function buildHistoryAnalysisPrompt(history) {
+  const papers = history.papers.slice(0, 30);
+  const text = papers.length
+    ? papers.map((paper, index) => `第${index + 1}次：${paperPromptSummary(paper, true, 12)}\n主要错题：${paper.wrongQuestions.slice(0, 8).map(item => `${item.typeLabel}第${item.number}题（${item.knowledgeTags?.join('、') || '知识点未知'}）`).join('、') || '无'}`).join('\n\n')
+    : '暂无已布置的 CSP 整卷记录。';
+  return `你是一位经验丰富的信息学竞赛教师，请分析学生「${history.student.name}」的 CSP 整卷历史练习情况。
+
+${text}
+
+请严格使用 Markdown 输出，且只使用二级标题、普通段落和列表，不要输出代码块或额外开场白。必须包含以下四个标题：
+## 总体趋势
+比较有提交记录的各次总分和三部分得分变化；忽略未提交试卷。
+## 反复失分知识点
+根据每次记录中提供的错题知识点和题面，按主题统计出现次数、涉及试卷及题号；题面存在时必须指出具体概念或代码行为，不能用“题库未提供足够信息”代替分析。
+## 当前问题
+说明样本数量、完成度和最需要关注的部分。
+## 后续建议
+给出分层、可执行的训练与讲解安排，明确先讲哪些知识点、用哪些题号复盘、下一次训练如何验证改进。
+只输出分析正文。`;
+}
+
+function writeSse(res, payload) {
+  if (payload === '[DONE]') {
+    res.write('data: [DONE]\n\n');
+    return;
+  }
+  res.write(`data: ${JSON.stringify(payload)}\n\n`);
+}
+
+async function streamPaperAnalysis(res, prompt) {
+  try {
+    // AI 分析不需要逐字输出；一次性返回可避免代理/浏览器吞掉流式空帧。
+    const result = await chatWithMeta([
+      { role: 'system', content: '你是温和、严谨、重视证据的信息学竞赛教师。' },
+      { role: 'user', content: prompt },
+    ], {
+      temperature: 0.45,
+      max_tokens: 1600,
+      timeout: 90000,
+      thinking: { type: 'disabled' },
+    });
+    if (!result.content?.trim()) {
+      return res.status(502).json({ error: 'AI 服务未返回分析正文，请稍后重试' });
+    }
+    res.setHeader('Content-Type', 'text/event-stream; charset=utf-8');
+    res.setHeader('Cache-Control', 'no-cache');
+    res.setHeader('Connection', 'keep-alive');
+    writeSse(res, { content: result.content });
+    writeSse(res, '[DONE]');
+    res.end();
+  } catch (error) {
+    if (res.headersSent) return res.end();
+    res.status(502).json({ error: error.message || 'AI 服务暂时不可用' });
+  }
+}
+
 async function buildStudentDetail(req, assignment) {
   const definition = await getPaperDefinition(assignment.level, assignment.year);
   const bank = await loadQuestionBank();
@@ -352,6 +611,52 @@ router.get('/assignments/:id', auth, requireTeacher, async (req, res, next) => {
   }
 });
 
+router.put('/assignments/:id', auth, requireTeacher, async (req, res, next) => {
+  try {
+    const assignment = getTeacherAssignment(req, req.params.id);
+    if (!assignment) return res.status(404).json({ error: '整卷任务不存在' });
+    const title = cleanText(req.body?.title, 120) || assignment.title;
+    const deadline = cleanText(req.body?.deadline, 40);
+    db.prepare(`
+      UPDATE csp_paper_assignments
+      SET title = ?, deadline = ?, updated_at = datetime('now','localtime')
+      WHERE id = ? AND teacher_id = ?
+    `).run(title, deadline, assignment.id, req.user.id);
+    res.json(await buildTeacherDetail(req, getTeacherAssignment(req, assignment.id)));
+  } catch (error) {
+    next(error);
+  }
+});
+
+router.delete('/assignments/:id', auth, requireTeacher, (req, res, next) => {
+  try {
+    const assignment = getTeacherAssignment(req, req.params.id);
+    if (!assignment) return res.status(404).json({ error: '整卷任务不存在' });
+    db.exec('BEGIN IMMEDIATE');
+    try {
+      // 删除整卷时同步删除它产生的练习记录，避免排行榜留下孤立数据。
+      db.prepare(`
+        DELETE FROM practice_records
+        WHERE paper_submission_id IN (
+          SELECT s.id
+          FROM csp_paper_submissions s
+          JOIN csp_paper_students ps ON ps.id = s.assignment_student_id
+          WHERE ps.assignment_id = ?
+        )
+      `).run(assignment.id);
+      db.prepare('DELETE FROM csp_paper_assignments WHERE id = ? AND teacher_id = ?')
+        .run(assignment.id, req.user.id);
+      db.exec('COMMIT');
+    } catch (error) {
+      db.exec('ROLLBACK');
+      throw error;
+    }
+    res.json({ deleted: true, id: assignment.id });
+  } catch (error) {
+    next(error);
+  }
+});
+
 router.post('/assignments/:id/students', auth, requireTeacher, async (req, res, next) => {
   try {
     const assignment = getTeacherAssignment(req, req.params.id);
@@ -361,6 +666,60 @@ router.post('/assignments/:id/students', auth, requireTeacher, async (req, res, 
     const insertStudent = db.prepare('INSERT OR IGNORE INTO csp_paper_students (assignment_id, student_id) VALUES (?, ?)');
     for (const student of students) insertStudent.run(assignment.id, student.id);
     res.json(await buildTeacherDetail(req, assignment));
+  } catch (error) {
+    next(error);
+  }
+});
+
+router.get('/students/:studentId/history', auth, requireTeacher, async (req, res, next) => {
+  try {
+    const history = await buildStudentPaperHistory(req, req.params.studentId);
+    if (!history) return res.status(404).json({ error: '学生不存在或无权查看' });
+    res.json(history);
+  } catch (error) {
+    next(error);
+  }
+});
+
+router.post('/assignments/:id/students/:studentId/analyze', auth, requireTeacher, async (req, res, next) => {
+  try {
+    const assignment = getTeacherAssignment(req, req.params.id);
+    if (!assignment) return res.status(404).json({ error: '整卷任务不存在' });
+    const studentId = Number(req.params.studentId);
+    const row = db.prepare(`
+      SELECT a.id, a.title, a.level, a.year, a.deadline,
+        a.analysis_released_at AS analysisReleasedAt,
+        ps.id AS assignmentStudentId, ps.assigned_at AS assignedAt,
+        ps.completed_at AS completedAt
+      FROM csp_paper_students ps
+      JOIN csp_paper_assignments a ON a.id = ps.assignment_id
+      WHERE a.id = ? AND a.teacher_id = ? AND ps.student_id = ?
+    `).get(assignment.id, req.user.id, studentId);
+    if (!row) return res.status(404).json({ error: '该学生不在此整卷任务中' });
+    const student = getTeacherStudent(req, studentId);
+    if (!student) return res.status(404).json({ error: '学生不存在或无权查看' });
+    const paper = await buildStudentPaperSummary(row);
+    if (!paper.submittedCount) {
+      return res.status(400).json({ error: '该学生尚未提交这份试卷，暂不能进行 AI 分析' });
+    }
+    return streamPaperAnalysis(res, buildPaperAnalysisPrompt(paper, student));
+  } catch (error) {
+    next(error);
+  }
+});
+
+router.post('/students/:studentId/history/analyze', auth, requireTeacher, async (req, res, next) => {
+  try {
+    const history = await buildStudentPaperHistory(req, req.params.studentId);
+    if (!history) return res.status(404).json({ error: '学生不存在或无权查看' });
+    const submittedHistory = {
+      ...history,
+      papers: history.papers.filter(paper => paper.submittedCount > 0),
+    };
+    if (!submittedHistory.papers.length) {
+      return res.status(400).json({ error: '该学生还没有提交过整卷题目，暂不能进行 AI 分析' });
+    }
+    return streamPaperAnalysis(res, buildHistoryAnalysisPrompt(submittedHistory));
   } catch (error) {
     next(error);
   }
