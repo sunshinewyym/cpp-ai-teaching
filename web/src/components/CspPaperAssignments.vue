@@ -245,11 +245,21 @@ const availableExtraStudents = computed(() => students.value.filter(student =>
 ));
 const form = ref({ level: 'CSP-J', year: 2025, title: '', deadline: '' });
 
-function readJson(response) {
-  return response.json().then(data => {
-    if (!response.ok) throw new Error(data.error || '请求失败');
-    return data;
-  });
+async function readJson(response, emptyValue) {
+  // 某些部署环境会把空响应（例如没有历史记录或 DELETE 的 204）直接返回。
+  // 不要调用 response.json() 让浏览器抛出无意义的“Unexpected end of JSON input”。
+  const body = await response.text();
+  let data = emptyValue;
+  if (body.trim()) {
+    try {
+      data = JSON.parse(body);
+    } catch {
+      if (!response.ok) throw new Error(`请求失败（${response.status}）`);
+      throw new Error('服务器返回了无效数据，请刷新后重试');
+    }
+  }
+  if (!response.ok) throw new Error(data?.error || `请求失败（${response.status}）`);
+  return data;
 }
 
 function formatAnswers(answers) {
@@ -352,8 +362,10 @@ async function load() {
       authFetch('/api/auth/students'),
       authFetch('/api/csp-papers/assignments'),
     ]);
-    students.value = await readJson(studentResponse);
-    assignments.value = await readJson(assignmentResponse);
+    const loadedStudents = await readJson(studentResponse, []);
+    const loadedAssignments = await readJson(assignmentResponse, []);
+    students.value = Array.isArray(loadedStudents) ? loadedStudents : [];
+    assignments.value = Array.isArray(loadedAssignments) ? loadedAssignments : [];
     selectedIds.value = students.value.map(item => item.id);
     historyStudentId.value = Number(students.value[0]?.id || 0);
     // 历史记录默认折叠；后台预取不阻塞布置整卷区域的首屏显示。
@@ -494,8 +506,28 @@ async function loadStudentHistory() {
   }
   historyLoading.value = true;
   error.value = '';
+  const selectedStudent = students.value.find(student => Number(student.id) === Number(historyStudentId.value));
+  const emptyHistory = {
+    student: selectedStudent
+      ? {
+          id: selectedStudent.id,
+          name: selectedStudent.name,
+          username: selectedStudent.username || '',
+          className: selectedStudent.className || selectedStudent.class_name || '',
+        }
+      : { id: historyStudentId.value, name: '该学生', username: '', className: '' },
+    papers: [],
+  };
   try {
-    history.value = await readJson(await authFetch(`/api/csp-papers/students/${historyStudentId.value}/history`));
+    const data = await readJson(
+      await authFetch(`/api/csp-papers/students/${historyStudentId.value}/history`),
+      emptyHistory,
+    );
+    // 即使旧版接口返回空对象，也按“暂无记录”渲染，避免页面再次出现空白或解析异常。
+    history.value = {
+      student: { ...emptyHistory.student, ...(data?.student || {}) },
+      papers: Array.isArray(data?.papers) ? data.papers : [],
+    };
     historyAnalysis.value = '';
     paperAnalyses.value = {};
   } catch (e) {
