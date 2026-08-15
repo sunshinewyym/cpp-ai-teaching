@@ -7,7 +7,8 @@
         <select v-model="filterClass"><option value="">全部班级</option><option v-for="c in classes" :key="c" :value="c">{{ c }}</option></select>
         <select v-model="filterLevel"><option value="">全部级别</option><option value="CSP-J">CSP-J</option><option value="CSP-S">CSP-S</option><option value="GESP-2">GESP C++ 二级</option><option value="GESP-3">GESP C++ 三级</option><option value="GESP-4">GESP C++ 四级</option><option value="GESP-5">GESP C++ 五级</option><option value="GESP-6">GESP C++ 六级</option><option value="GESP-7">GESP C++ 七级</option><option value="GESP-8">GESP C++ 八级</option></select>
         <select v-model="filterType"><option value="">全部题型</option><option value="choice">选择题</option><option value="judgment">判断题</option><option value="reading">阅读程序</option><option value="completion">完善程序</option></select>
-        <button class="export-button" @click="exportRecords" :disabled="loading || !filteredRecords.length">导出集训记录</button>
+        <label class="export-filter"><input v-model="excludeCspPaperRecords" type="checkbox"> 排除 CSP 整卷</label>
+        <button class="export-button" @click="exportRecords" :disabled="loading || !exportableRecords.length">导出集训记录<span v-if="excludeCspPaperRecords">（不含整卷）</span></button>
       </div>
     </header>
 
@@ -88,8 +89,19 @@ const filterStudent = ref('');
 const filterClass = ref('');
 const filterLevel = ref('');
 const filterType = ref('');
+// 集训练习与 CSP 整卷测评分开导出，默认不把整卷成绩混入日常训练记录。
+const excludeCspPaperRecords = ref(true);
 
 const filteredRecords = computed(() => records.value);
+const exportableRecords = computed(() => excludeCspPaperRecords.value
+  ? filteredRecords.value.filter(record => !isCspPaperRecord(record))
+  : filteredRecords.value);
+
+function isCspPaperRecord(record) {
+  if (record?.paper_submission_id !== null && record?.paper_submission_id !== undefined) return true;
+  const source = String(record?.answers?.source || '').trim();
+  return source === 'CSP整卷' || source.includes('CSP整卷测评');
+}
 
 function toggle(id) { expanded.value = expanded.value === id ? null : id; }
 function renderMd(text) { return text ? marked.parse(text) : ''; }
@@ -141,7 +153,7 @@ function formatDuration(s) { const m = Math.floor(s / 60); return m > 0 ? `${m}�
 
 function exportRecords() {
   const headers = ['学生', '账号', '班级', '提交时间', '级别', '考期', '题型', '得分', '满分', '得分率', '用时（秒）', '题目明细'];
-  const rows = filteredRecords.value.map(record => [
+  const rows = exportableRecords.value.map(record => [
     record.student_name,
     record.student_username || '',
     record.class_name || '',
@@ -160,7 +172,8 @@ function exportRecords() {
       return `第${number}题：${answer}（${result}，${question.score ?? 0}/${question.max_score ?? ''}）`;
     }).join('；'),
   ]);
-  downloadMarkdown(`学生集训练习记录-${new Date().toLocaleDateString('sv-SE')}.md`, '学生集训练习记录', headers, rows);
+  const suffix = excludeCspPaperRecords.value ? '（不含CSP整卷）' : '（含整卷）';
+  downloadMarkdown(`学生集训练习记录${excludeCspPaperRecords.value ? '-不含CSP整卷' : ''}-${new Date().toLocaleDateString('sv-SE')}.md`, `学生集训练习记录${suffix}`, headers, rows);
 }
 
 async function loadStats() {
@@ -204,6 +217,8 @@ onMounted(() => { loadStats(); loadRecords(); loadStudents(); });
 .dash-head h2 { margin: 0; color: #4f46e5; font-size: 22px; }
 .filters { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
 .filters select { padding: 8px 12px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 14px; }
+.export-filter { display: inline-flex; align-items: center; gap: 6px; color: #475569; font-size: 13px; white-space: nowrap; cursor: pointer; }
+.export-filter input { width: 15px; height: 15px; accent-color: #4f46e5; cursor: pointer; }
 .export-button { padding: 8px 12px; border: 1px solid #c7d2fe; border-radius: 6px; background: #eef2ff; color: #4338ca; font-size: 14px; cursor: pointer; }
 .export-button:hover:not(:disabled) { background: #e0e7ff; }
 .export-button:disabled { opacity: 0.5; cursor: not-allowed; }
