@@ -27,6 +27,7 @@
             >
               <span class="nav-icon">{{ tool.icon }}</span>
               <span class="nav-label">{{ tool.label }}</span>
+              <span v-if="tool.badge" class="nav-badge">{{ tool.badge > 99 ? '99+' : tool.badge }}</span>
             </button>
           </template>
         </div>
@@ -50,7 +51,7 @@
 </template>
 
 <script setup>
-import { computed, onMounted, ref } from 'vue';
+import { computed, onMounted, onUnmounted, ref } from 'vue';
 import { isTeacher, isLoggedIn, isAdmin, currentUser, authFetch } from '../utils/auth';
 
 const props = defineProps({
@@ -61,6 +62,8 @@ const emit = defineEmits(['select-tool', 'logout']);
 
 const hasTrainingCourse = ref(false);
 const hasStudentTraining = ref(false);
+const paperTaskCount = ref(0);
+let paperBadgeTimer = null;
 const expandedSections = ref({
   ai: false,
   competition: true,
@@ -68,7 +71,7 @@ const expandedSections = ref({
   management: false,
 });
 
-const makeTool = (id, icon, label) => ({ id, icon, label });
+const makeTool = (id, icon, label, badge = 0) => ({ id, icon, label, badge });
 
 const sections = computed(() => {
   const competitionItems = [
@@ -76,7 +79,7 @@ const sections = computed(() => {
     makeTool('gesp-practice', '🎯', 'GESP 考级练习'),
     makeTool('leaderboard', '🏅', '学习排行榜'),
     ...(isTeacher.value ? [makeTool('csp-paper-assignments', '📝', 'CSP 整卷测评')] : []),
-    ...(!isTeacher.value ? [makeTool('student-csp-papers', '📝', 'CSP 整卷任务')] : []),
+    ...(!isTeacher.value ? [makeTool('student-csp-papers', '📝', 'CSP 整卷任务', paperTaskCount.value)] : []),
   ];
   if (isTeacher.value && hasTrainingCourse.value) {
     competitionItems.push(makeTool('training-course', '📅', '集训课程'));
@@ -167,6 +170,24 @@ function selectTool(toolId, sectionId) {
   emit('select-tool', toolId);
 }
 
+async function refreshPaperTaskBadge() {
+  if (isTeacher.value || !isLoggedIn.value) return;
+  try {
+    const response = await authFetch('/api/csp-papers/student/assignments');
+    if (!response.ok) return;
+    const assignments = await response.json();
+    paperTaskCount.value = Array.isArray(assignments)
+      ? assignments.filter(item => Number(item.submittedCount || 0) < Number(item.total || 0)).length
+      : 0;
+  } catch {
+    // 角标只是提示，接口暂时不可用时不影响导航。
+  }
+}
+
+function handlePaperUpdated() {
+  refreshPaperTaskBadge();
+}
+
 onMounted(async () => {
   if (!isLoggedIn.value) return;
   try {
@@ -185,6 +206,17 @@ onMounted(async () => {
     if (isTeacher.value) hasTrainingCourse.value = false;
     else hasStudentTraining.value = false;
   }
+
+  if (!isTeacher.value) {
+    refreshPaperTaskBadge();
+    paperBadgeTimer = window.setInterval(refreshPaperTaskBadge, 30000);
+    window.addEventListener('csp-paper-updated', handlePaperUpdated);
+  }
+});
+
+onUnmounted(() => {
+  if (paperBadgeTimer) window.clearInterval(paperBadgeTimer);
+  window.removeEventListener('csp-paper-updated', handlePaperUpdated);
 });
 </script>
 
@@ -294,6 +326,19 @@ onMounted(async () => {
 
 .nav-icon {
   font-size: 18px;
+}
+
+.nav-badge {
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 999px;
+  background: #ef4444;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 800;
+  line-height: 18px;
+  text-align: center;
 }
 
 .sidebar-footer {

@@ -35,6 +35,9 @@ async function loadQuestionBank() {
       for (const item of choiceItems) {
         bank.set(item.id, {
           id: item.id,
+          question: item.question || '',
+          options: item.options || {},
+          tags: Array.isArray(item.tags) ? item.tags : [],
           parts: [{
             id: item.id,
             answers: [item.answer],
@@ -47,6 +50,9 @@ async function loadQuestionBank() {
         if (!['choice', 'judgment'].includes(item.source?.questionType)) continue;
         bank.set(item.id, {
           id: item.id,
+          question: item.question || '',
+          options: item.options || {},
+          tags: Array.isArray(item.tags) ? item.tags : [],
           parts: [{
             id: item.id,
             answers: [item.answer],
@@ -58,6 +64,9 @@ async function loadQuestionBank() {
       for (const item of cspS.cspSTrainingChoices) {
         bank.set(item.id, {
           id: item.id,
+          question: item.question || '',
+          options: item.options || {},
+          tags: Array.isArray(item.tags) ? item.tags : [],
           parts: [{
             id: item.id,
             answers: [item.answer],
@@ -69,8 +78,13 @@ async function loadQuestionBank() {
       for (const item of cspS.cspSTrainingPrograms) {
         bank.set(item.id, {
           id: item.id,
+          title: item.title || '',
+          description: item.description || '',
+          statement: item.statement || '',
+          tags: Array.isArray(item.tags) ? item.tags : [],
           parts: item.questions.map(question => ({
             id: question.id,
+            text: question.text || question.question || '',
             answers: question.answers,
             options: Object.keys(question.options || {}),
             score: Number(question.score) || 1,
@@ -80,8 +94,13 @@ async function loadQuestionBank() {
       for (const item of programItems) {
         bank.set(item.id, {
           id: item.id,
+          title: item.title || '',
+          description: item.description || '',
+          statement: item.statement || '',
+          tags: Array.isArray(item.tags) ? item.tags : [],
           parts: item.questions.map(question => ({
             id: question.id,
+            text: question.text || question.question || '',
             answers: question.answers,
             options: Object.keys(question.options || {}),
             score: Number(question.score) || 1,

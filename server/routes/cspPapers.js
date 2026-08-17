@@ -9,12 +9,26 @@ const router = express.Router();
 const PAPER_YEARS = [2019, 2020, 2021, 2022, 2023, 2024, 2025];
 const QUESTION_ORDER = { choice: 0, reading: 1, completion: 2 };
 
+// 广州（广东）CSP-J 第一轮晋级第二轮的公开分数线，仅作为整卷难度参照，
+// 不代表复赛成绩、获奖线或必然晋级。未收录的年份必须明确标注“暂无”，不能让模型猜测。
+const GUANGZHOU_CSP_J_CUTOFFS = Object.freeze({
+  2022: { score: 69.5, scope: '广州市' },
+  2023: { score: 68, scope: '广州市' },
+  2024: { score: 83.5, scope: '广东统一线（广州适用）' },
+  2025: { score: 59.5, scope: '广州市' },
+});
+
 function cleanText(value, maxLength = 200) {
   return String(value || '').trim().slice(0, maxLength);
 }
 
 function normalizeLevel(value) {
   return String(value || '').toUpperCase() === 'CSP-S' ? 'CSP-S' : 'CSP-J';
+}
+
+function getGuangzhouCutoff(level, year) {
+  if (normalizeLevel(level) !== 'CSP-J') return null;
+  return GUANGZHOU_CSP_J_CUTOFFS[Number(year)] || null;
 }
 
 function questionType(questionId) {
@@ -408,6 +422,12 @@ function paperPromptSummary(paper, includeWrongQuestions = true, maxWrongQuestio
   const sectionText = Object.values(paper.sections)
     .map(section => `${section.label}${section.score}/${section.maxScore}分（完成${section.submittedQuestions}/${section.totalQuestions}题）`)
     .join('；');
+  const cutoff = getGuangzhouCutoff(paper.level, paper.year);
+  const cutoffText = cutoff
+    ? `广州（广东）CSP-J 晋级复赛参考线：${cutoff.score}分（${cutoff.scope}）；本次成绩与参考线差值：${Math.round((paper.score - cutoff.score) * 10) / 10}分`
+    : normalizeLevel(paper.level) === 'CSP-J'
+      ? '广州（广东）CSP-J 晋级复赛参考线：该年份暂无已核实数据，不得猜测或用其他年份替代'
+      : '晋级复赛参考线：本参考线仅适用于 CSP-J，CSP-S 不使用该指标';
   const wrongText = includeWrongQuestions && paper.wrongQuestions.length
     ? paper.wrongQuestions.slice(0, maxWrongQuestions).map(item => {
       const parts = item.parts.map(part => `${part.id}：作答${part.selected.join('/') || '未答'}，正确${part.correctAnswers.join('/')}`).join('；');
@@ -418,7 +438,7 @@ function paperPromptSummary(paper, includeWrongQuestions = true, maxWrongQuestio
       return `${item.typeLabel}第${item.number}题 ${item.score}/${item.maxScore}分${tags}${parts ? `（${parts}）` : ''}${source ? `\n题面：${source}` : ''}`;
     }).join('\n')
     : '无已提交错题';
-  return `试卷：${paper.level} ${paper.year}《${paper.title}》\n总分：${paper.score}/${paper.maxScore}（${paper.percent ?? '—'}%）\n分部分数：${sectionText}\n错题明细：\n${wrongText}`;
+  return `试卷：${paper.level} ${paper.year}《${paper.title}》\n总分：${paper.score}/${paper.maxScore}（${paper.percent ?? '—'}%）\n分部分数：${sectionText}\n${cutoffText}\n错题明细：\n${wrongText}`;
 }
 
 function buildPaperAnalysisPrompt(paper, student) {
@@ -432,7 +452,7 @@ ${paperPromptSummary(paper)}
 ## 错题知识点
 先按知识点聚合错题，列出出现次数和对应题号，再逐题解释失分原因。题面、选项或程序描述已给出时，必须引用其中的具体变量、数字、条件、代码行或选项差异；若单条题面确实为空，请明确指出缺少哪一项字段，不得把有题面的错题笼统写成“题库未提供足够信息”。
 ## 分数分析
-比较选择题、阅读程序题和完善程序题的得分占比，指出最需要优先讲解的部分。
+比较选择题、阅读程序题和完善程序题的得分占比，指出最需要优先讲解的部分。若提供了广州（广东）CSP-J 晋级复赛参考线，必须计算本次总分与参考线的差值，明确写出“高于/低于参考线多少分”；这只是历史晋级参考，不得表述为保证晋级，也不要把 CSP-J 参考线套用到 CSP-S。
 ## 后续建议
 给出 2-4 条具体、可执行的复习或课堂讲解建议，并对应到上面的知识点和题号；建议必须包含练习动作或讲解重点，不要写“加强练习”等空话。
 不要把未提交的题目写成错题，也不要重复套用通用模板。只输出分析正文。`;
@@ -449,7 +469,7 @@ ${text}
 
 请严格使用 Markdown 输出，且只使用二级标题、普通段落和列表，不要输出代码块或额外开场白。必须包含以下四个标题：
 ## 总体趋势
-比较有提交记录的各次总分和三部分得分变化；忽略未提交试卷。
+比较有提交记录的各次总分、三部分得分和各年份广州（广东）CSP-J 晋级复赛参考线差值；忽略未提交试卷。参考线缺失时明确写“暂无数据”，不得猜测或用其他年份替代。
 ## 反复失分知识点
 根据每次记录中提供的错题知识点和题面，按主题统计出现次数、涉及试卷及题号；题面存在时必须指出具体概念或代码行为，不能用“题库未提供足够信息”代替分析。
 ## 当前问题
@@ -470,22 +490,53 @@ function writeSse(res, payload) {
 async function streamPaperAnalysis(res, prompt) {
   try {
     // AI 分析不需要逐字输出；一次性返回可避免代理/浏览器吞掉流式空帧。
-    const result = await chatWithMeta([
+    // 旧值 1600 很容易在建议段落中途触发 finish_reason=length，前端只能显示半截正文。
+    const maxTokensRaw = Number(process.env.CSP_ANALYSIS_MAX_TOKENS || 4200);
+    const maxTokens = Number.isFinite(maxTokensRaw)
+      ? Math.max(2600, Math.min(6000, Math.round(maxTokensRaw)))
+      : 4200;
+    const baseMessages = [
       { role: 'system', content: '你是温和、严谨、重视证据的信息学竞赛教师。' },
       { role: 'user', content: prompt },
-    ], {
+    ];
+    const requestOptions = {
       temperature: 0.45,
-      max_tokens: 1600,
-      timeout: 90000,
+      max_tokens: maxTokens,
+      timeout: 120000,
       thinking: { type: 'disabled' },
-    });
-    if (!result.content?.trim()) {
+    };
+    let result = await chatWithMeta(baseMessages, requestOptions);
+    let content = result.content?.trim() || '';
+    const reachedOutputLimit = value => value === 'length' || value === 'max_tokens';
+
+    // 长文若仍触顶，要求模型只从最后一个完整句子续写，避免重复标题和前文。
+    // 续写最多两次，既能补齐建议段落，也避免异常服务造成无限请求。
+    for (let attempt = 0; attempt < 2 && reachedOutputLimit(result.finishReason) && content; attempt += 1) {
+      try {
+        result = await chatWithMeta([
+          ...baseMessages,
+          { role: 'assistant', content },
+          {
+            role: 'user',
+            content: '上一段因输出长度限制被截断。请从最后一个完整句子继续，只输出未完成的后续内容，不要重复已经输出的标题、段落或列表；请务必完成所有要求的小节。',
+          },
+        ], requestOptions);
+        const continuation = result.content?.trim() || '';
+        if (!continuation) break;
+        content = `${content}\n\n${continuation}`;
+      } catch {
+        // 首段已经有效时保留首段，避免续写服务短暂失败导致整次分析丢失。
+        break;
+      }
+    }
+
+    if (!content) {
       return res.status(502).json({ error: 'AI 服务未返回分析正文，请稍后重试' });
     }
     res.setHeader('Content-Type', 'text/event-stream; charset=utf-8');
     res.setHeader('Cache-Control', 'no-cache');
     res.setHeader('Connection', 'keep-alive');
-    writeSse(res, { content: result.content });
+    writeSse(res, { content });
     writeSse(res, '[DONE]');
     res.end();
   } catch (error) {

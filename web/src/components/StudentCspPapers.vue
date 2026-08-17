@@ -35,7 +35,7 @@
 </template>
 
 <script setup>
-import { computed, nextTick, onMounted, ref } from 'vue';
+import { computed, nextTick, onMounted, onUnmounted, ref } from 'vue';
 import { authFetch } from '../utils/auth';
 import { renderCspMarkdown as renderMd, renderCspInline as renderInline } from '../utils/cspMarkdown';
 import { cspChoicePapers } from '../data/cspChoicePapers';
@@ -79,10 +79,13 @@ function isWrong(id) { return paper.value?.analysisReleasedAt && paper.value?.su
 function answerLabel(q) { if (isChoiceQuestion(q)) return q.answer; return q.questions.map(part => `${part.number}.${part.answers.join('、')}`).join('；'); }
 function select(id, key) { drafts.value = { ...drafts.value, [id]: [key] }; }
 function goToQuestion(id) { currentId.value = id; nextTick(() => questionCard.value?.scrollIntoView({ behavior: 'smooth', block: 'start' })); }
-async function loadAssignments() { loading.value = true; error.value = ''; try { assignments.value = await readJson(await authFetch('/api/csp-papers/student/assignments')); } catch (e) { error.value = e.message; } finally { loading.value = false; } }
+async function loadAssignments({ silent = false } = {}) { if (!silent) loading.value = true; error.value = ''; try { assignments.value = await readJson(await authFetch('/api/csp-papers/student/assignments')); window.dispatchEvent(new Event('csp-paper-updated')); } catch (e) { if (!silent) error.value = e.message; } finally { if (!silent) loading.value = false; } }
 async function openAssignment(id) { error.value = ''; try { paper.value = await readJson(await authFetch(`/api/csp-papers/student/assignments/${id}`)); drafts.value = {}; for (const [questionId, submission] of Object.entries(paper.value.submissions || {})) { Object.assign(drafts.value, submission.answers || {}); } currentId.value = paper.value.questionIds[0] || ''; } catch (e) { error.value = e.message; } }
-async function submitCurrent() { if (!paper.value || !currentQuestion.value) return; busy.value = true; error.value = ''; try { await authFetch(`/api/csp-papers/student/assignments/${paper.value.id}/questions/${encodeURIComponent(currentId.value)}/start`, { method: 'POST', body: '{}' }); const answers = isChoiceQuestion(currentQuestion.value) ? { [currentQuestion.value.id]: selectedFor(currentQuestion.value.id) } : Object.fromEntries(currentQuestion.value.questions.map(part => [part.id, selectedFor(part.id)])); await readJson(await authFetch(`/api/csp-papers/student/assignments/${paper.value.id}/questions/${encodeURIComponent(currentId.value)}/submit`, { method: 'POST', body: JSON.stringify({ answers }) })); await openAssignment(paper.value.id); const next = paper.value.questionIds.find(id => !isSubmitted(id)); if (next) currentId.value = next; } catch (e) { error.value = e.message; } finally { busy.value = false; } }
-onMounted(loadAssignments);
+async function submitCurrent() { if (!paper.value || !currentQuestion.value) return; busy.value = true; error.value = ''; try { await authFetch(`/api/csp-papers/student/assignments/${paper.value.id}/questions/${encodeURIComponent(currentId.value)}/start`, { method: 'POST', body: '{}' }); const answers = isChoiceQuestion(currentQuestion.value) ? { [currentQuestion.value.id]: selectedFor(currentQuestion.value.id) } : Object.fromEntries(currentQuestion.value.questions.map(part => [part.id, selectedFor(part.id)])); await readJson(await authFetch(`/api/csp-papers/student/assignments/${paper.value.id}/questions/${encodeURIComponent(currentId.value)}/submit`, { method: 'POST', body: JSON.stringify({ answers }) })); await openAssignment(paper.value.id); await loadAssignments({ silent: true }); const next = paper.value.questionIds.find(id => !isSubmitted(id)); if (next) currentId.value = next; } catch (e) { error.value = e.message; } finally { busy.value = false; } }
+let refreshTimer = null;
+function handleVisibilityChange() { if (document.visibilityState === 'visible') loadAssignments({ silent: true }); }
+onMounted(() => { loadAssignments(); refreshTimer = window.setInterval(() => { if (document.visibilityState === 'visible') loadAssignments({ silent: true }); }, 30000); document.addEventListener('visibilitychange', handleVisibilityChange); });
+onUnmounted(() => { if (refreshTimer) window.clearInterval(refreshTimer); document.removeEventListener('visibilitychange', handleVisibilityChange); });
 </script>
 
 <style scoped>
