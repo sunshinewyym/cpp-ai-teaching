@@ -1,7 +1,7 @@
 <template>
   <div class="paper-page">
     <header class="page-head">
-      <div><p class="eyebrow">我的整卷任务</p><h2>📝 CSP 整卷任务</h2><p>整张试卷独立保存答案；解析开放前可以修改。</p></div>
+      <div><p class="eyebrow">我的整卷任务</p><h2>📝 整卷任务</h2><p>整张试卷独立保存答案；解析开放前可以修改。</p></div>
       <button @click="loadAssignments" :disabled="loading">{{ loading ? '刷新中…' : '刷新任务' }}</button>
     </header>
     <div v-if="error" class="error">{{ error }}</div>
@@ -9,17 +9,17 @@
     <section v-else class="assignment-list">
       <button v-for="item in assignments" :key="item.id" class="assignment" @click="openAssignment(item.id)">
         <strong>{{ item.title }}</strong>
-        <span>{{ item.level }} · {{ item.year }} · {{ item.submittedCount }}/{{ item.total }} 道大题</span>
+        <span>{{ item.paperLabel || (item.level + ' · ' + item.year) }} · {{ item.submittedCount }}/{{ item.total }} 道大题</span>
         <div v-if="item.analysisReleasedAt" class="assignment-result"><strong>总得分 {{ item.score }}/{{ item.maxScore }} 分</strong><b class="released">解析已开放</b></div><b v-else>等待完成</b>
       </button>
     </section>
 
     <div v-if="paper" class="paper-workspace">
-      <header class="paper-head"><div><h3>{{ paper.title }}</h3><p>{{ paper.level }} {{ paper.year }} · {{ paper.submittedCount }}/{{ paper.total }} 道大题 · 总分 {{ paper.maxScore }}</p></div><button @click="paper = null">返回任务列表</button></header>
+      <header class="paper-head"><div><h3>{{ paper.title }}</h3><p>{{ paper.paperLabel || (paper.level + ' · ' + paper.year) }} · {{ paper.submittedCount }}/{{ paper.total }} 道大题 · 总分 {{ paper.maxScore }}</p></div><button @click="paper = null">返回任务列表</button></header>
       <section v-if="paper.analysisReleasedAt" class="score-card">
         <header><strong>总得分 {{ scoreSummary.score }}/{{ scoreSummary.maxScore }} 分</strong><span>解析已开放</span></header>
-        <div class="section-scores"><b v-for="group in scoreSummary.groups" :key="group.type">{{ group.label }}：{{ group.score }}/{{ group.maxScore }} 分</b></div>
-        <details><summary>查看得分明细</summary><div class="score-details"><section v-for="group in scoreSummary.groups" :key="group.type" class="score-group" :class="group.type"><h4>{{ group.label }}</h4><button v-for="item in group.items" :key="item.id" class="score-item" :class="{full:item.score===item.maxScore,zero:item.score===0}" @click="goToQuestion(item.id)"><span>{{ item.label }}</span><strong>{{ item.score }}/{{ item.maxScore }} 分</strong></button></section></div></details>
+        <div class="section-scores"><template v-for="group in scoreSummary.groups" :key="group.type"><b v-if="group.items.length">{{ group.label }}：{{ group.score }}/{{ group.maxScore }} 分</b></template></div>
+        <details><summary>查看得分明细</summary><div class="score-details"><template v-for="group in scoreSummary.groups" :key="group.type"><section v-if="group.items.length" class="score-group" :class="group.type"><h4>{{ group.label }}</h4><button v-for="item in group.items" :key="item.id" class="score-item" :class="{full:item.score===item.maxScore,zero:item.score===0}" @click="goToQuestion(item.id)"><span>{{ item.label }}</span><strong>{{ item.score }}/{{ item.maxScore }} 分</strong></button></section></template></div></details>
       </section>
       <nav class="question-nav"><button v-for="id in paper.questionIds" :key="id" :class="{active:id===currentId,done:isSubmitted(id),wrong:isWrong(id)}" @click="currentId=id">{{ label(id) }}</button></nav>
       <article v-if="currentQuestion" ref="questionCard" class="question-card">
@@ -42,8 +42,10 @@ import { cspChoicePapers } from '../data/cspChoicePapers';
 import { cspProgramProblems } from '../data/cspProgramProblems';
 import { csp2025ChoicePapers, csp2025ProgramProblems } from '../data/csp2025';
 import { cspSTrainingChoices, cspSTrainingPrograms } from '../data/trainingCspS';
+import { gespPapers } from '../data/gespPapers';
 
-const choices = [...Object.values(cspChoicePapers).flat(), ...Object.values(csp2025ChoicePapers).flat(), ...cspSTrainingChoices];
+const gespQuestions = Object.values(gespPapers).flatMap(sessions => Object.values(sessions).flatMap(paper => Object.entries(paper.sections).flatMap(([type, section]) => section.questions.map(item => ({ ...item, _paperType: 'GESP', _questionType: type, _score: Number(section.scorePerQuestion) || 1 })) )));
+const choices = [...Object.values(cspChoicePapers).flat(), ...Object.values(csp2025ChoicePapers).flat(), ...cspSTrainingChoices, ...gespQuestions.filter(item => item.options)];
 const programs = [...cspProgramProblems, ...csp2025ProgramProblems, ...cspSTrainingPrograms];
 const choiceMap = new Map(choices.map(item => [item.id, item])); const programMap = new Map(programs.map(item => [item.id, item]));
 const assignments = ref([]); const paper = ref(null); const currentId = ref(''); const questionCard = ref(null); const drafts = ref({}); const loading = ref(false); const busy = ref(false); const error = ref('');
@@ -53,6 +55,7 @@ const submittedCurrent = computed(() => Boolean(paper.value?.submissions?.[curre
 const scoreSummary = computed(() => {
   const groups = [
     { type: 'choice', label: '选择题', items: [] },
+    { type: 'judgment', label: '判断题', items: [] },
     { type: 'reading', label: '阅读程序题', items: [] },
     { type: 'completion', label: '完善程序题', items: [] },
   ];
@@ -60,7 +63,7 @@ const scoreSummary = computed(() => {
     const question = choiceMap.get(id) || programMap.get(id);
     const type = questionKind(id);
     const submission = paper.value?.submissions?.[id];
-    const maxScore = type === 'choice' ? 2 : (question?.questions || []).reduce((sum, part) => sum + Number(part.score || 0), 0);
+    const maxScore = (type === 'choice' || type === 'judgment') ? Number(question?._score || 2) : (question?.questions || []).reduce((sum, part) => sum + Number(part.score || 0), 0);
     groups.find(group => group.type === type)?.items.push({ id, label: label(id), score: Number(submission?.score || 0), maxScore });
   }
   for (const group of groups) {
@@ -71,8 +74,8 @@ const scoreSummary = computed(() => {
 });
 const canSubmit = computed(() => { const q = currentQuestion.value; if (!q) return false; if (isChoiceQuestion(q)) return selectedFor(q.id).length > 0; return q.questions.every(part => selectedFor(part.id).length > 0); });
 function readJson(response) { return response.json().then(data => { if (!response.ok) throw new Error(data.error || '请求失败'); return data; }); }
-function questionKind(id) { const q = choiceMap.get(id) || programMap.get(id); return isChoiceQuestion(q) ? 'choice' : (q?.type || (id.includes('-reading-') ? 'reading' : 'completion')); }
-function label(id) { const q = choiceMap.get(id) || programMap.get(id); const type = questionKind(id); return `${type === 'choice' ? '选择题' : type === 'reading' ? '阅读' : '完善'} ${q?.number || id.match(/-(\d+)$/)?.[1] || ''}`; }
+function questionKind(id) { const q = choiceMap.get(id) || programMap.get(id); if (q?._questionType === 'judgment' || id.includes('-judgment-')) return 'judgment'; return isChoiceQuestion(q) ? 'choice' : (q?.type || (id.includes('-reading-') ? 'reading' : 'completion')); }
+function label(id) { const q = choiceMap.get(id) || programMap.get(id); const type = questionKind(id); return `${type === 'choice' ? '选择题' : type === 'judgment' ? '判断题' : type === 'reading' ? '阅读' : '完善'} ${q?.number || id.match(/-(\d+)$/)?.[1] || ''}`; }
 function selectedFor(id) { const value = drafts.value[id]; return Array.isArray(value) ? value : value ? [value] : []; }
 function isSubmitted(id) { return Boolean(paper.value?.submissions?.[id]?.submitted); }
 function isWrong(id) { return paper.value?.analysisReleasedAt && paper.value?.submissions?.[id]?.correct === false; }

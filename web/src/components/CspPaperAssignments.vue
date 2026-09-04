@@ -1,21 +1,23 @@
 <template>
   <div class="paper-page">
-    <h2>📝 CSP 整卷测评</h2>
-    <p class="hint">选择完整试卷，布置给学生并查看每题答题情况。</p>
+    <h2>📝 整卷测评</h2>
+    <p class="hint">选择 CSP 或 GESP 完整试卷，布置给学生并查看每题答题情况。</p>
 
     <div class="layout">
       <section class="panel">
         <h3>新建整卷任务</h3>
         <div class="form">
-          <label>级别
-            <select v-model="form.level">
-              <option>CSP-J</option>
-              <option>CSP-S</option>
+          <label>试卷类型
+            <select v-model="form.paperType" @change="selectDefaultPaper">
+              <option value="CSP">CSP</option>
+              <option value="GESP">GESP</option>
             </select>
           </label>
-          <label>年份
-            <select v-model.number="form.year">
-              <option v-for="year in years" :key="year">{{ year }}</option>
+          <label>试卷
+            <select v-model="form.paperKey" :disabled="!filteredAvailablePapers.length">
+              <option v-for="paper in filteredAvailablePapers" :key="paper.paperKey" :value="paper.paperKey">
+                {{ paper.paperLabel }}（{{ paper.questionCount }}题，{{ paper.maxScore }}分）
+              </option>
             </select>
           </label>
           <label>任务名称
@@ -54,14 +56,14 @@
           @click="detail?.id === item.id ? closeDetail() : loadDetail(item.id)"
         >
           <strong>{{ item.title }}</strong>
-          <span>{{ item.level }} · {{ item.year }} · {{ item.completed_count || 0 }}/{{ item.student_count || 0 }} 人完成 · {{ item.submission_count || 0 }} 题次</span>
+          <span>{{ item.paperLabel || (item.level + ' · ' + item.year) }} · {{ item.completed_count || 0 }}/{{ item.student_count || 0 }} 人完成 · {{ item.submission_count || 0 }} 题次</span>
         </button>
 
         <div v-if="detail" class="detail">
           <header>
             <div>
               <h3>{{ detail.title }}</h3>
-              <p>{{ detail.level }} {{ detail.year }} · {{ detail.students.length }} 人 · 题库分值 {{ detail.maxScore }}</p>
+              <p>{{ detail.paperLabel || (detail.level + ' · ' + detail.year) }} · {{ detail.students.length }} 人 · 题库分值 {{ detail.maxScore }}</p>
             </div>
             <div class="detail-actions">
               <select v-model.number="extraStudentId">
@@ -221,8 +223,8 @@ import { authFetch } from '../utils/auth';
 import { renderCspMarkdown } from '../utils/cspMarkdown';
 import { downloadMarkdown } from '../utils/downloadMarkdown';
 
-const years = [2019, 2020, 2021, 2022, 2023, 2024, 2025];
 const students = ref([]);
+const availablePapers = ref([]);
 const selectedIds = ref([]);
 const assignments = ref([]);
 const detail = ref(null);
@@ -243,7 +245,15 @@ const expandedQuestionDetails = ref(new Set());
 const availableExtraStudents = computed(() => students.value.filter(student =>
   !detail.value?.students?.some(item => Number(item.studentId) === Number(student.id))
 ));
-const form = ref({ level: 'CSP-J', year: 2025, title: '', deadline: '' });
+const filteredAvailablePapers = computed(() => availablePapers.value.filter(paper => paper.paperType === form.value.paperType));
+const form = ref({ paperType: 'CSP', paperKey: 'CSP-J-2025', title: '', deadline: '' });
+
+function selectDefaultPaper() {
+  const papers = filteredAvailablePapers.value;
+  if (!papers.some(paper => paper.paperKey === form.value.paperKey)) {
+    form.value.paperKey = papers[0]?.paperKey || '';
+  }
+}
 
 async function readJson(response, emptyValue) {
   // 某些部署环境会把空响应（例如没有历史记录或 DELETE 的 204）直接返回。
@@ -291,12 +301,12 @@ function exportPaperHistory() {
       return `${item.typeLabel}第${item.number}题 ${item.score}/${item.maxScore}分${item.knowledgeTags?.length ? `（${item.knowledgeTags.join('、')}）` : ''}${parts ? `：${parts}` : ''}`;
     }).join('；'),
   ]);
-  downloadMarkdown(`CSP整卷练习记录-${history.value.student.name}-${new Date().toLocaleDateString('sv-SE')}.md`, `CSP整卷练习记录（${history.value.student.name}）`, headers, rows);
+  downloadMarkdown(`整卷练习记录-${history.value.student.name}-${new Date().toLocaleDateString('sv-SE')}.md`, `整卷练习记录（${history.value.student.name}）`, headers, rows);
 }
 
 function exportAssignmentDetail() {
   if (!detail.value?.students?.length || !detail.value?.questions?.length) return;
-  const typeLabels = { choice: '选择题', reading: '阅读程序题', completion: '完善程序题' };
+  const typeLabels = { choice: '选择题', judgment: '判断题', reading: '阅读程序题', completion: '完善程序题' };
   const byStudent = new Map(detail.value.students.map(student => [student.studentId, { student, questions: [] }]));
   for (const question of detail.value.questions) {
     for (const answer of question.details || []) {
@@ -320,7 +330,7 @@ function exportAssignmentDetail() {
     student.percent == null ? '' : `${student.percent}%`,
     questions.join('；'),
   ]);
-  downloadMarkdown(`CSP整卷记录-${detail.value.level}-${detail.value.year}-${new Date().toLocaleDateString('sv-SE')}.md`, `${detail.value.level} ${detail.value.year} CSP整卷记录`, headers, rows);
+  downloadMarkdown(`整卷记录-${detail.value.paperKey || detail.value.level}-${detail.value.year}-${new Date().toLocaleDateString('sv-SE')}.md`, `${detail.value.paperLabel || detail.value.level} 整卷记录`, headers, rows);
 }
 
 function questionDetailOpen(questionId) {
@@ -358,14 +368,18 @@ function resetHistory() {
 async function load() {
   error.value = '';
   try {
-    const [studentResponse, assignmentResponse] = await Promise.all([
+    const [studentResponse, assignmentResponse, paperResponse] = await Promise.all([
       authFetch('/api/auth/students'),
       authFetch('/api/csp-papers/assignments'),
+      authFetch('/api/csp-papers/available'),
     ]);
     const loadedStudents = await readJson(studentResponse, []);
     const loadedAssignments = await readJson(assignmentResponse, []);
+    const loadedPapers = await readJson(paperResponse, []);
     students.value = Array.isArray(loadedStudents) ? loadedStudents : [];
     assignments.value = Array.isArray(loadedAssignments) ? loadedAssignments : [];
+    availablePapers.value = Array.isArray(loadedPapers) ? loadedPapers : [];
+    selectDefaultPaper();
     selectedIds.value = students.value.map(item => item.id);
     historyStudentId.value = Number(students.value[0]?.id || 0);
     // 历史记录默认折叠；后台预取不阻塞布置整卷区域的首屏显示。

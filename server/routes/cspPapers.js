@@ -7,7 +7,8 @@ const { buildTrainingPracticeRecord } = require('../training/trainingRecord');
 
 const router = express.Router();
 const PAPER_YEARS = [2019, 2020, 2021, 2022, 2023, 2024, 2025];
-const QUESTION_ORDER = { choice: 0, reading: 1, completion: 2 };
+const QUESTION_ORDER = { choice: 0, judgment: 1, reading: 2, completion: 3 };
+const PAPER_TYPES = Object.freeze({ CSP: 'CSP', GESP: 'GESP' });
 
 // 广州（广东）CSP-J 第一轮晋级第二轮的公开分数线，仅作为整卷难度参照，
 // 不代表复赛成绩、获奖线或必然晋级。未收录的年份必须明确标注“暂无”，不能让模型猜测。
@@ -26,18 +27,35 @@ function normalizeLevel(value) {
   return String(value || '').toUpperCase() === 'CSP-S' ? 'CSP-S' : 'CSP-J';
 }
 
+function normalizePaperType(value) {
+  return String(value || '').toUpperCase() === PAPER_TYPES.GESP ? PAPER_TYPES.GESP : PAPER_TYPES.CSP;
+}
+
+function parseGespPaperKey(value) {
+  const match = /^gesp-cpp([2-8])-(20\d{2})-(0[36]|09|12)$/i.exec(String(value || '').trim());
+  if (!match) throw new Error('请选择有效的 GESP 试卷');
+  return {
+    levelNumber: Number(match[1]),
+    level: `GESP-${match[1]}`,
+    year: Number(match[2]),
+    month: Number(match[3]),
+    session: `${match[2]}-${match[3]}`,
+    paperKey: `gesp-cpp${match[1]}-${match[2]}-${match[3]}`,
+  };
+}
+
 function getGuangzhouCutoff(level, year) {
   if (normalizeLevel(level) !== 'CSP-J') return null;
   return GUANGZHOU_CSP_J_CUTOFFS[Number(year)] || null;
 }
 
 function questionType(questionId) {
-  const match = /-(choice|reading|completion)-(\d+)$/i.exec(String(questionId || ''));
+  const match = /-(choice|judgment|reading|completion)-(\d+)$/i.exec(String(questionId || ''));
   return match ? match[1].toLowerCase() : '';
 }
 
 function questionNumber(questionId) {
-  const match = /-(?:choice|reading|completion)-(\d+)$/i.exec(String(questionId || ''));
+  const match = /-(?:choice|judgment|reading|completion)-(\d+)$/i.exec(String(questionId || ''));
   return match ? Number(match[1]) : 0;
 }
 
@@ -46,11 +64,42 @@ function questionBelongsToPaper(questionId, level, year) {
   return String(questionId || '').toLowerCase().startsWith(`${prefix.toLowerCase()}-`);
 }
 
-async function getPaperDefinition(level, year) {
+async function getPaperDefinition(level, year, paperType = PAPER_TYPES.CSP, paperKey = '') {
+  const normalizedPaperType = normalizePaperType(paperType);
+  const bank = await loadQuestionBank();
+  if (normalizedPaperType === PAPER_TYPES.GESP) {
+    const meta = parseGespPaperKey(paperKey);
+    const prefix = `${meta.paperKey}-`;
+    const ids = [...bank.keys()]
+      .filter(id => String(id).toLowerCase().startsWith(prefix))
+      .sort((left, right) => {
+        const typeDiff = QUESTION_ORDER[questionType(left)] - QUESTION_ORDER[questionType(right)];
+        return typeDiff || questionNumber(left) - questionNumber(right);
+      });
+    const counts = { choice: 0, judgment: 0, reading: 0, completion: 0 };
+    for (const id of ids) counts[questionType(id)] = (counts[questionType(id)] || 0) + 1;
+    if (counts.choice !== 15 || counts.judgment !== 10) {
+      throw new Error(`${meta.level} ${meta.session} 题库不完整（单选 ${counts.choice}/15，判断 ${counts.judgment}/10）`);
+    }
+    const maxScore = ids.reduce((total, id) => {
+      const definition = bank.get(id);
+      return total + definition.parts.reduce((sum, part) => sum + Number(part.score || 0), 0);
+    }, 0);
+    return {
+      paperType: PAPER_TYPES.GESP,
+      paperKey: meta.paperKey,
+      level: meta.level,
+      year: meta.year,
+      month: meta.month,
+      session: meta.session,
+      counts,
+      questionIds: ids,
+      maxScore,
+    };
+  }
   const normalizedLevel = normalizeLevel(level);
   const normalizedYear = Number(year);
   if (!PAPER_YEARS.includes(normalizedYear)) throw new Error('暂不支持该年份的 CSP 试卷');
-  const bank = await loadQuestionBank();
   const ids = [...bank.keys()]
     .filter(id => questionBelongsToPaper(id, normalizedLevel, normalizedYear))
     .sort((left, right) => {
@@ -67,6 +116,8 @@ async function getPaperDefinition(level, year) {
     return total + definition.parts.reduce((sum, part) => sum + Number(part.score || 0), 0);
   }, 0);
   return {
+    paperType: PAPER_TYPES.CSP,
+    paperKey: `${normalizedLevel}-${normalizedYear}`,
     level: normalizedLevel,
     year: normalizedYear,
     questionIds: ids,
@@ -75,6 +126,30 @@ async function getPaperDefinition(level, year) {
   };
 }
 
+function rowPaperType(row) {
+  return row?.paper_type || row?.paperType || PAPER_TYPES.CSP;
+}
+
+function rowPaperKey(row) {
+  const stored = String(row?.paper_key || row?.paperKey || '').trim();
+  if (stored) return stored;
+  return `${normalizeLevel(row?.level)}-${Number(row?.year)}`;
+}
+
+async function getAssignmentDefinition(row) {
+  return getPaperDefinition(row?.level, row?.year, rowPaperType(row), rowPaperKey(row));
+}
+
+function paperPresentation(definition) {
+  const isGesp = definition.paperType === PAPER_TYPES.GESP;
+  return {
+    paperType: definition.paperType,
+    paperKey: definition.paperKey,
+    paperLevel: definition.level,
+    session: definition.session || '',
+    paperLabel: isGesp ? `${definition.level} ${definition.session}` : `${definition.level} ${definition.year}`,
+  };
+}
 function parseQuestionIds(row) {
   try {
     const ids = JSON.parse(row?.question_ids_json || '[]');
@@ -168,7 +243,7 @@ function assignmentRowsForTeacher(req) {
 }
 
 async function buildTeacherDetail(req, assignment) {
-  const definition = await getPaperDefinition(assignment.level, assignment.year);
+  const definition = await getAssignmentDefinition(assignment);
   const bank = await loadQuestionBank();
   const students = db.prepare(`
     SELECT ps.id AS assignmentStudentId, ps.student_id AS studentId, ps.assigned_at AS assignedAt,
@@ -238,8 +313,9 @@ async function buildTeacherDetail(req, assignment) {
   return {
     id: assignment.id,
     title: assignment.title,
-    level: assignment.level,
-    year: assignment.year,
+    ...paperPresentation(definition),
+    level: definition.level,
+    year: definition.year,
     deadline: assignment.deadline || '',
     analysisReleasedAt: assignment.analysis_released_at || null,
     questionIds: definition.questionIds,
@@ -252,6 +328,7 @@ async function buildTeacherDetail(req, assignment) {
 
 const PAPER_SECTION_LABELS = {
   choice: '选择题',
+  judgment: '判断题',
   reading: '阅读程序题',
   completion: '完善程序题',
 };
@@ -302,6 +379,7 @@ function buildPaperScoreSummary(definition, bank, submissions) {
   const byQuestion = new Map(submissions.map(item => [item.question_id, item]));
   const sections = {
     choice: emptyPaperSection('choice'),
+    judgment: emptyPaperSection('judgment'),
     reading: emptyPaperSection('reading'),
     completion: emptyPaperSection('completion'),
   };
@@ -372,7 +450,7 @@ function buildPaperScoreSummary(definition, bank, submissions) {
 }
 
 async function buildStudentPaperSummary(row) {
-  const definition = await getPaperDefinition(row.level, row.year);
+  const definition = await getAssignmentDefinition(row);
   const bank = await loadQuestionBank();
   const submissions = db.prepare(`
     SELECT * FROM csp_paper_submissions
@@ -382,8 +460,9 @@ async function buildStudentPaperSummary(row) {
     assignmentId: row.id,
     assignmentStudentId: row.assignmentStudentId,
     title: row.title,
-    level: row.level,
-    year: row.year,
+    ...paperPresentation(definition),
+    level: definition.level,
+    year: definition.year,
     deadline: row.deadline || '',
     assignedAt: row.assignedAt || null,
     completedAt: row.completedAt || null,
@@ -404,8 +483,8 @@ async function buildStudentPaperHistory(req, studentId) {
   const student = getTeacherStudent(req, studentId);
   if (!student) return null;
   const rows = db.prepare(`
-    SELECT a.id, a.title, a.level, a.year, a.deadline,
-      a.analysis_released_at AS analysisReleasedAt,
+      SELECT a.id, a.title, a.level, a.year, a.paper_type AS paperType, a.paper_key AS paperKey, a.deadline,
+        a.analysis_released_at AS analysisReleasedAt,
       ps.id AS assignmentStudentId, ps.assigned_at AS assignedAt,
       ps.completed_at AS completedAt
     FROM csp_paper_students ps
@@ -422,12 +501,14 @@ function paperPromptSummary(paper, includeWrongQuestions = true, maxWrongQuestio
   const sectionText = Object.values(paper.sections)
     .map(section => `${section.label}${section.score}/${section.maxScore}分（完成${section.submittedQuestions}/${section.totalQuestions}题）`)
     .join('；');
-  const cutoff = getGuangzhouCutoff(paper.level, paper.year);
+  const cutoff = paper.paperType === PAPER_TYPES.CSP ? getGuangzhouCutoff(paper.level, paper.year) : null;
   const cutoffText = cutoff
     ? `广州（广东）CSP-J 晋级复赛参考线：${cutoff.score}分（${cutoff.scope}）；本次成绩与参考线差值：${Math.round((paper.score - cutoff.score) * 10) / 10}分`
-    : normalizeLevel(paper.level) === 'CSP-J'
-      ? '广州（广东）CSP-J 晋级复赛参考线：该年份暂无已核实数据，不得猜测或用其他年份替代'
-      : '晋级复赛参考线：本参考线仅适用于 CSP-J，CSP-S 不使用该指标';
+    : paper.paperType === PAPER_TYPES.GESP
+      ? 'GESP 试卷暂未配置地区晋级分数线，不使用 CSP-J 参考线'
+      : normalizeLevel(paper.level) === 'CSP-J'
+        ? '广州（广东）CSP-J 晋级复赛参考线：该年份暂无已核实数据，不得猜测或用其他年份替代'
+        : '晋级复赛参考线：本参考线仅适用于 CSP-J，CSP-S 不使用该指标';
   const wrongText = includeWrongQuestions && paper.wrongQuestions.length
     ? paper.wrongQuestions.slice(0, maxWrongQuestions).map(item => {
       const parts = item.parts.map(part => `${part.id}：作答${part.selected.join('/') || '未答'}，正确${part.correctAnswers.join('/')}`).join('；');
@@ -442,7 +523,7 @@ function paperPromptSummary(paper, includeWrongQuestions = true, maxWrongQuestio
 }
 
 function buildPaperAnalysisPrompt(paper, student) {
-  return `你是一位经验丰富的信息学竞赛教师，请分析学生「${student.name}」这一次 CSP 整卷练习。
+  return `你是一位经验丰富的信息学竞赛教师，请分析学生「${student.name}」这一次整卷练习。
 
 ${paperPromptSummary(paper)}
 
@@ -462,8 +543,8 @@ function buildHistoryAnalysisPrompt(history) {
   const papers = history.papers.slice(0, 30);
   const text = papers.length
     ? papers.map((paper, index) => `第${index + 1}次：${paperPromptSummary(paper, true, 12)}\n主要错题：${paper.wrongQuestions.slice(0, 8).map(item => `${item.typeLabel}第${item.number}题（${item.knowledgeTags?.join('、') || '知识点未知'}）`).join('、') || '无'}`).join('\n\n')
-    : '暂无已布置的 CSP 整卷记录。';
-  return `你是一位经验丰富的信息学竞赛教师，请分析学生「${history.student.name}」的 CSP 整卷历史练习情况。
+    : '暂无已布置的整卷记录。';
+  return `你是一位经验丰富的信息学竞赛教师，请分析学生「${history.student.name}」的整卷历史练习情况。
 
 ${text}
 
@@ -546,7 +627,7 @@ async function streamPaperAnalysis(res, prompt) {
 }
 
 async function buildStudentDetail(req, assignment) {
-  const definition = await getPaperDefinition(assignment.level, assignment.year);
+  const definition = await getAssignmentDefinition(assignment);
   const bank = await loadQuestionBank();
   const rows = db.prepare(`
     SELECT * FROM csp_paper_submissions
@@ -574,8 +655,9 @@ async function buildStudentDetail(req, assignment) {
   return {
     id: assignment.id,
     title: assignment.title,
-    level: assignment.level,
-    year: assignment.year,
+    ...paperPresentation(definition),
+    level: definition.level,
+    year: definition.year,
     deadline: assignment.deadline || '',
     analysisReleasedAt: assignment.analysis_released_at || null,
     completedAt: assignment.completed_at || null,
@@ -596,9 +678,12 @@ router.get('/available', auth, async (req, res, next) => {
         try {
           const definition = await getPaperDefinition(level, year);
           papers.push({
-            level,
-            year,
-            title: `${level} ${year} 第一轮真题`,
+            paperType: PAPER_TYPES.CSP,
+            paperKey: definition.paperKey,
+            level: definition.level,
+            year: definition.year,
+            session: '',
+            paperLabel: `${definition.level} ${definition.year} 第一轮真题`,
             counts: definition.counts,
             questionCount: definition.questionIds.length,
             maxScore: definition.maxScore,
@@ -608,32 +693,68 @@ router.get('/available', auth, async (req, res, next) => {
         }
       }
     }
+    const bank = await loadQuestionBank();
+    const gespKeys = new Set();
+    for (const id of bank.keys()) {
+      const match = /^(gesp-cpp[2-8]-20\d{2}-(?:03|06|09|12))-(?:choice|judgment)-\d+$/i.exec(String(id));
+      if (match) gespKeys.add(match[1].toLowerCase());
+    }
+    for (const paperKey of [...gespKeys].sort().reverse()) {
+      try {
+        const definition = await getPaperDefinition('', 0, PAPER_TYPES.GESP, paperKey);
+        papers.push({
+          paperType: PAPER_TYPES.GESP,
+          paperKey: definition.paperKey,
+          level: definition.level,
+          year: definition.year,
+          month: definition.month,
+          session: definition.session,
+          paperLabel: `${definition.level} ${definition.session} GESP试卷`,
+          counts: definition.counts,
+          questionCount: definition.questionIds.length,
+          maxScore: definition.maxScore,
+        });
+      } catch {
+        // 题库不完整的 GESP 考期不出现在可布置列表中。
+      }
+    }
     res.json(papers);
   } catch (error) {
     next(error);
   }
 });
-
-router.get('/assignments', auth, requireTeacher, (req, res) => {
-  res.json(assignmentRowsForTeacher(req));
+router.get('/assignments', auth, requireTeacher, async (req, res, next) => {
+  try {
+    const rows = assignmentRowsForTeacher(req);
+    const result = [];
+    for (const row of rows) {
+      const definition = await getAssignmentDefinition(row);
+      result.push({ ...row, ...paperPresentation(definition), level: definition.level, year: definition.year });
+    }
+    res.json(result);
+  } catch (error) {
+    next(error);
+  }
 });
 
 router.post('/assignments', auth, requireTeacher, async (req, res, next) => {
   try {
-    const level = normalizeLevel(req.body?.level);
-    const year = Number(req.body?.year);
-    const definition = await getPaperDefinition(level, year);
+    const paperType = normalizePaperType(req.body?.paperType);
+    const requestedLevel = req.body?.level;
+    const requestedYear = Number(req.body?.year);
+    const paperKey = cleanText(req.body?.paperKey, 80);
+    const definition = await getPaperDefinition(requestedLevel, requestedYear, paperType, paperKey);
     const students = findStudents(req, req.body?.studentIds);
     if (!students.length) return res.status(400).json({ error: '请至少选择一名学生' });
-    const title = cleanText(req.body?.title, 120) || `${level} ${year} 第一轮整卷任务`;
+    const title = cleanText(req.body?.title, 120) || `${definition.level} ${definition.session || definition.year} 整卷任务`;
     const deadline = cleanText(req.body?.deadline, 40);
     db.exec('BEGIN IMMEDIATE');
     try {
       const saved = db.prepare(`
         INSERT INTO csp_paper_assignments
-          (teacher_id, level, year, title, question_ids_json, deadline)
-        VALUES (?, ?, ?, ?, ?, ?)
-      `).run(req.user.id, level, year, title, JSON.stringify(definition.questionIds), deadline);
+          (teacher_id, level, year, title, question_ids_json, deadline, paper_type, paper_key)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+      `).run(req.user.id, paperType === PAPER_TYPES.GESP ? 'CSP-J' : definition.level, definition.year, title, JSON.stringify(definition.questionIds), deadline, paperType, definition.paperKey);
       const assignmentId = Number(saved.lastInsertRowid);
       const insertStudent = db.prepare(
         'INSERT INTO csp_paper_students (assignment_id, student_id) VALUES (?, ?)'
@@ -647,7 +768,7 @@ router.post('/assignments', auth, requireTeacher, async (req, res, next) => {
       throw error;
     }
   } catch (error) {
-    if (error.message.includes('题库') || error.message.includes('选择')) return res.status(400).json({ error: error.message });
+    if (error.message.includes('题库') || error.message.includes('选择') || error.message.includes('GESP') || error.message.includes('试卷')) return res.status(400).json({ error: error.message });
     next(error);
   }
 });
@@ -738,7 +859,7 @@ router.post('/assignments/:id/students/:studentId/analyze', auth, requireTeacher
     if (!assignment) return res.status(404).json({ error: '整卷任务不存在' });
     const studentId = Number(req.params.studentId);
     const row = db.prepare(`
-      SELECT a.id, a.title, a.level, a.year, a.deadline,
+      SELECT a.id, a.title, a.level, a.year, a.paper_type AS paperType, a.paper_key AS paperKey, a.deadline,
         a.analysis_released_at AS analysisReleasedAt,
         ps.id AS assignmentStudentId, ps.assigned_at AS assignedAt,
         ps.completed_at AS completedAt
@@ -797,7 +918,7 @@ router.get('/student/assignments', auth, async (req, res, next) => {
   if (req.user.role !== 'student') return res.status(403).json({ error: '需要学生账号' });
   try {
     const rows = db.prepare(`
-      SELECT a.id, a.title, a.level, a.year, a.deadline, a.analysis_released_at AS analysisReleasedAt,
+      SELECT a.id, a.title, a.level, a.year, a.paper_type AS paperType, a.paper_key AS paperKey, a.deadline, a.analysis_released_at AS analysisReleasedAt,
         ps.id AS assignmentStudentId, ps.completed_at AS completedAt,
         COUNT(s.id) AS submittedCount
       FROM csp_paper_students ps
@@ -811,7 +932,7 @@ router.get('/student/assignments', auth, async (req, res, next) => {
     const bank = await loadQuestionBank();
     const studentSubmissions = db.prepare('SELECT * FROM csp_paper_submissions WHERE assignment_student_id = ?');
     for (const row of rows) {
-      const definition = await getPaperDefinition(row.level, row.year);
+      const definition = await getAssignmentDefinition(row);
       const { assignmentStudentId, ...assignment } = row;
       const score = row.analysisReleasedAt
         ? studentSubmissions.all(row.assignmentStudentId).reduce((total, submission) => {
@@ -823,6 +944,9 @@ router.get('/student/assignments', auth, async (req, res, next) => {
         : null;
       result.push({
         ...assignment,
+        ...paperPresentation(definition),
+        level: definition.level,
+        year: definition.year,
         submittedCount: Number(row.submittedCount || 0),
         total: definition.questionIds.length,
         maxScore: definition.maxScore,
@@ -912,7 +1036,7 @@ router.post('/student/assignments/:id/questions/:questionId/submit', auth, async
       }
       const record = buildTrainingPracticeRecord(questionId, result, duration);
       if (record) {
-        record.answers.source = 'CSP整卷';
+        record.answers.source = assignment.paper_type === PAPER_TYPES.GESP ? 'GESP整卷' : 'CSP整卷';
         record.answers.paper_assignment_id = assignment.id;
         record.answers.paper_submission_id = submissionId;
         const existingRecord = db.prepare('SELECT id FROM practice_records WHERE paper_submission_id = ?').get(submissionId);

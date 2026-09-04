@@ -1,20 +1,34 @@
 <template>
   <LoginPanel v-if="!isLoggedIn" @login-success="onLoginSuccess" />
-  <div v-else class="app-container">
+  <div v-else class="app-container" :class="{ 'courseware-compact': coursewareCompact }">
     <Sidebar
+      v-if="!coursewareCompact"
       :activeTool="activeTool"
       @select-tool="switchTool"
       @logout="handleLogout"
     />
     <div class="main-content">
-      <header class="app-header">
+      <header v-if="!coursewareCompact" class="app-header">
         <h1>🎓 C++ AI 教学助手</h1>
         <span class="course-label" v-if="courseTopic">📚 {{ courseTopic }}</span>
       </header>
 
+      <CoursewareStatic
+        v-if="coursewareView"
+        :mode="coursewareView"
+        :config="whileCourseware"
+        @return="leaveCourseware"
+        @coach="openCoursewareCoach"
+      />
+      <div v-else-if="coursewareMessage" class="courseware-entry-error">
+        <h2>课件链接无法打开</h2>
+        <p>{{ coursewareMessage }}</p>
+        <button type="button" @click="leaveCourseware">返回系统</button>
+      </div>
+
       <!-- Chat mode -->
       <ChatPanel
-        v-if="activeTool === 'chat'"
+        v-else-if="activeTool === 'chat'"
       />
 
       <!-- Algorithm quick card -->
@@ -115,6 +129,8 @@
 
       <CspPaperAssignments v-else-if="activeTool === 'csp-paper-assignments'" />
       <StudentCspPapers v-else-if="activeTool === 'student-csp-papers'" />
+      <HomeworkAssignments v-else-if="activeTool === 'homework-assignments'" />
+      <StudentHomework v-else-if="activeTool === 'student-homework'" />
 
       <!-- Edge case mode -->
       <div v-else-if="activeTool === 'edge-case'" class="tool-panel">
@@ -347,8 +363,13 @@ import TrainingCourse from './components/TrainingCourse.vue';
 import StudentTraining from './components/StudentTraining.vue';
 import CspPaperAssignments from './components/CspPaperAssignments.vue';
 import StudentCspPapers from './components/StudentCspPapers.vue';
+import HomeworkAssignments from './components/HomeworkAssignments.vue';
+import StudentHomework from './components/StudentHomework.vue';
+import CoursewareStatic from './components/CoursewareStatic.vue';
 import { streamPost } from './utils/api';
 import { isLoggedIn, isTeacher, clearAuth, authHeaders } from './utils/auth';
+import { whileCourseware } from './data/coursewareWhile';
+import { parseCoursewareEntry } from './utils/courseware';
 
 const markdownRenderer = new marked.Renderer();
 markdownRenderer.code = (code, infoString) => {
@@ -408,6 +429,12 @@ const quizQuestions = ref([]);
 const quizBackupQuestions = ref([]);
 const quizAnswers = ref({});
 const quizRegenerating = ref({});
+const quizDisplayCount = ref(10);
+const coursewareEntry = ref(null);
+const coursewareView = ref('');
+const coursewareMessage = ref('');
+const coursewareInitialized = ref(false);
+const coursewareCompact = computed(() => Boolean(coursewareView.value && coursewareEntry.value?.view === 'compact'));
 
 const fallbackTips = [
   '好算法像好口诀：先抓住题眼，再背模板。',
@@ -432,6 +459,10 @@ const renderedResult = computed(() => {
 });
 
 function switchTool(tool) {
+  if (coursewareEntry.value || coursewareMessage.value) clearCoursewareQuery();
+  coursewareView.value = '';
+  coursewareMessage.value = '';
+  coursewareEntry.value = null;
   if (activeTool.value === 'debug' && tool !== 'debug') cancelDebugRequest();
   activeTool.value = tool;
   result.value = '';
@@ -455,10 +486,16 @@ function switchTool(tool) {
 
 function onLoginSuccess() {
   activeTool.value = 'chat';
+  initializeCourseware();
 }
 
 function handleLogout() {
   clearAuth();
+  coursewareInitialized.value = false;
+  coursewareView.value = '';
+  coursewareMessage.value = '';
+  coursewareEntry.value = null;
+  clearCoursewareQuery();
   activeTool.value = 'chat';
 }
 
@@ -560,7 +597,86 @@ async function exportAlgorithmCards() {
   }
 }
 
-onMounted(loadNewsTips);
+function clearCoursewareQuery() {
+  if (typeof window === 'undefined') return;
+  const cleanUrl = `${window.location.pathname}${window.location.hash || ''}`;
+  window.history.replaceState({}, document.title, cleanUrl);
+}
+
+function leaveCourseware() {
+  coursewareView.value = '';
+  coursewareMessage.value = '';
+  coursewareEntry.value = null;
+  activeTool.value = 'chat';
+  clearCoursewareQuery();
+}
+
+async function openCoursewareCoach() {
+  const entry = coursewareEntry.value;
+  coursewareView.value = '';
+  coursewareMessage.value = '';
+  clearCoursewareQuery();
+  activeTool.value = 'algorithm-coach';
+  teachingAction.value = 'algorithm-coach';
+  hintProblemId.value = entry?.problemId || whileCourseware.problem1004.id;
+  await fetchHintProblemById();
+}
+
+async function initializeCourseware() {
+  if (coursewareInitialized.value || !isLoggedIn.value) return;
+  coursewareInitialized.value = true;
+  const parsed = parseCoursewareEntry();
+  if (!parsed.matched) return;
+  if (!parsed.ok) {
+    coursewareMessage.value = parsed.message;
+    return;
+  }
+
+  const entry = parsed.entry;
+  coursewareEntry.value = entry;
+  coursewareMessage.value = '';
+  if (entry.module === 'card' || entry.module === 'summary' || entry.module === 'problem-summary') {
+    coursewareView.value = entry.module;
+    return;
+  }
+
+  if (entry.module === 'practice') {
+    activeTool.value = 'teaching';
+    courseTopic.value = whileCourseware.title;
+    await handleTeachingAction('generate-exercise', {
+      courseware: true,
+      topicId: entry.topicId,
+      count: entry.count,
+    });
+    return;
+  }
+
+  if (entry.module === 'coach') {
+    activeTool.value = 'algorithm-coach';
+    teachingAction.value = 'algorithm-coach';
+    hintProblemId.value = entry.problemId;
+    await fetchHintProblemById();
+    return;
+  }
+
+  if (entry.module === 'debug') {
+    activeTool.value = 'debug';
+    debugProblemId.value = entry.problemId;
+    debugCode.value = whileCourseware.debugTemplate;
+    await fetchDebugProblemById();
+    return;
+  }
+
+  if (entry.module === 'edge-case') {
+    activeTool.value = 'edge-case';
+    problemId.value = entry.problemId;
+    await fetchProblemById();
+  }
+}
+onMounted(() => {
+  loadNewsTips();
+  initializeCourseware();
+});
 onUnmounted(cancelDebugRequest);
 
 async function loadNewsTips() {
@@ -726,7 +842,7 @@ async function fetchHintProblemById() {
   }
 }
 
-async function handleTeachingAction(action) {
+async function handleTeachingAction(action, options = {}) {
   if (action === 'show-problem-list') {
     teachingAction.value = action;
     result.value = '';
@@ -767,7 +883,14 @@ async function handleTeachingAction(action) {
   const body = { courseTopic: courseTopic.value };
 
   if (action === 'generate-exercise') {
-    body.count = 12;
+    const requestedCount = Number(options.count);
+    const isCoursewarePractice = options.courseware === true;
+    quizDisplayCount.value = isCoursewarePractice && [3, 5, 10].includes(requestedCount) ? requestedCount : 10;
+    body.count = isCoursewarePractice ? quizDisplayCount.value : 12;
+    if (isCoursewarePractice) {
+      body.topicId = options.topicId;
+      body.reserve = quizDisplayCount.value < 10 ? 2 : 0;
+    }
   }
   if (action === 'generate-script') {
     body.duration = 135;
@@ -782,7 +905,7 @@ async function handleTeachingAction(action) {
   });
   if (action === 'generate-exercise') {
     result.value = streamed;
-    parseQuizResult();
+    parseQuizResult(quizDisplayCount.value);
   }
   loading.value = false;
 }
@@ -831,13 +954,14 @@ function parseQuizPayload(raw) {
   return JSON.parse(cleaned);
 }
 
-function parseQuizResult() {
+function parseQuizResult(displayCount = 10) {
   try {
     const data = parseQuizPayload(result.value);
     quizTitle.value = data.title || `${courseTopic.value} 选择题自测`;
     const questions = Array.isArray(data.questions) ? data.questions : [];
-    quizQuestions.value = questions.slice(0, 10);
-    quizBackupQuestions.value = questions.slice(10, 12);
+    const visibleCount = Number.isInteger(displayCount) && displayCount > 0 ? displayCount : 10;
+    quizQuestions.value = questions.slice(0, visibleCount);
+    quizBackupQuestions.value = questions.slice(visibleCount, visibleCount + 2);
     if (quizQuestions.value.length) result.value = '';
   } catch (e) {
     quizQuestions.value = [];
@@ -1129,6 +1253,26 @@ body,
   border-radius: 12px;
 }
 
+.courseware-entry-error {
+  flex: 1;
+  display: grid;
+  place-items: center;
+  align-content: center;
+  gap: 12px;
+  padding: 32px;
+  color: #475569;
+  text-align: center;
+}
+
+.courseware-entry-error h2 { color: #b91c1c; }
+.courseware-entry-error button {
+  padding: 9px 16px;
+  border: 1px solid #c7d2fe;
+  border-radius: 8px;
+  background: #eef2ff;
+  color: #4338ca;
+  cursor: pointer;
+}
 .tool-panel {
   flex: 1;
   padding: 20px 24px;

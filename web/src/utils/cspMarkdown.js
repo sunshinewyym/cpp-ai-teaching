@@ -130,5 +130,8 @@ export function renderCspMarkdown(value) {
 }
 
 export function renderCspInline(value) {
+  // Some question prompts contain fenced input samples, not only inline text.
+  // Parse those as blocks so the language label stays metadata and rows survive.
+  if (/^ {0,3}`{3,}/m.test(String(value || ''))) return renderCspMarkdown(value);
   return marked.parseInline(protectMarkdownTildes(cleanCspMathText(value)));
 }

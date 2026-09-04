@@ -7,8 +7,8 @@
         <select v-model="filterClass"><option value="">全部班级</option><option v-for="c in classes" :key="c" :value="c">{{ c }}</option></select>
         <select v-model="filterLevel"><option value="">全部级别</option><option value="CSP-J">CSP-J</option><option value="CSP-S">CSP-S</option><option value="GESP-2">GESP C++ 二级</option><option value="GESP-3">GESP C++ 三级</option><option value="GESP-4">GESP C++ 四级</option><option value="GESP-5">GESP C++ 五级</option><option value="GESP-6">GESP C++ 六级</option><option value="GESP-7">GESP C++ 七级</option><option value="GESP-8">GESP C++ 八级</option></select>
         <select v-model="filterType"><option value="">全部题型</option><option value="choice">选择题</option><option value="judgment">判断题</option><option value="reading">阅读程序</option><option value="completion">完善程序</option></select>
-        <label class="export-filter"><input v-model="excludeCspPaperRecords" type="checkbox"> 排除 CSP 整卷</label>
-        <button class="export-button" @click="exportRecords" :disabled="loading || !exportableRecords.length">导出集训记录<span v-if="excludeCspPaperRecords">（不含整卷）</span></button>
+        <label class="export-filter"><input v-model="excludeCspPaperRecords" type="checkbox"> 排除整卷测评</label>
+        <button class="export-button" @click="exportRecords" :disabled="loading || !exportableRecords.length">导出集训记录<span v-if="excludeCspPaperRecords">（不含整卷测评）</span></button>
       </div>
     </header>
 
@@ -100,7 +100,7 @@ const exportableRecords = computed(() => excludeCspPaperRecords.value
 function isCspPaperRecord(record) {
   if (record?.paper_submission_id !== null && record?.paper_submission_id !== undefined) return true;
   const source = String(record?.answers?.source || '').trim();
-  return source === 'CSP整卷' || source.includes('CSP整卷测评');
+  return source === 'CSP整卷' || source === 'GESP整卷' || source.includes('整卷测评');
 }
 
 function toggle(id) { expanded.value = expanded.value === id ? null : id; }
@@ -172,8 +172,8 @@ function exportRecords() {
       return `第${number}题：${answer}（${result}，${question.score ?? 0}/${question.max_score ?? ''}）`;
     }).join('；'),
   ]);
-  const suffix = excludeCspPaperRecords.value ? '（不含CSP整卷）' : '（含整卷）';
-  downloadMarkdown(`学生集训练习记录${excludeCspPaperRecords.value ? '-不含CSP整卷' : ''}-${new Date().toLocaleDateString('sv-SE')}.md`, `学生集训练习记录${suffix}`, headers, rows);
+  const suffix = excludeCspPaperRecords.value ? '（不含整卷测评）' : '（含整卷测评）';
+  downloadMarkdown('学生集训练习记录' + (excludeCspPaperRecords.value ? '-不含整卷测评' : '') + '-' + new Date().toLocaleDateString('sv-SE') + '.md', '学生集训练习记录' + suffix, headers, rows);
 }
 
 async function loadStats() {

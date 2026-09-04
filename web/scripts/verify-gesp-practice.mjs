@@ -31,13 +31,42 @@ for (const question of questions) {
   assert.ok(question.question.trim(), `${question.id} 缺少题干`);
   assert.ok(question.options[question.answer], `${question.id} 的答案不在选项中`);
   assert.ok(question.tags?.length, `${question.id} 缺少知识点标签`);
-  assert.match(question.explanation, /\*\*详细解析：\*\*/u, `${question.id} 缺少详细解析`);
-  assert.match(question.explanation, /\*\*解题技巧：\*\*/u, `${question.id} 缺少解题技巧`);
-  assert.match(question.explanation, /\*\*易错点：\*\*/u, `${question.id} 缺少易错点`);
 }
 
 assert.equal(new Set(indexedQuestions.map(q => q.id)).size, indexedQuestions.length, '全题库题目 ID 必须唯一');
 const questionById = new Map(indexedQuestions.map(q => [q.id, q]));
+const explanationBoilerplate = /参考答案为|(?:详细解析|解题技巧|易错点)\s*[：:]|本题考查|先提取题干的关键条件|逐项核对题干中的定义、运算规则和适用条件|与题干条件完全一致|判断题先找绝对化表述|先圈出输入范围、循环边界|注意 C\+\+ 的整数除法、下标边界、短路求值|不要因为题干前半句正确/u;
+const codeQuestionPattern = /```|#include|(?:for|while|if|switch)\s*\(|\b(?:cin|cout)\s*(?:>>|<<)|\b(?:int|long|double|float|char|bool|string|void|vector|struct|class)\s+[*&A-Za-z_]|[{};]|\+\+|--|->|[A-Za-z_]\w*\s*\[[^\]\n]*\]/u;
+const explanationOwners = new Map();
+for (const question of indexedQuestions) {
+  const explanation = question.explanation?.trim() ?? '';
+  assert.doesNotMatch(explanation, explanationBoilerplate, `${question.id} 的解析含无效套话`);
+
+  // Only treat a standalone option letter as a conclusion; phrases such as
+  // “选择 C++” must not be mistaken for option C.
+  const conclusions = [...explanation.matchAll(/(?:应选|选择)\s*([A-D])(?=[。.!！？，,；;\s]|$)/gu)].map(match => match[1]);
+  assert.ok(conclusions.includes(question.answer), `${question.id} 的解析缺少“应选 ${question.answer}”或“选择 ${question.answer}”`);
+  assert.ok(conclusions.every(answer => answer === question.answer), `${question.id} 的解析出现与答案不一致的最终选项`);
+  assert.match(explanation, new RegExp(`(?:应选|选择)\\s*${question.answer}(?=[。.!！？，,；;\\s]|$)[。.!！]?$`, 'u'), `${question.id} 的解析末尾缺少正确结论`);
+
+  const material = [question.question, ...Object.values(question.options)].join('\n');
+  const minimumLength = codeQuestionPattern.test(material)
+    ? (material.length > 300 ? 110 : 75)
+    : 55;
+  const substantiveLength = explanation
+    .replace(/(?:应选|选择)\s*[A-D](?=[。.!！？，,；;\s]|$)[。.!！]?/gu, '')
+    .replace(/\s/gu, '').length;
+  assert.ok(substantiveLength >= minimumLength, `${question.id} 的实质解析少于 ${minimumLength} 个非空字符`);
+
+  const previous = explanationOwners.get(explanation);
+  const normalizedStem = question.question.replace(/\s+/gu, ' ').trim();
+  assert.ok(
+    !previous || previous.stem === normalizedStem,
+    `${question.id} 与题干不同的 ${previous?.id} 使用了完全相同的解析`,
+  );
+  if (!previous) explanationOwners.set(explanation, { id: question.id, stem: normalizedStem });
+}
+
 const tagMinimumLevels = {
   动态规划: 6,
   图论: 7,

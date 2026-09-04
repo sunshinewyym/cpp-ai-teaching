@@ -19,6 +19,9 @@
       </div>
     </header>
 
+    <div v-if="practiceLocked" class="practice-lock" role="alert"><strong>练习模块暂时锁定</strong><span>{{ practiceLockMessage }}</span></div>
+    <div v-else-if="practiceQuestionIds.length" class="practice-lock homework-lock" role="status"><strong>部分题目已被作业锁定</strong><span>请先完成对应作业；其他未锁定题目仍可正常练习。</span></div>
+
     <section class="paper-filters">
       <label class="compact-filter">
         <b>级别</b>
@@ -73,14 +76,14 @@
             v-for="(text, key) in q.options"
             :key="key"
             :class="optionClass(q, key)"
-            :disabled="submitted"
+            :disabled="submitted || isQuestionLocked(q)"
             @click="answers[q.id] = key"
           >
             <b>{{ q.source.questionType === 'judgment' ? (key === 'A' ? '√' : '×') : key }}</b>
             <span v-html="renderMd(text)"></span>
           </button>
         </div>
-        <div v-if="submitted" class="analysis">
+        <div v-if="submitted && !isQuestionLocked(q)" class="analysis">
           <strong :class="answers[q.id] === q.answer ? 'good' : 'bad'">
             {{ answers[q.id] === q.answer ? '回答正确' : `回答错误，正确答案是 ${answerLabel(q, q.answer)}` }}
           </strong>
@@ -89,7 +92,7 @@
       </article>
 
       <section v-if="questions.length" class="set-submit">
-        <div v-if="submitted">
+        <div v-if="setBlocked" class="locked-inline"><b>暂不能提交</b><span>{{ practiceLocked ? practiceLockMessage : '这些题目已被未开放解析的作业锁定，请先完成作业。' }}</span></div><div v-else-if="submitted">
           <b>本次得分：{{ score }}/{{ totalScore }} 分</b>
           <span>解析已在每道题下方展开。</span>
         </div>
@@ -97,15 +100,15 @@
           <b>已完成 {{ answered }}/{{ questions.length }} 题</b>
           <span>全部作答后统一提交，提交前不会显示答案。</span>
         </div>
-        <button v-if="!submitted" :disabled="answered !== questions.length" @click="submitSet">{{ knowledge ? '提交筛选结果' : '提交本组题目' }}</button>
-        <button v-else class="secondary" @click="resetSet">重新作答</button>
+        <button v-if="!submitted && !setBlocked" :disabled="answered !== questions.length" @click="submitSet">{{ knowledge ? '提交筛选结果' : '提交本组题目' }}</button>
+        <button v-else-if="!setBlocked" class="secondary" @click="resetSet">重新作答</button>
       </section>
     </section>
   </main>
 </template>
 
 <script setup>
-import { computed, ref } from 'vue';
+import { computed, onMounted, ref } from 'vue';
 import { gespPapers, listGespQuestions } from '../data/gespPapers';
 import { renderCspMarkdown as renderMd } from '../utils/cspMarkdown';
 import { authFetch, isLoggedIn } from '../utils/auth';
@@ -123,6 +126,9 @@ const knowledge = ref('');
 const answers = ref({});
 const submittedSets = ref({});
 const practiceStartTime = ref(Date.now());
+const practiceLocked = ref(false);
+const practiceLockMessage = ref('');
+const practiceQuestionIds = ref([]);
 const allQuestions = listGespQuestions();
 
 const levels = computed(() => levelKeys);
@@ -146,6 +152,7 @@ const score = computed(() => questions.value.reduce((total, question) =>
   total + (answers.value[question.id] === question.answer ? Number(question.source.scorePerQuestion) : 0), 0));
 const totalScore = computed(() => questions.value.reduce((total, question) =>
   total + Number(question.source.scorePerQuestion), 0));
+const setBlocked = computed(() => practiceLocked.value || questions.value.some(question => isQuestionLocked(question)));
 const typeLabel = computed(() => section.value?.label || '');
 const chineseLevel = computed(() => chineseNumber(level.value));
 const summaryTitle = computed(() => (knowledge.value
@@ -155,6 +162,23 @@ const scoreSummary = computed(() => (knowledge.value
   ? `共 ${questions.value.length} 题，满分 ${totalScore.value} 分`
   : `共 ${questions.value.length} 题，每题 ${Number(section.value?.scorePerQuestion || 2)} 分`));
 
+function isQuestionLocked(question) {
+  return practiceLocked.value || practiceQuestionIds.value.includes(String(question?.id || ''));
+}
+function applyPracticeLock(data) {
+  practiceLocked.value = Boolean(data?.locked || data?.code === 'CSP_PAPER_ANALYSIS_LOCKED');
+  practiceQuestionIds.value = Array.isArray(data?.questionIds) ? data.questionIds.map(String) : [];
+  practiceLockMessage.value = data?.message || data?.error || '请先完成整卷测评，等待老师开放解析。';
+}
+async function loadPracticeLock() {
+  if (!isLoggedIn.value) return;
+  try {
+    const lockLevel = knowledge.value ? 'GESP' : `GESP-${level.value}`;
+    const response = await authFetch(`/api/practice/csp-lock?level=${lockLevel}`);
+    if (response.ok) applyPracticeLock(await response.json());
+  } catch {}
+}
+onMounted(loadPracticeLock);
 function chineseNumber(value) {
   return numberNames[Number(value)] || String(value);
 }
@@ -171,11 +195,13 @@ function selectLevel(value) {
   type.value = 'choice';
   knowledge.value = '';
   restartTimer();
+  loadPracticeLock();
 }
 function selectSession(value) {
   session.value = value;
   knowledge.value = '';
   restartTimer();
+  loadPracticeLock();
 }
 function selectType(value) {
   type.value = value;
@@ -185,20 +211,21 @@ function selectType(value) {
 function selectKnowledge(value) {
   knowledge.value = value;
   restartTimer();
+  loadPracticeLock();
 }
 function answerLabel(question, key) {
   return question.source.questionType === 'judgment' ? question.options[key] : `${key}（${question.options[key]}）`;
 }
 function optionClass(question, key) {
   const selected = answers.value[question.id];
-  if (!submitted.value) return { selected: selected === key };
+  if (isQuestionLocked(question) || !submitted.value) return { selected: selected === key };
   return {
     correct: key === question.answer,
     wrong: selected === key && key !== question.answer,
   };
 }
 async function submitSet() {
-  if (answered.value !== questions.value.length) return;
+  if (setBlocked.value || answered.value !== questions.value.length) return;
   submittedSets.value = { ...submittedSets.value, [setKey.value]: true };
   if (!isLoggedIn.value) return;
 
@@ -251,6 +278,7 @@ async function submitSet() {
   }
 }
 function resetSet() {
+  if (setBlocked.value) return;
   const nextAnswers = { ...answers.value };
   questions.value.forEach(q => delete nextAnswers[q.id]);
   answers.value = nextAnswers;
@@ -276,4 +304,5 @@ function resetSet() {
 .compact-filter select{min-width:138px;padding:9px 32px 9px 11px;border:1px solid #cbd5e1;border-radius:6px;background:#fff;color:#334155;font-weight:700}
 .paper-filters .tabs{margin:0 0 0 auto}
 @media(max-width:760px){.paper-filters{align-items:stretch}.compact-filter{flex:1 1 180px}.compact-filter select{width:100%}.paper-filters .tabs{width:100%;margin-left:0}.head-actions .knowledge-filter{align-items:stretch}}
+.practice-lock{display:flex;align-items:center;gap:12px;margin:16px 0;padding:14px 18px;border:1px solid #fbbf24;border-radius:8px;background:#fffbeb;color:#92400e}.practice-lock strong{white-space:nowrap}.practice-lock span{line-height:1.6}.locked-inline{display:grid;gap:4px}.locked-inline b{color:#92400e!important}
 </style>

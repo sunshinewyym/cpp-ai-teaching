@@ -10,6 +10,7 @@ const {
 } = require('../training/trainingRecord');
 const {
   isCspPracticeQuestionId,
+  isGespPracticeQuestionId,
   getPendingCspPaper,
   lockPayload,
 } = require('../services/cspPracticeLock');
@@ -633,8 +634,9 @@ router.get('/student/access', auth, (req, res) => {
 });
 
 router.get('/student', auth, (req, res) => {
-  const pendingCspPaper = getPendingCspPaper(req.user?.id, req.user?.role);
   if (req.user.role !== 'student') return res.status(403).json({ error: '需要学生账号' });
+  const pendingCspPaper = getPendingCspPaper(req.user?.id, req.user?.role, 'CSP');
+  const pendingGespPaper = getPendingCspPaper(req.user?.id, req.user?.role, 'GESP');
   res.setHeader('Cache-Control', 'no-store');
   const rows = db.prepare(`
     SELECT DISTINCT c.*, u.name AS teacher_name
@@ -688,7 +690,8 @@ router.get('/student', auth, (req, res) => {
           // including items whose explanation had already been released.
           // Keep `released` independent so the UI can explain that distinction.
           const lockedByPaper = Boolean(
-            pendingCspPaper && isCspPracticeQuestionId(questionId)
+            (pendingCspPaper && isCspPracticeQuestionId(questionId))
+            || (pendingGespPaper && isGespPracticeQuestionId(questionId))
           );
           states[questionId] = {
             submitted: Boolean(submission),
@@ -750,8 +753,11 @@ router.post('/student/courses/:courseId/days/:day/questions/:questionId/submit',
     questionId
   );
   if (!assignment) return res.status(404).json({ error: '这道题尚未布置给你' });
-  if (isCspPracticeQuestionId(questionId)) {
-    const pendingPaper = getPendingCspPaper(req.user.id, req.user.role);
+  const paperType = isGespPracticeQuestionId(questionId)
+    ? 'GESP'
+    : isCspPracticeQuestionId(questionId) ? 'CSP' : '';
+  if (paperType) {
+    const pendingPaper = getPendingCspPaper(req.user.id, req.user.role, paperType);
     if (pendingPaper) return res.status(423).json(lockPayload(pendingPaper));
   }
   const released = db.prepare(`

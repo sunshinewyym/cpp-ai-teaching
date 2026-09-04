@@ -21,7 +21,8 @@ async function loadQuestionBank() {
       loadModule('csp2025.js'),
       loadModule('gespPapers.js'),
       loadModule('trainingCspS.js'),
-    ]).then(([choices, programs, newest, gesp, cspS]) => {
+      loadModule('noipProgramProblems.js'),
+    ]).then(([choices, programs, newest, gesp, cspS, noip]) => {
       const bank = new Map();
       const choiceItems = Object.values({
         ...choices.cspChoicePapers,
@@ -30,6 +31,7 @@ async function loadQuestionBank() {
       const programItems = [
         ...programs.cspProgramProblems,
         ...newest.csp2025ProgramProblems,
+        ...noip.noipProgramProblems,
       ];
 
       for (const item of choiceItems) {
@@ -39,6 +41,11 @@ async function loadQuestionBank() {
           options: item.options || {},
           tags: Array.isArray(item.tags) ? item.tags : [],
           parts: [{
+          answer: item.answer,
+          explanation: item.explanation || '',
+          source: item.source || null,
+          number: item.number,
+          type: item.type || item.source?.questionType || '',
             id: item.id,
             answers: [item.answer],
             options: Object.keys(item.options || {}),
@@ -54,6 +61,11 @@ async function loadQuestionBank() {
           options: item.options || {},
           tags: Array.isArray(item.tags) ? item.tags : [],
           parts: [{
+          answer: item.answer,
+          explanation: item.explanation || '',
+          source: item.source || null,
+          number: item.number,
+          type: item.type || item.source?.questionType || '',
             id: item.id,
             answers: [item.answer],
             options: Object.keys(item.options || {}),
@@ -68,6 +80,11 @@ async function loadQuestionBank() {
           options: item.options || {},
           tags: Array.isArray(item.tags) ? item.tags : [],
           parts: [{
+          answer: item.answer,
+          explanation: item.explanation || '',
+          source: item.source || null,
+          number: item.number,
+          type: item.type || item.source?.questionType || '',
             id: item.id,
             answers: [item.answer],
             options: Object.keys(item.options || {}),
@@ -83,6 +100,10 @@ async function loadQuestionBank() {
           statement: item.statement || '',
           tags: Array.isArray(item.tags) ? item.tags : [],
           parts: item.questions.map(question => ({
+          source: item.source || null,
+          number: item.number,
+          type: item.type || '',
+          questions: item.questions || [],
             id: question.id,
             text: question.text || question.question || '',
             answers: question.answers,
@@ -99,6 +120,10 @@ async function loadQuestionBank() {
           statement: item.statement || '',
           tags: Array.isArray(item.tags) ? item.tags : [],
           parts: item.questions.map(question => ({
+          source: item.source || null,
+          number: item.number,
+          type: item.type || '',
+          questions: item.questions || [],
             id: question.id,
             text: question.text || question.question || '',
             answers: question.answers,
@@ -118,6 +143,22 @@ function normalizeSelected(value) {
   return [...new Set(selected.map(item => String(item || '').trim()).filter(Boolean))].sort();
 }
 
+// Most program questions are stored as a flat list of subquestions. Keep
+// compatibility with older imports that wrapped that list in one `questions` section.
+function questionParts(question) {
+  const parts = Array.isArray(question?.parts) ? question.parts : [];
+  if (parts.length === 1 && Array.isArray(parts[0]?.questions) && parts[0].questions.length) {
+    return parts[0].questions;
+  }
+  return parts;
+}
+
+function partOptionKeys(part) {
+  if (Array.isArray(part?.options)) return part.options;
+  if (part?.options && typeof part.options === 'object') return Object.keys(part.options);
+  return [];
+}
+
 async function gradeQuestion(questionId, submittedAnswers) {
   const bank = await loadQuestionBank();
   const question = bank.get(questionId);
@@ -130,9 +171,9 @@ async function gradeQuestion(questionId, submittedAnswers) {
   let maxScore = 0;
   const answers = {};
   const parts = [];
-  for (const part of question.parts) {
+  for (const part of questionParts(question)) {
     const selected = normalizeSelected(submittedAnswers[part.id]);
-    if (!selected.length || selected.some(item => !part.options.includes(item))) {
+    if (!selected.length || selected.some(item => !partOptionKeys(part).includes(item))) {
       throw new Error('请完成本题的所有小题后再提交');
     }
     const correct = normalizeSelected(part.answers);

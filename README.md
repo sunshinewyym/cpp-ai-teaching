@@ -289,6 +289,24 @@ docker compose --env-file .env -f docker/docker-compose.yml up -d --build
 3. 换题只清除被替换题目的作答状态，不影响其他题目的答案和解析；
 4. 单题请求会携带当前题目列表，提示模型尽量避免重复题干和考点。
 
+### C++基础篇课件整合样板（while 循环）
+
+本项目提供“C++基础篇第10课：while循环”的静态课件入口，入口参数统一由 `web/src/utils/courseware.js` 解析，课件内容集中在 `web/src/data/coursewareWhile.js`，不新增菜单、路由或数据库资源。没有课件参数时，原有首页和登录流程保持不变。
+
+以下链接可直接用于 PPT 或课堂页面（需先登录）：
+
+- `/?source=ppt&lessonId=cpp-basic-10-while&module=card&topicId=while-loop&version=v1&view=compact`：算法速懂卡
+- `/?source=ppt&lessonId=cpp-basic-10-while&module=summary&topicId=while-loop&version=v1&view=compact`：课堂总结
+- `/?source=ppt&lessonId=cpp-basic-10-while&module=practice&topicId=while-loop&count=5`：练习入口
+- `/?source=ppt&lessonId=cpp-basic-10-while&module=problem-summary&topicId=while-loop&problemId=1004&version=v1&view=compact`：1004 题思路摘要
+- `/?source=ppt&lessonId=cpp-basic-10-while&module=coach&topicId=while-loop&problemId=1004`：算法教练
+- `/?source=ppt&lessonId=cpp-basic-10-while&module=debug&topicId=while-loop&problemId=1004&templateId=while-product-basic`：代码调试
+- `/?source=ppt&lessonId=cpp-basic-10-while&module=edge-case&topicId=while-loop&problemId=1004`：边界盲盒
+
+练习数量只接受 3、5、10。请求 3 或 5 题时，后端额外生成 2 道备用题，仍沿用现有“换一道题”逻辑；请求 10 题时直接展示 10 题。课件练习会在登录完成后自动初始化一次，不会在页面刷新或登录回调中重复发起 AI 请求。教练、调试和边界盲盒只自动加载 1004 题面，不自动调用 AI。
+
+无效的来源、课程、模块、知识点、版本、题号、模板或数量会显示中文错误提示；URL 只包含公开课程标识，不写入 JWT、代码或个人信息。
+
 ## 算法教练 API 示例
 
 先创建会话：
@@ -329,6 +347,7 @@ npm run test:training-course
 
 cd ../web
 npm run test:problem-index
+npm run test:courseware-entry
 npm run test:training-course
 npm run build
 ```

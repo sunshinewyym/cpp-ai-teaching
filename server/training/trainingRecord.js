@@ -9,6 +9,16 @@ function trainingRecordMeta(questionId) {
     };
   }
 
+  const noip = /^noip-(\d{4})-(reading|completion)-\d+$/i.exec(questionId);
+  if (noip) {
+    return {
+      level: 'NOIP',
+      year: Number(noip[1]),
+      session: noip[1],
+      questionType: noip[2].toLowerCase(),
+    };
+  }
+
   const cspS = /^csp-s-(\d{4})-(choice|reading|completion)-\d+$/i.exec(questionId);
   if (cspS) {
     return {

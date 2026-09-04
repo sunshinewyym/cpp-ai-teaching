@@ -9,25 +9,26 @@
       <strong>练习模块暂时锁定</strong>
       <span>{{ practiceLockMessage }}</span>
     </div>
+    <div v-else-if="practiceQuestionIds.length" class="practice-lock homework-lock" role="status"><strong>部分题目已被作业锁定</strong><span>请先完成对应作业；其他未锁定题目仍可正常练习。</span></div>
 
       <nav class="tabs"><button v-for="item in types" :key="item.id" :class="{ on:type===item.id }" @click="setType(item.id)">{{ item.label }}</button></nav>
 
       <section v-if="type === 'choice'">
         <YearTabs :items="level === 'S' ? sChoiceYears : choiceYears" :value="year" show-status @change="selectYear" />
-        <div v-if="!paper.length" class="empty"><b>{{ year }} 年 CSP-{{ level }} 题面正在整理</b><span>当前年份暂未完成题面校对，先不展示不完整内容。</span></div>
+        <div v-if="!paper.length" class="empty"><b>{{ yearDisplayLabel }} 题面正在整理</b><span>当前年份暂未完成题面校对，先不展示不完整内容。</span></div>
         <template v-else>
-          <header class="summary"><div><b>{{ year }} 年 CSP-{{ level }} 第一轮选择题</b><span>共 {{ paper.length }} 题；答案仅作学习参考</span></div><strong>{{ choiceSetSubmitted && !practiceLocked ? `${choiceScore}/${choiceTotal} 分` : `已答 ${answered}/${paper.length} 题` }}</strong></header>
+          <header class="summary"><div><b>{{ yearDisplayLabel }} 第一轮选择题</b><span>共 {{ paper.length }} 题；答案仅作学习参考</span></div><strong>{{ choiceSetSubmitted && !practiceLocked ? `${choiceScore}/${choiceTotal} 分` : `已答 ${answered}/${paper.length} 题` }}</strong></header>
           <article v-for="q in displayPaper" :key="q.id" class="card">
             <h3><i>{{ q.number }}</i><div class="choice-question" v-html="renderMd(q.question)"></div></h3>
-            <div class="options"><button v-for="(text,key) in q.options" :key="key" :class="choiceClass(q,key)" :disabled="practiceLocked || choiceSetSubmitted" @click="choiceAnswers[q.id]=key"><b>{{ key }}</b><span v-html="renderInline(text)"></span></button></div>
-            <AnswerAnalysis v-if="choiceSetSubmitted && !practiceLocked" :correct="choiceAnswers[q.id]===q.answer" :answer="q.answer" :text="choiceExplanation(q)" />
+            <div class="options"><button v-for="(text,key) in q.options" :key="key" :class="choiceClass(q,key)" :disabled="isQuestionLocked(q) || choiceSetSubmitted" @click="choiceAnswers[q.id]=key"><b>{{ key }}</b><span v-html="renderInline(text)"></span></button></div>
+            <AnswerAnalysis v-if="choiceSetSubmitted && !isQuestionLocked(q)" :correct="choiceAnswers[q.id]===q.answer" :answer="q.answer" :text="choiceExplanation(q)" />
           </article>
           <section class="set-submit">
-            <div v-if="practiceLocked" class="locked-inline"><b>暂不能提交</b><span>请先完成整卷测评，等待老师开放解析。</span></div>
+            <div v-if="choiceBlocked" class="locked-inline"><b>暂不能提交</b><span>请先完成整卷测评，等待老师开放解析。</span></div>
             <div v-else-if="choiceSetSubmitted"><b>本套得分：{{ choiceScore }}/{{ choiceTotal }} 分</b><span>解析已在每道题下方展开。</span></div>
             <div v-else><b>已完成 {{ answered }}/{{ paper.length }} 题</b><span>全部作答后统一提交，提交前不会显示答案。</span></div>
-            <button v-if="!choiceSetSubmitted && !practiceLocked" :disabled="answered !== paper.length" @click="submitChoiceSet">提交整套试卷</button>
-            <button v-else-if="choiceSetSubmitted && !practiceLocked" class="secondary" @click="resetChoiceSet">重新作答</button>
+            <button v-if="!choiceSetSubmitted && !choiceBlocked" :disabled="answered !== paper.length" @click="submitChoiceSet">提交整套试卷</button>
+            <button v-else-if="choiceSetSubmitted && !choiceBlocked" class="secondary" @click="resetChoiceSet">重新作答</button>
           </section>
         </template>
       </section>
@@ -35,12 +36,12 @@
       <section v-else>
         <YearTabs :items="level === 'S' ? sProgramYears : programYears" :value="year" @change="selectYear" />
         <header class="problem-nav">
-          <div><b>{{ year }} 年{{ typeLabel }}</b><span>共 {{ problems.length }} 道大题，每次练习一题</span></div>
+          <div><b>{{ yearDisplayLabel }} {{ typeLabel }}</b><span>共 {{ problems.length }} 道大题，每次练习一题</span></div>
           <div class="problem-buttons"><button v-for="(item,i) in problems" :key="item.id" :class="{ on:index===i }" @click="selectProblem(i)">第 {{ item.number }} 题</button></div>
         </header>
 
         <article v-if="problem" class="original-problem">
-          <header><div><span>{{ year }} 原卷</span><b>{{ problem.title }}</b></div></header>
+          <header><div><span>{{ year === 'NOIP' ? 'NOIP 专项题库' : year + ' 原卷' }}</span><b>{{ year === 'NOIP' ? `NOIP ${problem.sourceYear} ${typeLabel}第 ${problem.number} 题` : problem.title }}</b></div></header>
           <div class="original-markdown" v-html="renderMd(problem.statement)"></div>
 
           <section class="answer-sheet">
@@ -48,16 +49,16 @@
             <article v-for="q in problem.questions" :key="q.id" class="sub-question">
               <h4>第 {{ q.number }} 小题　<span v-html="renderInline(q.text)"></span><em>{{ q.multiple ? '多选题' : `${q.score} 分` }}</em></h4>
               <div class="options">
-                <button v-for="(text,key) in q.options" :key="key" :class="programClass(q,key)" :disabled="practiceLocked || programSetSubmitted" @click="selectProgram(q,key)"><b>{{ key }}</b><span v-html="renderInline(text)"></span></button>
+                <button v-for="(text,key) in q.options" :key="key" :class="programClass(q,key)" :disabled="isQuestionLocked(q) || programSetSubmitted" @click="selectProgram(q,key)"><b>{{ key }}</b><span v-html="renderInline(text)"></span></button>
               </div>
-              <AnswerAnalysis v-if="programSetSubmitted && !practiceLocked" :correct="isCorrect(q)" :answer="q.answers.join('、')" :text="programExplanation(q)" />
+              <AnswerAnalysis v-if="programSetSubmitted && !isQuestionLocked(q)" :correct="isCorrect(q)" :answer="q.answers.join('、')" :text="programExplanation(q)" />
             </article>
             <section class="set-submit compact-submit">
-              <div v-if="practiceLocked" class="locked-inline"><b>暂不能提交</b><span>请先完成整卷测评，等待老师开放解析。</span></div>
+              <div v-if="programBlocked" class="locked-inline"><b>暂不能提交</b><span>请先完成整卷测评，等待老师开放解析。</span></div>
               <div v-else-if="programSetSubmitted"><b>本题得分：{{ programScore }}/{{ programTotal }} 分</b><span>所有小题解析已展开。</span></div>
               <div v-else><b>已完成 {{ programAnswered }}/{{ problem.questions.length }} 小题</b><span>多选题可点击多个选项，再统一提交。</span></div>
-              <button v-if="!programSetSubmitted && !practiceLocked" :disabled="!programReady" @click="submitProgramSet">提交本题</button>
-              <button v-else-if="programSetSubmitted && !practiceLocked" class="secondary" @click="resetProgramSet">重新作答</button>
+              <button v-if="!programSetSubmitted && !programBlocked" :disabled="!programReady" @click="submitProgramSet">提交本题</button>
+              <button v-else-if="programSetSubmitted && !programBlocked" class="secondary" @click="resetProgramSet">重新作答</button>
             </section>
           </section>
           <footer><button @click="selectProblem(index-1)" :disabled="index===0">上一题</button><strong>第 {{ index+1 }}/{{ problems.length }} 题</strong><button @click="selectProblem(index+1)" :disabled="index===problems.length-1">下一题</button></footer>
@@ -70,6 +71,7 @@
 import { computed, defineComponent, h, onMounted, ref } from 'vue';
 import { cspChoicePapers, cspYearSources } from '../data/cspChoicePapers';
 import { cspProgramProblems } from '../data/cspProgramProblems';
+import { noipProgramProblems } from '../data/noipProgramProblems';
 import { csp2025ChoicePapers, csp2025ProgramProblems, csp2025YearSource } from '../data/csp2025';
 import { cspSChoicePapers, cspSProgramProblems, cspSYearSources } from '../data/cspS';
 import { buildLegacyChoiceExplanation, buildLegacyProgramExplanation } from '../data/cspLegacyAnalysis';
@@ -88,15 +90,16 @@ const AnswerAnalysis=defineComponent({props:{correct:Boolean,answer:String,text:
 const types=[{id:'choice',label:'选择题'},{id:'reading',label:'阅读程序题'},{id:'completion',label:'完善程序题'}];
 const level=ref('J'),type=ref('choice'),year=ref('2025'),index=ref(0),choiceAnswers=ref({}),programAnswers=ref({}),submittedSets=ref({});
 const practiceStartTime=ref(Date.now());
-const practiceLocked=ref(false),practiceLockMessage=ref('');
-const allChoicePapers={...cspChoicePapers,...csp2025ChoicePapers},allYearSources={...cspYearSources,...csp2025YearSource},allProgramProblems=[...cspProgramProblems,...csp2025ProgramProblems],allSProgramProblems=cspSProgramProblems||[];
+const practiceLocked=ref(false),practiceLockMessage=ref(''),practiceQuestionIds=ref([]);
+const allChoicePapers={...cspChoicePapers,...csp2025ChoicePapers},allYearSources={...cspYearSources,...csp2025YearSource},allProgramProblems=[...cspProgramProblems,...csp2025ProgramProblems,...noipProgramProblems],allSProgramProblems=cspSProgramProblems||[];
 const choiceYears=computed(()=>Object.entries(allYearSources).map(([itemYear,source])=>({year:String(itemYear),...source})).sort((a,b)=>+b.year-+a.year));
 const sChoiceYears=computed(()=>Object.entries(cspSYearSources).map(([itemYear,source])=>({year:String(itemYear),...source})).sort((a,b)=>+b.year-+a.year));
-const programYears=computed(()=>[...new Set(allProgramProblems.map(x=>x.year))].sort((a,b)=>+b-+a).map(itemYear=>({year:itemYear,status:'已导入'})));
-const sProgramYears=computed(()=>[...new Set(allSProgramProblems.map(x=>x.year))].sort((a,b)=>+b-+a).map(itemYear=>({year:itemYear,status:'已导入'})));
+const sortProgramYears=(a,b)=>a==='NOIP'?(b==='NOIP'?0:1):b==='NOIP'?-1:+b-+a;
+const programYears=computed(()=>[...new Set(allProgramProblems.map(x=>x.year))].sort(sortProgramYears).map(itemYear=>({year:itemYear,status:'已导入'})));
+const sProgramYears=computed(()=>[...new Set([...allSProgramProblems,...noipProgramProblems].map(x=>x.year))].sort(sortProgramYears).map(itemYear=>({year:itemYear,status:'已导入'})));
 const paper=computed(()=>level.value==='S'?(cspSChoicePapers[year.value]||[]):(allChoicePapers[year.value]||[]));
 const answered=computed(()=>paper.value.filter(q=>choiceAnswers.value[q.id]).length),choiceTotal=computed(()=>paper.value.length*2),choiceScore=computed(()=>paper.value.filter(q=>choiceAnswers.value[q.id]===q.answer).length*2);
-const problems=computed(()=> (level.value==='S'?allSProgramProblems:allProgramProblems).filter(x=>x.type===type.value&&x.year===year.value).sort((a,b)=>a.number-b.number));
+const problems=computed(()=> (year.value==='NOIP'?noipProgramProblems:(level.value==='S'?allSProgramProblems:allProgramProblems)).filter(x=>x.type===type.value&&x.year===year.value).sort((a,b)=>a.number-b.number));
 const corrected2023Reading1=`#include <iostream>
 using namespace std;
 unsigned short f(unsigned short x) {
@@ -223,7 +226,18 @@ const verifiedSChoiceText={
 };
 const displayPaper=computed(()=>paper.value.map(item=>verifiedSChoiceText[item.id]?{...item,question:verifiedSChoiceText[item.id]}:item));
 const problem=computed(()=>{const value=problems.value[index.value];if(!value)return value;return level.value==='S'&&year.value==='2025'&&type.value==='completion'?applyCspS2025CompletionMarkers(value):value});
+function isQuestionLocked(question){
+  if(practiceLocked.value)return true;
+  let id=String(question?.id||'');
+  const ids=new Set(practiceQuestionIds.value);
+  if(ids.has(id))return true;
+  while(/-\d+$/.test(id)){id=id.replace(/-\d+$/,'');if(ids.has(id))return true;}
+  return false;
+}
+const choiceBlocked=computed(()=>practiceLocked.value||paper.value.some(q=>isQuestionLocked(q)));
+const programBlocked=computed(()=>practiceLocked.value||Boolean(problem.value&&isQuestionLocked(problem.value)));
 const typeLabel=computed(()=>type.value==='reading'?'阅读程序题':'完善程序题');
+const yearDisplayLabel=computed(()=>year.value==='NOIP'?'NOIP':year.value+' 年 CSP-'+level.value);
 const choiceSetKey=computed(()=>`choice-${year.value}`),choiceSetSubmitted=computed(()=>Boolean(submittedSets.value[choiceSetKey.value]));
 const programSetSubmitted=computed(()=>Boolean(problem.value&&submittedSets.value[problem.value.id]));
 const programAnswered=computed(()=>problem.value?problem.value.questions.filter(q=>(programAnswers.value[q.id]||[]).length).length:0);
@@ -231,42 +245,44 @@ const programReady=computed(()=>Boolean(problem.value&&programAnswered.value===p
 const programTotal=computed(()=>problem.value?problem.value.questions.reduce((sum,q)=>sum+Number(q.score||0),0):0);
 const programScore=computed(()=>problem.value?problem.value.questions.reduce((sum,q)=>sum+(isCorrect(q)?Number(q.score||0):0),0):0);
 function restartTimer(){practiceStartTime.value=Date.now()}
-function switchLevel(value){level.value=value;type.value='choice';year.value=value==='S'?'2025':'2025';index.value=0;choiceAnswers.value={};programAnswers.value={};submittedSets.value={};restartTimer()}
-function setType(value){type.value=value;year.value=level.value==='S'?(value==='choice'?'2025':'2025'):'2025';index.value=0;restartTimer()} function selectYear(value){year.value=value;index.value=0;restartTimer()}
+function switchLevel(value){level.value=value;type.value='choice';year.value=value==='S'?'2025':'2025';index.value=0;choiceAnswers.value={};programAnswers.value={};submittedSets.value={};restartTimer();loadPracticeLock()}
+function setType(value){type.value=value;year.value=level.value==='S'?(value==='choice'?'2025':'2025'):'2025';index.value=0;restartTimer();loadPracticeLock()} function selectYear(value){year.value=value;index.value=0;restartTimer();loadPracticeLock()}
 function selectProblem(value){index.value=value;restartTimer()}
-function applyPracticeLock(data){practiceLocked.value=Boolean(data?.locked||data?.code==='CSP_PAPER_ANALYSIS_LOCKED');practiceLockMessage.value=data?.message||data?.error||'请先完成整卷测评，等待老师开放解析。'}
-async function loadPracticeLock(){if(!isLoggedIn.value)return;try{const resp=await authFetch('/api/practice/csp-lock');if(resp.ok)applyPracticeLock(await resp.json())}catch{} }
+function applyPracticeLock(data){practiceLocked.value=Boolean(data?.locked||data?.code==='CSP_PAPER_ANALYSIS_LOCKED');practiceQuestionIds.value=Array.isArray(data?.questionIds)?data.questionIds.map(String):[];practiceLockMessage.value=data?.message||data?.error||'请先完成整卷测评，等待老师开放解析。'}
+const practiceLevel=computed(()=>year.value==='NOIP'?'NOIP':`CSP-${level.value}`);
+async function loadPracticeLock(){if(!isLoggedIn.value)return;const requestedLevel=practiceLevel.value;try{const resp=await authFetch(`/api/practice/csp-lock?level=${requestedLevel}`);if(resp.ok){const data=await resp.json();if(requestedLevel===practiceLevel.value)applyPracticeLock(data)}}catch{} }
 onMounted(loadPracticeLock);
-function choiceClass(q,key){const answer=choiceAnswers.value[q.id];if(practiceLocked.value||!choiceSetSubmitted.value)return{selected:answer===key};return{correct:key===q.answer,wrong:answer===key&&key!==q.answer}}
+function choiceClass(q,key){const answer=choiceAnswers.value[q.id];if(isQuestionLocked(q)||!choiceSetSubmitted.value)return{selected:answer===key};return{correct:key===q.answer,wrong:answer===key&&key!==q.answer}}
 function choiceExplanation(q){if(level.value==='S')return buildSChoiceExplanation(q);if(/^20(1[9]|2[0-4])-choice-/.test(q.id))return buildLegacyChoiceExplanation(q);if(q.explanation&&q.explanation.length>50)return q.explanation;return `参考答案为 ${q.answer}（${cleanPlainText(q.options[q.answer])}）。请按题干的定义、计算顺序或程序执行过程逐项核对。`}
-function programExplanation(q){if(level.value==='S'&&problem.value)return buildSProgramExplanation(q,problem.value);if(problem.value&&+problem.value.year>=2019&&+problem.value.year<=2024)return buildLegacyProgramExplanation(q,problem.value);return q.explanation}
+function programExplanation(q){if(year.value==='NOIP')return q.explanation;if(level.value==='S'&&problem.value)return buildSProgramExplanation(q,problem.value);if(problem.value&&+problem.value.year>=2019&&+problem.value.year<=2024)return buildLegacyProgramExplanation(q,problem.value);return q.explanation}
 function selectProgram(q,key){const current=programAnswers.value[q.id]||[];if(q.multiple)programAnswers.value[q.id]=current.includes(key)?current.filter(x=>x!==key):[...current,key];else programAnswers.value[q.id]=[key]}
 function isCorrect(q){return [...(programAnswers.value[q.id]||[])].sort().join('')===[...q.answers].sort().join('')}
-function programClass(q,key){const picked=(programAnswers.value[q.id]||[]).includes(key);if(practiceLocked.value||!programSetSubmitted.value)return{selected:picked};return{correct:q.answers.includes(key),wrong:picked&&!q.answers.includes(key)}}
+function programClass(q,key){const picked=(programAnswers.value[q.id]||[]).includes(key);if(isQuestionLocked(q)||!programSetSubmitted.value)return{selected:picked};return{correct:q.answers.includes(key),wrong:picked&&!q.answers.includes(key)}}
 function submitChoiceSet(){
-  if(practiceLocked.value||answered.value!==paper.value.length)return;
+  if(choiceBlocked.value||answered.value!==paper.value.length)return;
   submittedSets.value={...submittedSets.value,[choiceSetKey.value]:true};
   saveRecord('choice',choiceScore.value,choiceTotal.value,paper.value.map(q=>({id:q.id,number:q.number,user_answer:choiceAnswers.value[q.id]||'',correct_answer:q.answer,correct:choiceAnswers.value[q.id]===q.answer,score:choiceAnswers.value[q.id]===q.answer?2:0})));
 }
 function submitProgramSet(){
-  if(practiceLocked.value||!programReady.value)return;
+  if(programBlocked.value||!programReady.value)return;
   submittedSets.value={...submittedSets.value,[problem.value.id]:true};
   const p=problem.value;
   saveRecord(type.value,programScore.value,programTotal.value,p.questions.map(q=>({id:q.id,number:q.number,user_answer:(programAnswers.value[q.id]||[]).join(','),correct_answer:q.answers.join(','),correct:isCorrect(q),score:isCorrect(q)?Number(q.score||0):0})));
 }
-function resetChoiceSet(){if(practiceLocked.value)return;const next={...choiceAnswers.value};paper.value.forEach(q=>delete next[q.id]);choiceAnswers.value=next;submittedSets.value={...submittedSets.value,[choiceSetKey.value]:false};practiceStartTime.value=Date.now()}
+function resetChoiceSet(){if(choiceBlocked.value)return;const next={...choiceAnswers.value};paper.value.forEach(q=>delete next[q.id]);choiceAnswers.value=next;submittedSets.value={...submittedSets.value,[choiceSetKey.value]:false};practiceStartTime.value=Date.now()}
 
 async function saveRecord(questionType,totalScore,maxScore,questions){
   if(!isLoggedIn.value)return;
   const duration=Math.round((Date.now()-practiceStartTime.value)/1000);
   practiceStartTime.value=Date.now();
   try{
-    const resp=await authFetch('/api/practice/submit',{method:'POST',body:JSON.stringify({level:'CSP-'+level.value,year:Number(year.value),question_type:questionType,total_score:totalScore,max_score:maxScore,answers:{questions},duration_seconds:duration})});
+    const isNoip=year.value==='NOIP';
+    const resp=await authFetch('/api/practice/submit',{method:'POST',body:JSON.stringify({level:isNoip?'NOIP':'CSP-'+level.value,year:isNoip?'NOIP':Number(year.value),question_type:questionType,total_score:totalScore,max_score:maxScore,answers:{source:isNoip?'NOIP':'CSP-'+level.value,questions},duration_seconds:duration})});
     if(resp.status===423)applyPracticeLock(await resp.json());
     else if(!resp.ok)throw new Error(`提交失败（${resp.status}）`);
   }catch(e){console.warn('保存练习记录失败:',e.message)}
 }
-function resetProgramSet(){if(practiceLocked.value)return;const next={...programAnswers.value};problem.value.questions.forEach(q=>delete next[q.id]);programAnswers.value=next;submittedSets.value={...submittedSets.value,[problem.value.id]:false};practiceStartTime.value=Date.now()}
+function resetProgramSet(){if(programBlocked.value)return;const next={...programAnswers.value};problem.value.questions.forEach(q=>delete next[q.id]);programAnswers.value=next;submittedSets.value={...submittedSets.value,[problem.value.id]:false};practiceStartTime.value=Date.now()}
 </script>
 
 <style scoped>

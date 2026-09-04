@@ -63,7 +63,9 @@ const emit = defineEmits(['select-tool', 'logout']);
 const hasTrainingCourse = ref(false);
 const hasStudentTraining = ref(false);
 const paperTaskCount = ref(0);
+const homeworkTaskCount = ref(0);
 let paperBadgeTimer = null;
+let homeworkBadgeTimer = null;
 const expandedSections = ref({
   ai: false,
   competition: true,
@@ -78,8 +80,8 @@ const sections = computed(() => {
     makeTool('csp-practice', '🏆', 'CSP-J/S 练习'),
     makeTool('gesp-practice', '🎯', 'GESP 考级练习'),
     makeTool('leaderboard', '🏅', '学习排行榜'),
-    ...(isTeacher.value ? [makeTool('csp-paper-assignments', '📝', 'CSP 整卷测评')] : []),
-    ...(!isTeacher.value ? [makeTool('student-csp-papers', '📝', 'CSP 整卷任务', paperTaskCount.value)] : []),
+    ...(isTeacher.value ? [makeTool('csp-paper-assignments', '📝', '整卷测评'), makeTool('homework-assignments', '📝', '作业管理')] : []),
+    ...(!isTeacher.value ? [makeTool('student-csp-papers', '📝', '整卷任务', paperTaskCount.value), makeTool('student-homework', '📝', '我的作业', homeworkTaskCount.value)] : []),
   ];
   if (isTeacher.value && hasTrainingCourse.value) {
     competitionItems.push(makeTool('training-course', '📅', '集训课程'));
@@ -186,6 +188,19 @@ async function refreshPaperTaskBadge() {
 
 function handlePaperUpdated() {
   refreshPaperTaskBadge();
+}async function refreshHomeworkTaskBadge() {
+  if (isTeacher.value || !isLoggedIn.value) return;
+  try {
+    const response = await authFetch('/api/homework/student/assignments');
+    if (!response.ok) return;
+    const data = await response.json();
+    homeworkTaskCount.value = Array.isArray(data) ? data.filter(item => Number(item.submittedCount || 0) < Number(item.total || 0)).length : 0;
+  } catch {
+    // 角标只是提示。
+  }
+}
+function handleHomeworkUpdated() {
+  refreshHomeworkTaskBadge();
 }
 
 onMounted(async () => {
@@ -209,14 +224,19 @@ onMounted(async () => {
 
   if (!isTeacher.value) {
     refreshPaperTaskBadge();
+    refreshHomeworkTaskBadge();
     paperBadgeTimer = window.setInterval(refreshPaperTaskBadge, 30000);
+    homeworkBadgeTimer = window.setInterval(refreshHomeworkTaskBadge, 30000);
     window.addEventListener('csp-paper-updated', handlePaperUpdated);
+    window.addEventListener('homework-updated', handleHomeworkUpdated);
   }
 });
 
 onUnmounted(() => {
   if (paperBadgeTimer) window.clearInterval(paperBadgeTimer);
+  if (homeworkBadgeTimer) window.clearInterval(homeworkBadgeTimer);
   window.removeEventListener('csp-paper-updated', handlePaperUpdated);
+  window.removeEventListener('homework-updated', handleHomeworkUpdated);
 });
 </script>
 

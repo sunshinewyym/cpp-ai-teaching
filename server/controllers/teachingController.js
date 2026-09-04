@@ -73,13 +73,26 @@ async function handleGenerateExample(req, res) {
  * Generate practice exercises
  */
 async function handleGenerateExercise(req, res) {
-  const { courseTopic, count = 10, excludeQuestions = [] } = req.body;
+  const { courseTopic, topicId, count = 10, reserve = 0, excludeQuestions = [] } = req.body;
+  const hasCoursewareTopic = topicId !== undefined;
+  const requestedCount = Number(count);
+
+  if (hasCoursewareTopic && topicId !== 'while-loop') {
+    return res.status(400).json({ error: '课件知识点无效。' });
+  }
+  if (hasCoursewareTopic && (!Number.isInteger(requestedCount) || ![3, 5, 10].includes(requestedCount))) {
+    return res.status(400).json({ error: '课件练习题数量只能是 3、5 或 10。' });
+  }
+  if (hasCoursewareTopic && reserve !== 0 && reserve !== 2) {
+    return res.status(400).json({ error: '课件备用题参数无效。' });
+  }
 
   if (!courseTopic) {
     return res.status(400).json({ error: '请输入课程主题。' });
   }
 
-  const prompt = `请围绕「${courseTopic}」生成 ${count} 道 C++/算法单项选择题。
+  const generationCount = hasCoursewareTopic && requestedCount < 10 ? requestedCount + Number(reserve) : count;
+  const prompt = `请围绕「${courseTopic}」生成 ${generationCount} 道 C++/算法单项选择题。
 
 ## 要求
 1. 适合六年级、初中生
@@ -115,7 +128,7 @@ JSON 格式：
 
 请出题：`;
 
-  await streamResponse(res, prompt, 0.5, count > 1 ? 6000 : 1800);
+  await streamResponse(res, prompt, 0.5, generationCount > 1 ? 6000 : 1800);
 }
 
 /**

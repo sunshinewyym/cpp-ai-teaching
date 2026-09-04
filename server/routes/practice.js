@@ -4,7 +4,15 @@ const { auth, requireTeacher } = require('../middleware/auth');
 const { chatStream } = require('../services/deepseek');
 const { loadQuestionBank } = require('../training/questionBank');
 const { buildTrainingPracticeRecordFromSubmission } = require('../training/trainingRecord');
-const { isCspPracticeLevel, getPendingCspPaper, lockPayload } = require('../services/cspPracticeLock');
+const {
+  isCspPracticeLevel,
+  isGespPracticeLevel,
+  getPendingCspPaper,
+  getPendingHomeworkQuestions,
+  intersectHomeworkQuestions,
+  lockPayload,
+  homeworkLockPayload,
+} = require('../services/cspPracticeLock');
 
 const router = express.Router();
 
@@ -86,15 +94,23 @@ async function ensureTrainingPracticeRecords() {
 }
 
 // 学生提交练习记录
-function sendCspPracticeLock(req, res) {
-  const assignment = getPendingCspPaper(req.user?.id, req.user?.role);
-  if (!assignment) return false;
-  res.status(423).json(lockPayload(assignment));
+function sendPracticeLock(req, res, level, answers = req.body?.answers) {
+  const paperType = isGespPracticeLevel(level) ? 'GESP' : 'CSP';
+  const assignment = getPendingCspPaper(req.user?.id, req.user?.role, paperType);
+  if (assignment) {
+    res.status(423).json(lockPayload(assignment));
+    return true;
+  }
+  const homework = getPendingHomeworkQuestions(req.user?.id, level, req.user?.role);
+  const lockedQuestionIds = intersectHomeworkQuestions(answers, homework.questionIds);
+  if (!lockedQuestionIds.length) return false;
+  res.status(423).json(homeworkLockPayload(homework, lockedQuestionIds));
   return true;
 }
 
 router.post('/submit', auth, (req, res) => {
-  if (isCspPracticeLevel(req.body?.level) && sendCspPracticeLock(req, res)) return;
+  if ((isCspPracticeLevel(req.body?.level) || isGespPracticeLevel(req.body?.level))
+    && sendPracticeLock(req, res, req.body?.level, req.body?.answers)) return;
   const { level, year, question_type, total_score, max_score, answers, duration_seconds } = req.body;
   if (!level || !year || !question_type || total_score === undefined || max_score === undefined || !answers) {
     return res.status(400).json({ error: '缺少必要字段' });
@@ -117,7 +133,17 @@ router.post('/submit', auth, (req, res) => {
 // 学生查看自己的历史记录
 router.get('/csp-lock', auth, (req, res) => {
   res.setHeader('Cache-Control', 'no-store');
-  res.json(lockPayload(getPendingCspPaper(req.user?.id, req.user?.role)));
+  const requestedLevel = String(req.query.level || '').trim();
+  const paperType = isGespPracticeLevel(requestedLevel) ? 'GESP' : 'CSP';
+  const paper = getPendingCspPaper(req.user?.id, req.user?.role, paperType);
+  const homework = requestedLevel
+    ? getPendingHomeworkQuestions(req.user?.id, requestedLevel, req.user?.role)
+    : { questionIds: [], assignments: [] };
+  const payload = lockPayload(paper);
+  payload.questionIds = homework.questionIds;
+  payload.homeworkAssignments = homework.assignments;
+  if (!payload.locked && homework.questionIds.length) Object.assign(payload, homeworkLockPayload(homework, homework.questionIds));
+  res.json(payload);
 });
 
 router.get('/my-history', auth, async (req, res) => {
@@ -215,7 +241,8 @@ router.post('/analyze', auth, async (req, res) => {
     data = { answers: JSON.parse(record.answers_json), level: record.level, year: record.year, question_type: record.question_type, total_score: record.total_score, max_score: record.max_score };
   }
 
-  if (isCspPracticeLevel(data.level) && sendCspPracticeLock(req, res)) return;
+  if ((isCspPracticeLevel(data.level) || isGespPracticeLevel(data.level))
+    && sendPracticeLock(req, res, data.level, data.answers)) return;
 
   if (!data.answers?.questions?.length) {
     return res.status(400).json({ error: '没有可分析的答题数据' });

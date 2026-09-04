@@ -26,11 +26,13 @@ from PIL import Image, ImageEnhance
 ROOT = Path(r"C:\Users\sunsh\WorkBuddy\20260412143556")
 OUT = Path(__file__).resolve().parents[1] / "src" / "data" / "gespPapers.js"
 OCR_CACHE_PATH = Path(__file__).with_name("gesp_ocr_cache.json")
+EXPLANATION_CACHE_PATH = Path(__file__).with_name("gesp_explanations.json")
 TESSERACT = Path(os.environ.get("GESP_TESSERACT", r"C:\Program Files\PDF24\tesseract\tesseract.exe"))
 TESSDATA = Path(os.environ.get("GESP_TESSDATA", r"C:\Users\sunsh\.cache\gesp-ocr\tessdata"))
 OCR_START = "[[GESP_CPP_CODE]]"
 OCR_END = "[[/GESP_CPP_CODE]]"
 OCR_CACHE = json.loads(OCR_CACHE_PATH.read_text(encoding="utf-8")) if OCR_CACHE_PATH.exists() else {}
+EXPLANATION_CACHE = json.loads(EXPLANATION_CACHE_PATH.read_text(encoding="utf-8")) if EXPLANATION_CACHE_PATH.exists() else {}
 RENDER_CACHE: dict[tuple[str, int], Image.Image] = {}
 
 OCR_OVERRIDES = {
@@ -1296,8 +1298,46 @@ CHOICE_ITEM_OVERRIDES.update({
 CHOICE_ITEM_OVERRIDES.update({
     ("gesp-cpp3-2023-12", 5): {"tags": ["字符串", "分支与循环"], "question": "执行下面 C++ 代码后，输出是（ ）。\n\n```cpp\nstring str = \"chen\";\nint x = str.length();\nint temp = 0;\nfor (int i = 0; i <= x; i++)\n    temp++;\ncout << temp << endl;\n```"},
     ("gesp-cpp4-2024-12", 14): {"options": {
+        "A": "freopen(\"log.txt\", \"w\", stdout);\ncout << \"Welcome to GESP!\" << endl;\nfclose(stdout);",
+        "B": "std::ofstream outFile(\"log.txt\");\noutFile << \"Welcome to GESP!\" << endl;\noutFile.close();",
+        "C": "std::ofstream outFile(\"log.txt\");\ncout << \"Welcome to GESP!\" << endl;\noutFile.close();",
         "D": "ofstream log_file(\"log.txt\");\nstreambuf* org_cout = cout.rdbuf();\ncout.rdbuf(log_file.rdbuf());\ncout << \"This output will go to the log file.\" << endl;\ncout.rdbuf(org_cout);"
     }},
+})
+
+# PDF-confirmed fixes for GESP C++2 2023-06 OCR/image extraction.
+CHOICE_ITEM_OVERRIDES.update({
+    ("gesp-cpp2-2023-06", 2): {
+        "tags": ["循环结构", "流程图"],
+        "question": "能够实现下面流程图功能的伪代码是（ ）。\n\n![流程图](/gesp-assets/gesp-cpp2-2023-06/choice-2/flowchart.png)",
+    },
+    ("gesp-cpp2-2023-06", 14): {
+        "question": """在下列代码的横线处填写（ ），可以使得输出是 42。
+
+```cpp
+#include <iostream>
+using namespace std;
+int main() {
+    int sum = 0;
+    for (int i = 1; i <= 20; i++)
+        if (________________) // 在此处填入代码
+            sum += i;
+    cout << sum << endl;
+    return 0;
+}
+```""",
+        "options": {
+            "A": "i % 3 == 0",
+            "B": "20 % i == 0",
+            "C": "i <= 8",
+            "D": "i >= 18",
+        },
+    },
+})
+JUDGMENT_ITEM_OVERRIDES.update({
+    ("gesp-cpp2-2023-06", 8): {
+        "question": "++和==都是 C++语言的运算符，但+=不是。",
+    },
 })
 
 # PDF_OPTION_FIX_2023_12_13: restore the complete stem, code block and options from the PDF.
@@ -1381,6 +1421,7 @@ QUESTION_TEXT_OVERRIDES = {
     ("gesp-cpp6-2025-06", 3): "为了实现一个队列，使其出队操作（pop）的时间复杂度为 O(1) 并且避免数组删除首元素的 O(n) 问题，一种常见且有效的方法是使用环形数组，通过调整队首和队尾指针来实现。",
     ("gesp-cpp3-2023-09", 8): "著名的哥德巴赫猜想：任一大于 2 的偶数都可写成两个素数之和。我们可以通过枚举法来证明它。",
     ("gesp-cpp4-2024-12", 2): "一个函数必须在调用之前既声明又定义。",
+    ("gesp-cpp4-2024-12", 6): "某算法的递推关系式为 T(n) = T(n - 1) + n（n 为正整数）及 T(0) = 1，则该算法的时间复杂度为 O(n²)。",
     ("gesp-cpp8-2025-03", 9): "判断无向图中是否有环，可以通过广度优先搜索实现。",
     ("gesp-cpp3-2023-09", 1): "二进制数 101.101 在十进制下是 5.005。",
     ("gesp-cpp5-2024-12", 1): "单链表只支持在表头进行插入和删除操作。",
@@ -1970,19 +2011,14 @@ def js_string(value: str) -> str:
     return json.dumps(value, ensure_ascii=False)
 
 
-def explanation(answer: str, answer_text: str, tags: list[str], question_type: str) -> str:
-    topic = "、".join(tags)
-    if question_type == "judgment":
-        verdict = "题干说法成立" if answer == "A" else "题干说法不成立"
-        detail = f"本题考查{topic}。逐项核对题干中的定义、运算规则和适用条件，可以判断：{verdict}，因此答案为“{answer_text}”。"
-        tip = "判断题先找绝对化表述和边界条件，再用一个最小反例或规则逐句验证。"
-        pitfall = "不要因为题干前半句正确就忽略后半句；整句话只有全部成立时才能选“正确”。"
-    else:
-        detail = f"本题考查{topic}。先提取题干的关键条件，再按照 C++ 语法、类型规则或算法定义逐步推导；与题干条件完全一致的选项是“{answer}（{answer_text}）”。"
-        tip = "先圈出输入范围、循环边界、运算符优先级和复杂度要求，再逐项排除不满足条件的选项。"
-        pitfall = "注意 C++ 的整数除法、下标边界、短路求值和运算符优先级，这些细节最容易导致误判。"
-    return f"参考答案为 {answer}（{answer_text}）。\n\n**详细解析：**\n\n{detail}\n\n**解题技巧：** {tip}\n\n**易错点：** {pitfall}"
-
+def explanation(question_id: str) -> str:
+    value = EXPLANATION_CACHE.get(question_id, "").strip()
+    if not value:
+        raise RuntimeError(
+            f"{question_id} 缺少专属解析。请先运行 server/scripts/regenerateGespExplanations.js，"
+            f"不要用通用模板填充。"
+        )
+    return value
 
 def build():
     papers: dict[str, dict] = {f"GESP-{level}": {} for level in range(2, 9)}
@@ -2050,7 +2086,7 @@ for (int i = 1; i < N + 1; i++) {
                     choice_questions.append({
                         "id": f"{paper_id}-choice-{item['number']}", "number": item["number"],
                         "question": item["question"], "options": item["options"], "answer": answer,
-                        "tags": tags, "explanation": explanation(answer, option_text, tags, "choice"),
+                        "tags": tags, "explanation": explanation(f"{paper_id}-choice-{item['number']}"),
                     })
                 judgment_questions = []
                 for item, answer in zip(judgments, judgment_key):
@@ -2059,7 +2095,7 @@ for (int i = 1; i < N + 1; i++) {
                     judgment_questions.append({
                         "id": f"{paper_id}-judgment-{item['number']}", "number": item["number"],
                         "question": item["question"], "options": {"A": "正确", "B": "错误"}, "answer": answer,
-                        "tags": tags, "explanation": explanation(answer, option_text, tags, "judgment"),
+                        "tags": tags, "explanation": explanation(f"{paper_id}-judgment-{item['number']}"),
                     })
                 papers[f"GESP-{level}"][f"{year}-{month:02d}"] = {
                     "id": paper_id, "language": "C++", "level": level, "year": year, "month": month,

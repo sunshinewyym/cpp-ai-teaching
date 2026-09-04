@@ -166,6 +166,58 @@ db.exec(`
   )
 `);
 
+
+// 课后作业：教师可从 CSP/GESP 题库按知识点组合题目并布置给学生。
+db.exec(`
+  CREATE TABLE IF NOT EXISTS homework_assignments (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    teacher_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    title TEXT NOT NULL,
+    question_ids_json TEXT NOT NULL,
+    deadline TEXT DEFAULT '',
+    lock_practice INTEGER NOT NULL DEFAULT 1,
+    analysis_released_at TEXT DEFAULT NULL,
+    created_at TEXT DEFAULT (datetime('now','localtime')),
+    updated_at TEXT DEFAULT (datetime('now','localtime'))
+  )
+`);
+
+db.exec(`
+  CREATE TABLE IF NOT EXISTS homework_students (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    assignment_id INTEGER NOT NULL REFERENCES homework_assignments(id) ON DELETE CASCADE,
+    student_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    assigned_at TEXT DEFAULT (datetime('now','localtime')),
+    completed_at TEXT DEFAULT NULL,
+    UNIQUE(assignment_id, student_id)
+  )
+`);
+
+db.exec(`
+  CREATE TABLE IF NOT EXISTS homework_submissions (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    assignment_student_id INTEGER NOT NULL REFERENCES homework_students(id) ON DELETE CASCADE,
+    question_id TEXT NOT NULL,
+    answers_json TEXT NOT NULL,
+    score REAL NOT NULL DEFAULT 0,
+    max_score REAL NOT NULL DEFAULT 0,
+    duration_seconds INTEGER,
+    submitted_at TEXT DEFAULT NULL,
+    updated_at TEXT DEFAULT (datetime('now','localtime')),
+    UNIQUE(assignment_student_id, question_id)
+  )
+`);
+// 试卷来源与唯一试卷键：保留旧 CSP 记录的兼容字段，允许整卷任务复用 GESP 试卷。
+const paperAssignmentColumns = db.prepare("PRAGMA table_info(csp_paper_assignments)").all();
+if (!paperAssignmentColumns.some(column => column.name === 'paper_type')) {
+  db.exec("ALTER TABLE csp_paper_assignments ADD COLUMN paper_type TEXT NOT NULL DEFAULT 'CSP'");
+  console.log('[DB] 迁移: 添加整卷试卷来源字段');
+}
+if (!paperAssignmentColumns.some(column => column.name === 'paper_key')) {
+  db.exec("ALTER TABLE csp_paper_assignments ADD COLUMN paper_key TEXT NOT NULL DEFAULT ''");
+  console.log('[DB] 迁移: 添加整卷试卷唯一键字段');
+}
+
 // 数据修正：CSP-J 2024 完善程序第 1 题第 4 小问的系统答案为 C。
 // 该迁移同时修正已经提交的整卷记录，保证历史分数与新题库一致。
 db.exec(`
@@ -309,6 +361,15 @@ if (!practiceColumns.some(column => column.name === 'paper_submission_id')) {
   db.exec('ALTER TABLE practice_records ADD COLUMN paper_submission_id INTEGER');
   console.log('[DB] 迁移: 添加 CSP 整卷练习记录关联字段');
 }
+if (!practiceColumns.some(column => column.name === 'homework_submission_id')) {
+  db.exec('ALTER TABLE practice_records ADD COLUMN homework_submission_id INTEGER');
+  console.log('[DB] 迁移: 添加课后作业练习记录关联字段');
+}
+db.exec(`
+  CREATE UNIQUE INDEX IF NOT EXISTS idx_practice_records_homework_submission
+  ON practice_records(homework_submission_id)
+  WHERE homework_submission_id IS NOT NULL
+`);
 const trainingCourseColumns = db.prepare("PRAGMA table_info(training_courses)").all();
 if (!trainingCourseColumns.some(column => column.name === 'variant')) {
   db.exec("ALTER TABLE training_courses ADD COLUMN variant TEXT NOT NULL DEFAULT 'advanced'");
