@@ -1,6 +1,7 @@
 FROM node:24-alpine
 
-RUN apk add --no-cache g++
+RUN sed -i 's#https\?://dl-cdn.alpinelinux.org/alpine#https://mirrors.tuna.tsinghua.edu.cn/alpine#g' /etc/apk/repositories \
+&& apk add --no-cache g++
 
 WORKDIR /runner
 COPY server/package*.json ./
