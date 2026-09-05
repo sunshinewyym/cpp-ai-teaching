@@ -44,6 +44,15 @@ function parseGespPaperKey(value) {
   };
 }
 
+function parseCspPaperKey(value) {
+  const match = /^CSP-(J|S)-(20\d{2})$/i.exec(String(value || '').trim());
+  if (!match) return null;
+  return {
+    level: `CSP-${match[1].toUpperCase()}`,
+    year: Number(match[2]),
+  };
+}
+
 function getGuangzhouCutoff(level, year) {
   if (normalizeLevel(level) !== 'CSP-J') return null;
   return GUANGZHOU_CSP_J_CUTOFFS[Number(year)] || null;
@@ -97,8 +106,9 @@ async function getPaperDefinition(level, year, paperType = PAPER_TYPES.CSP, pape
       maxScore,
     };
   }
-  const normalizedLevel = normalizeLevel(level);
-  const normalizedYear = Number(year);
+  const cspMeta = parseCspPaperKey(paperKey);
+  const normalizedLevel = cspMeta?.level || normalizeLevel(level);
+  const normalizedYear = cspMeta?.year || Number(year);
   if (!PAPER_YEARS.includes(normalizedYear)) throw new Error('暂不支持该年份的 CSP 试卷');
   const ids = [...bank.keys()]
     .filter(id => questionBelongsToPaper(id, normalizedLevel, normalizedYear))

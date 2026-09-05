@@ -224,7 +224,7 @@ function applyCspS2025CompletionMarkers(value){
 const verifiedSChoiceText={
   '2023-choice-14':'若 n=Σ(i=0..k)16^i·x_i，定义 f(n)=Σx_i。反复令 n=f(n)，直到得到不动点。问在 100₁₆ 到 1A0₁₆ 中，关于 f 的不动点为 9 的自然数有多少个？'
 };
-const displayPaper=computed(()=>paper.value.map(item=>verifiedSChoiceText[item.id]?{...item,question:verifiedSChoiceText[item.id]}:item));
+const displayPaper=computed(()=>level.value==='S'?paper.value.map(item=>verifiedSChoiceText[item.id]?{...item,question:verifiedSChoiceText[item.id]}:item):paper.value);
 const problem=computed(()=>{const value=problems.value[index.value];if(!value)return value;return level.value==='S'&&year.value==='2025'&&type.value==='completion'?applyCspS2025CompletionMarkers(value):value});
 function isQuestionLocked(question){
   if(practiceLocked.value)return true;
