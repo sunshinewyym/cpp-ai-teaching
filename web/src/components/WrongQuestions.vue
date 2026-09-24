@@ -66,6 +66,7 @@ const labels = ['\u4e00', '\u4e8c', '\u4e09', '\u56db', '\u4e94', '\u516d', '\u4
 import { ref, computed, onMounted, watch } from 'vue';
 import { cspChoicePapers } from '../data/cspChoicePapers';
 import { csp2025ChoicePapers } from '../data/csp2025';
+import { csp2026ChoicePapers } from '../data/csp2026';
 import { cspSChoicePapers } from '../data/cspS';
 import { findGespQuestion } from '../data/gespPapers';
 import { buildLegacyChoiceExplanation } from '../data/cspLegacyAnalysis';
@@ -73,7 +74,7 @@ import { buildSChoiceExplanation } from '../data/cspSAnalysis';
 import { authFetch } from '../utils/auth';
 import { renderCspInline, renderCspMarkdown } from '../utils/cspMarkdown';
 
-const allChoicePapers = { ...cspChoicePapers, ...csp2025ChoicePapers };
+const allChoicePapers = { ...cspChoicePapers, ...csp2025ChoicePapers, ...csp2026ChoicePapers };
 
 const loading = ref(true);
 const mode = ref('review');

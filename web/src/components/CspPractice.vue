@@ -73,6 +73,7 @@ import { cspChoicePapers, cspYearSources } from '../data/cspChoicePapers';
 import { cspProgramProblems } from '../data/cspProgramProblems';
 import { noipProgramProblems } from '../data/noipProgramProblems';
 import { csp2025ChoicePapers, csp2025ProgramProblems, csp2025YearSource } from '../data/csp2025';
+import { csp2026ChoicePapers, csp2026ProgramProblems, csp2026YearSource } from '../data/csp2026';
 import { cspSChoicePapers, cspSProgramProblems, cspSYearSources } from '../data/cspS';
 import { buildLegacyChoiceExplanation, buildLegacyProgramExplanation } from '../data/cspLegacyAnalysis';
 import { buildSChoiceExplanation, buildSProgramExplanation } from '../data/cspSAnalysis';
@@ -88,10 +89,10 @@ import {
 const YearTabs=defineComponent({props:{items:Array,value:String,showStatus:Boolean},emits:['change'],setup(props,{emit}){return()=>h('div',{class:'filters'},[h('b','选择年份'),...props.items.map(item=>h('button',{class:{on:props.value===item.year},onClick:()=>emit('change',item.year)},[item.year,props.showStatus&&item.status!=='已导入'?h('small','校对中'):null]))])}});
 const AnswerAnalysis=defineComponent({props:{correct:Boolean,answer:String,text:String},setup(props){return()=>h('div',{class:'analysis'},[h('strong',{class:props.correct?'good':'bad'},props.correct?'回答正确':`回答错误，正确答案是 ${props.answer}`),h('div',{class:'explanation-text',innerHTML:'<b>题目解析：</b>'+renderMd(props.text||'')})])}});
 const types=[{id:'choice',label:'选择题'},{id:'reading',label:'阅读程序题'},{id:'completion',label:'完善程序题'}];
-const level=ref('J'),type=ref('choice'),year=ref('2025'),index=ref(0),choiceAnswers=ref({}),programAnswers=ref({}),submittedSets=ref({});
+const level=ref('J'),type=ref('choice'),year=ref('2026'),index=ref(0),choiceAnswers=ref({}),programAnswers=ref({}),submittedSets=ref({});
 const practiceStartTime=ref(Date.now());
 const practiceLocked=ref(false),practiceLockMessage=ref(''),practiceQuestionIds=ref([]);
-const allChoicePapers={...cspChoicePapers,...csp2025ChoicePapers},allYearSources={...cspYearSources,...csp2025YearSource},allProgramProblems=[...cspProgramProblems,...csp2025ProgramProblems,...noipProgramProblems],allSProgramProblems=cspSProgramProblems||[];
+const allChoicePapers={...cspChoicePapers,...csp2025ChoicePapers,...csp2026ChoicePapers},allYearSources={...cspYearSources,...csp2025YearSource,...csp2026YearSource},allProgramProblems=[...cspProgramProblems,...csp2025ProgramProblems,...csp2026ProgramProblems,...noipProgramProblems],allSProgramProblems=cspSProgramProblems||[];
 const choiceYears=computed(()=>Object.entries(allYearSources).map(([itemYear,source])=>({year:String(itemYear),...source})).sort((a,b)=>+b.year-+a.year));
 const sChoiceYears=computed(()=>Object.entries(cspSYearSources).map(([itemYear,source])=>({year:String(itemYear),...source})).sort((a,b)=>+b.year-+a.year));
 const sortProgramYears=(a,b)=>a==='NOIP'?(b==='NOIP'?0:1):b==='NOIP'?-1:+b-+a;
@@ -245,8 +246,8 @@ const programReady=computed(()=>Boolean(problem.value&&programAnswered.value===p
 const programTotal=computed(()=>problem.value?problem.value.questions.reduce((sum,q)=>sum+Number(q.score||0),0):0);
 const programScore=computed(()=>problem.value?problem.value.questions.reduce((sum,q)=>sum+(isCorrect(q)?Number(q.score||0):0),0):0);
 function restartTimer(){practiceStartTime.value=Date.now()}
-function switchLevel(value){level.value=value;type.value='choice';year.value=value==='S'?'2025':'2025';index.value=0;choiceAnswers.value={};programAnswers.value={};submittedSets.value={};restartTimer();loadPracticeLock()}
-function setType(value){type.value=value;year.value=level.value==='S'?(value==='choice'?'2025':'2025'):'2025';index.value=0;restartTimer();loadPracticeLock()} function selectYear(value){year.value=value;index.value=0;restartTimer();loadPracticeLock()}
+function switchLevel(value){level.value=value;type.value='choice';year.value=value==='S'?'2025':'2026';index.value=0;choiceAnswers.value={};programAnswers.value={};submittedSets.value={};restartTimer();loadPracticeLock()}
+function setType(value){type.value=value;year.value=level.value==='S'?'2025':'2026';index.value=0;restartTimer();loadPracticeLock()} function selectYear(value){year.value=value;index.value=0;restartTimer();loadPracticeLock()}
 function selectProblem(value){index.value=value;restartTimer()}
 function applyPracticeLock(data){practiceLocked.value=Boolean(data?.locked||data?.code==='CSP_PAPER_ANALYSIS_LOCKED');practiceQuestionIds.value=Array.isArray(data?.questionIds)?data.questionIds.map(String):[];practiceLockMessage.value=data?.message||data?.error||'请先完成整卷测评，等待老师开放解析。'}
 const practiceLevel=computed(()=>year.value==='NOIP'?'NOIP':`CSP-${level.value}`);

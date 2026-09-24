@@ -211,6 +211,7 @@ import { renderCspMarkdown as renderMd, renderCspInline as renderInline } from '
 import { cspChoicePapers } from '../data/cspChoicePapers';
 import { cspProgramProblems } from '../data/cspProgramProblems';
 import { csp2025ChoicePapers, csp2025ProgramProblems } from '../data/csp2025';
+import { csp2026ChoicePapers, csp2026ProgramProblems } from '../data/csp2026';
 import { listGespQuestions } from '../data/gespPapers';
 import { problemUrl } from '../data/problemIndex';
 import { cspSTrainingChoices, cspSTrainingPrograms } from '../data/trainingCspS';
@@ -293,11 +294,11 @@ const AnswerBox = defineComponent({
 });
 
 const allChoices = [
-  ...Object.values({ ...cspChoicePapers, ...csp2025ChoicePapers }).flat(),
+  ...Object.values({ ...cspChoicePapers, ...csp2025ChoicePapers, ...csp2026ChoicePapers }).flat(),
   ...listGespQuestions().filter(item => ['choice', 'judgment'].includes(item.source?.questionType)),
   ...cspSTrainingChoices,
 ];
-const allPrograms = [...cspProgramProblems, ...csp2025ProgramProblems, ...cspSTrainingPrograms];
+const allPrograms = [...cspProgramProblems, ...csp2025ProgramProblems, ...csp2026ProgramProblems, ...cspSTrainingPrograms];
 const choiceMap = new Map(allChoices.map(item => [item.id, item]));
 const programMap = new Map(allPrograms.map(item => [item.id, item]));
 const questionGroups = [

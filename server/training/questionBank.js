@@ -19,18 +19,21 @@ async function loadQuestionBank() {
       loadModule('cspChoicePapers.js'),
       loadModule('cspProgramProblems.js'),
       loadModule('csp2025.js'),
+      loadModule('csp2026.js'),
       loadModule('gespPapers.js'),
       loadModule('trainingCspS.js'),
       loadModule('noipProgramProblems.js'),
-    ]).then(([choices, programs, newest, gesp, cspS, noip]) => {
+    ]).then(([choices, programs, newest, year2026, gesp, cspS, noip]) => {
       const bank = new Map();
       const choiceItems = Object.values({
         ...choices.cspChoicePapers,
         ...newest.csp2025ChoicePapers,
+        ...year2026.csp2026ChoicePapers,
       }).flat();
       const programItems = [
         ...programs.cspProgramProblems,
         ...newest.csp2025ProgramProblems,
+        ...year2026.csp2026ProgramProblems,
         ...noip.noipProgramProblems,
       ];
 

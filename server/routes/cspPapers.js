@@ -6,7 +6,7 @@ const { gradeQuestion, loadQuestionBank } = require('../training/questionBank');
 const { buildTrainingPracticeRecord } = require('../training/trainingRecord');
 
 const router = express.Router();
-const PAPER_YEARS = [2019, 2020, 2021, 2022, 2023, 2024, 2025];
+const PAPER_YEARS = [2019, 2020, 2021, 2022, 2023, 2024, 2025, 2026];
 const QUESTION_ORDER = { choice: 0, judgment: 1, reading: 2, completion: 3 };
 const PAPER_TYPES = Object.freeze({ CSP: 'CSP', GESP: 'GESP' });
 

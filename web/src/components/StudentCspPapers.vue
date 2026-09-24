@@ -41,12 +41,13 @@ import { renderCspMarkdown as renderMd, renderCspInline as renderInline } from '
 import { cspChoicePapers } from '../data/cspChoicePapers';
 import { cspProgramProblems } from '../data/cspProgramProblems';
 import { csp2025ChoicePapers, csp2025ProgramProblems } from '../data/csp2025';
+import { csp2026ChoicePapers, csp2026ProgramProblems } from '../data/csp2026';
 import { cspSTrainingChoices, cspSTrainingPrograms } from '../data/trainingCspS';
 import { gespPapers } from '../data/gespPapers';
 
 const gespQuestions = Object.values(gespPapers).flatMap(sessions => Object.values(sessions).flatMap(paper => Object.entries(paper.sections).flatMap(([type, section]) => section.questions.map(item => ({ ...item, _paperType: 'GESP', _questionType: type, _score: Number(section.scorePerQuestion) || 1 })) )));
-const choices = [...Object.values(cspChoicePapers).flat(), ...Object.values(csp2025ChoicePapers).flat(), ...cspSTrainingChoices, ...gespQuestions.filter(item => item.options)];
-const programs = [...cspProgramProblems, ...csp2025ProgramProblems, ...cspSTrainingPrograms];
+const choices = [...Object.values(cspChoicePapers).flat(), ...Object.values(csp2025ChoicePapers).flat(), ...Object.values(csp2026ChoicePapers).flat(), ...cspSTrainingChoices, ...gespQuestions.filter(item => item.options)];
+const programs = [...cspProgramProblems, ...csp2025ProgramProblems, ...csp2026ProgramProblems, ...cspSTrainingPrograms];
 const choiceMap = new Map(choices.map(item => [item.id, item])); const programMap = new Map(programs.map(item => [item.id, item]));
 const assignments = ref([]); const paper = ref(null); const currentId = ref(''); const questionCard = ref(null); const drafts = ref({}); const loading = ref(false); const busy = ref(false); const error = ref('');
 function isChoiceQuestion(q) { return Boolean(q && q.options && !Array.isArray(q.questions)); }

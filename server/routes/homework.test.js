@@ -42,7 +42,7 @@ async function main() {
     assert.equal(noip.filter(q => q.type === 'completion').length, 10);
     assert.deepEqual([...new Set(noip.map(q => q.year))].sort(), [2008, 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018]);
     assert.ok(noip.every(q => q.level === 'NOIP' && q.source === 'NOIP' && q.session === String(q.year) && q.tags.length));
-    assert.deepEqual([...new Set(catalog.filter(q => q.level === 'CSP-J').map(q => q.year))].sort(), [2019, 2020, 2021, 2022, 2023, 2024, 2025]);
+    assert.deepEqual([...new Set(catalog.filter(q => q.level === 'CSP-J').map(q => q.year))].sort(), [2019, 2020, 2021, 2022, 2023, 2024, 2025, 2026]);
     for (const type of ['reading', 'completion']) {
       const { items } = await request(`/api/homework/catalog?level=NOIP&type=${type}`, teacher);
       assert.equal(items.length, 10);
